@@ -2,22 +2,23 @@ package database
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jinzhu/gorm"
 	_ "github.com/joho/godotenv/autoload"
 )
 
 type Service interface {
 	Health() map[string]string
+	FindUserByEmail(email string) (*User, error)
 }
 
 type service struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
 var (
@@ -30,7 +31,7 @@ var (
 
 func New() Service {
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", username, password, host, port, database)
-	db, err := sql.Open("pgx", connStr)
+	db, err := gorm.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
 	}
