@@ -12,6 +12,7 @@ func TestNew(t *testing.T) {
 	// Call the New function
 	service, err := database.New(&database.Config{
 		Database: "testgochallenge",
+		AppEnv:   "test",
 	})
 
 	// Assert that the error is nil
