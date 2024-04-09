@@ -15,6 +15,7 @@ import (
 )
 
 var tokenAuth *jwtauth.JWTAuth
+
 const Secret = "secret"
 
 func MakeToken(email string) string {
@@ -79,9 +80,9 @@ func (s *Server) getAuthCallbackFunction(w http.ResponseWriter, r *http.Request)
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
-		Expires: time.Now().Add(24 * time.Hour),
-		Name: "jwt",
-		Value: token,
+		Expires:  time.Now().Add(24 * time.Hour),
+		Name:     "jwt",
+		Value:    token,
 		SameSite: http.SameSiteLaxMode,
 	})
 
@@ -90,8 +91,6 @@ func (s *Server) getAuthCallbackFunction(w http.ResponseWriter, r *http.Request)
 
 func (s *Server) logoutProvider(res http.ResponseWriter, req *http.Request) {
 	gothic.Logout(res, req)
-
-
 
 	res.Header().Set("Location", "/")
 	res.WriteHeader(http.StatusTemporaryRedirect)
@@ -117,7 +116,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	token := MakeToken(email)
 
-	user, err := s.db.
+	user, err := s.db.FindUserByEmail(email)
 
 	if err != nil {
 		http.Error(w, "user not found", http.StatusNotFound)
@@ -126,9 +125,9 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
-		Expires: time.Now().Add(24 * time.Hour),
-		Name: "jwt",
-		Value: token,
+		Expires:  time.Now().Add(24 * time.Hour),
+		Name:     "jwt",
+		Value:    token,
 		SameSite: http.SameSiteLaxMode,
 	})
 
