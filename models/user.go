@@ -11,7 +11,8 @@ type User struct {
 	Password      string `gorm:"type:varchar(100);not null"`
 	Address       *string
 	AssociationID uint
-	Roles         []Roles `gorm:"many2many:user_languages;"`
 	Annonce       []Annonce
 	Favorite      []Annonce
+	Rating        []Rating
+	Roles         []Roles `gorm:"many2many:user_role;"`
 }
