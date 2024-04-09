@@ -2,13 +2,13 @@ package database
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"go-challenge/internal/models"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/joho/godotenv/autoload"
 )
 
@@ -21,22 +21,38 @@ type service struct {
 	db *gorm.DB
 }
 
-var (
-	database = os.Getenv("DB_DATABASE")
-	password = os.Getenv("DB_PASSWORD")
-	username = os.Getenv("DB_USERNAME")
-	port     = os.Getenv("DB_PORT")
-	host     = os.Getenv("DB_HOST")
-)
+type Config struct {
+	Username string
+	Password string
+	Host     string
+	Port     string
+	Database string
+}
 
-func New() Service {
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", username, password, host, port, database)
+func New(config *Config) (*service, error) {
+	if config.Username == "" {
+		config.Username = os.Getenv("DB_USERNAME")
+	}
+	if config.Password == "" {
+		config.Password = os.Getenv("DB_PASSWORD")
+	}
+	if config.Host == "" {
+		config.Host = os.Getenv("DB_HOST")
+	}
+	if config.Port == "" {
+		config.Port = os.Getenv("DB_PORT")
+	}
+	if config.Database == "" {
+		config.Database = os.Getenv("DB_DATABASE")
+	}
+
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database)
 	db, err := gorm.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	s := &service{db: db}
-	return s
+	return s, nil
 }
 
 func (s *service) FindUserByEmail(email string) (*models.User, error) {
