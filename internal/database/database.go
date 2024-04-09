@@ -14,6 +14,7 @@ import (
 
 type Service interface {
 	FindUserByEmail(email string) (*models.User, error)
+	CreateUser(user *models.User) error
 }
 
 type service struct {
@@ -44,4 +45,8 @@ func (s *service) FindUserByEmail(email string) (*models.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (s *service) CreateUser(user *models.User) error {
+	return s.db.Create(user).Error
 }
