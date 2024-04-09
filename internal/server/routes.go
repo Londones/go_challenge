@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"go-challenge/internal/models"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth"
@@ -35,7 +37,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Use(jwtauth.Verifier(tokenAuth))
 
 		r.Get("/", s.HelloWorldHandler)
-		r.Get("/login", s.LoginPageHandler)
 	})
 
 	r.Get("/auth/{provider}/callback", s.getAuthCallbackFunction)
@@ -122,6 +123,45 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "user not found", http.StatusNotFound)
 		return
 	}
+
+	fmt.Println(user)
+
+	http.SetCookie(w, &http.Cookie{
+		HttpOnly: true,
+		Expires:  time.Now().Add(24 * time.Hour),
+		Name:     "jwt",
+		Value:    token,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	http.Redirect(w, r, "http://localhost:8000/auth/success", http.StatusFound)
+}
+
+func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+	name := r.FormValue("name")
+
+	if email == "" || password == "" {
+		http.Error(w, "email and password are required", http.StatusBadRequest)
+		return
+	}
+
+	user := &models.User{
+		Email:    email,
+		Password: password,
+		Name:     name,
+	}
+
+	err := s.db.CreateUser(user)
+
+	if err != nil {
+		http.Error(w, "error creating user", http.StatusInternalServerError)
+		return
+	}
+
+	token := MakeToken(email)
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
