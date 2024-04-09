@@ -6,6 +6,7 @@ import (
 
 type Annonce struct {
 	gorm.Model
-	UserID uint
-	Cats   []Cats `gorm:"foreignKey:CustomReferer"`
+	UserID      uint
+	Description *string `gorm:"type:varchar(250)'"`
+	Cats        []Cats  `gorm:"foreignKey:CustomReferer"`
 }
