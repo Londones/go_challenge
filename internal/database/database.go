@@ -17,6 +17,8 @@ import (
 type Service interface {
 	FindUserByEmail(email string) (*models.User, error)
 	CreateUser(user *models.User) error
+	Close() error
+	TearDown(dbname string) error
 }
 
 type service struct {
@@ -72,15 +74,20 @@ func New(config *Config) (*service, error) {
 		config.Database = os.Getenv("DB_DATABASE")
 	}
 
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database)
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/?sslmode=disable", config.Username, config.Password, config.Host, config.Port)
 	db, err := gorm.Open("postgres", connStr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to server: %w", err)
 	}
 
 	err = createDbIfNotExists(db, config.Database)
 	if err != nil {
 		return nil, err
+	}
+
+	db, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database))
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	s := &service{db: db}
@@ -100,5 +107,21 @@ func (s *service) CreateUser(user *models.User) error {
 }
 
 func createDbIfNotExists(db *gorm.DB, dbName string) error {
-	return db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", dbName)).Error
+	var count int
+	db.Raw("SELECT COUNT(*) FROM pg_database WHERE datname = ?", dbName).Count(&count)
+	if count == 0 {
+		err := db.Exec(fmt.Sprintf("CREATE DATABASE %s", dbName)).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *service) Close() error {
+	return s.db.Close()
+}
+
+func (s *service) TearDown(dbname string) error {
+	return s.db.Exec(fmt.Sprintf("DROP DATABASE %s", dbname)).Error
 }
