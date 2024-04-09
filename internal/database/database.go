@@ -1,11 +1,11 @@
 package database
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
-	"time"
+
+	"go-challenge/internal/models"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jinzhu/gorm"
@@ -13,8 +13,7 @@ import (
 )
 
 type Service interface {
-	Health() map[string]string
-	FindUserByEmail(email string) (*User, error)
+	FindUserByEmail(email string) (*models.User, error)
 }
 
 type service struct {
@@ -39,16 +38,10 @@ func New() Service {
 	return s
 }
 
-func (s *service) Health() map[string]string {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-	defer cancel()
-
-	err := s.db.PingContext(ctx)
-	if err != nil {
-		log.Fatalf(fmt.Sprintf("db down: %v", err))
+func (s *service) FindUserByEmail(email string) (*models.User, error) {
+	var user models.User
+	if err := s.db.Where("email = ?", email).First(&user).Error; err != nil {
+		return nil, err
 	}
-
-	return map[string]string{
-		"message": "It's healthy",
-	}
+	return &user, nil
 }
