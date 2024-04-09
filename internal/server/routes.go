@@ -8,40 +8,28 @@ import (
 	"net/http"
 	"time"
 
+	"go-challenge/internal/auth"
 	"go-challenge/internal/models"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/jwtauth"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/markbates/goth/gothic"
 )
-
-var tokenAuth *jwtauth.JWTAuth
-
-const Secret = "secret"
-
-func MakeToken(email string) string {
-	_, tokenString, _ := tokenAuth.Encode(map[string]interface{}{"email": email})
-	return tokenString
-}
-
-func init() {
-	tokenAuth = jwtauth.New("HS256", []byte(Secret), nil)
-}
 
 func (s *Server) RegisterRoutes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
 	r.Group(func(r chi.Router) {
-		r.Use(jwtauth.Verifier(tokenAuth))
+		r.Use(jwtauth.Verifier(auth.TokenAuth))
 
 		r.Get("/", s.HelloWorldHandler)
+		r.Get("/logout/{provider}", s.logoutProvider)
+		r.Get("/logout", s.basicLogout)
 	})
 
 	r.Get("/auth/{provider}/callback", s.getAuthCallbackFunction)
-
-	r.Get("/logout/{provider}", s.logoutProvider)
 
 	r.Get("/auth/{provider}", s.beginAuthProviderCallback)
 
@@ -77,7 +65,7 @@ func (s *Server) getAuthCallbackFunction(w http.ResponseWriter, r *http.Request)
 
 	fmt.Println(user)
 
-	token := MakeToken(user.Email)
+	token := auth.MakeToken(user.Email)
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
@@ -93,8 +81,22 @@ func (s *Server) getAuthCallbackFunction(w http.ResponseWriter, r *http.Request)
 func (s *Server) logoutProvider(res http.ResponseWriter, req *http.Request) {
 	gothic.Logout(res, req)
 
+	//remove the cookie
+	http.SetCookie(res, &http.Cookie{
+		Name:   "jwt",
+		MaxAge: -1,
+	})
+
 	res.Header().Set("Location", "/")
 	res.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+func (s *Server) basicLogout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:   "jwt",
+		MaxAge: -1,
+	})
+	http.Redirect(w, r, "http://localhost:8000/auth/success", http.StatusFound)
 }
 
 func (s *Server) beginAuthProviderCallback(w http.ResponseWriter, r *http.Request) {
@@ -115,8 +117,6 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := MakeToken(email)
-
 	user, err := s.db.FindUserByEmail(email)
 
 	if err != nil {
@@ -124,7 +124,13 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !auth.CheckPasswordHash(password, user.Password) {
+		http.Error(w, "invalid password", http.StatusUnauthorized)
+		return
+	}
+
 	fmt.Println(user)
+	token := auth.MakeToken(email)
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
@@ -148,9 +154,15 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	hashedPassword, passwordError := auth.HashPassword(password)
+	if passwordError != nil {
+		http.Error(w, "error hashing password", http.StatusInternalServerError)
+		return
+	}
+
 	user := &models.User{
 		Email:    email,
-		Password: password,
+		Password: hashedPassword,
 		Name:     name,
 	}
 
@@ -161,7 +173,7 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := MakeToken(email)
+	token := auth.MakeToken(email)
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
