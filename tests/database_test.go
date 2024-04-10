@@ -10,10 +10,12 @@ import (
 
 func TestNew(t *testing.T) {
 	// Call the New function
-	service, err := database.New(&database.Config{
+	defaultTestConfig := &database.Config{
 		Database: "testgochallenge",
 		AppEnv:   "test",
-	})
+	}
+
+	service, err := database.New(defaultTestConfig)
 
 	// Assert that the error is nil
 	assert.Nil(t, err)
@@ -21,12 +23,13 @@ func TestNew(t *testing.T) {
 	// Assert that the returned service is not nil
 	assert.NotNil(t, service)
 
-	errorTD := database.Service.TearDown(service, "testgochallenge")
+	database.Service.Close(service)
+	defaultTestConfig.Database = "postgres"
+	errorTD := database.Service.TearDown(service, defaultTestConfig, "testgochallenge")
 
 	// Assert that the error is nil
 	assert.Nil(t, errorTD)
 
-	database.Service.Close(service)
 }
 
 func TestNewError(t *testing.T) {
@@ -52,6 +55,9 @@ func TestNewError(t *testing.T) {
 	assert.NotNil(t, err)
 
 	database.Service.Close(service)
-	database.Service.TearDown(service, "testgochallenge")
+	database.Service.TearDown(service, &database.Config{
+		Database: "postgres",
+		AppEnv:   "test",
+	}, "testgochallenge")
 
 }

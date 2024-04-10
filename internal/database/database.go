@@ -18,7 +18,7 @@ type Service interface {
 	FindUserByEmail(email string) (*models.User, error)
 	CreateUser(user *models.User) error
 	Close() error
-	TearDown(dbname string) error
+	TearDown(config *Config, dbname string) error
 }
 
 type service struct {
@@ -122,6 +122,20 @@ func (s *service) Close() error {
 	return s.db.Close()
 }
 
-func (s *service) TearDown(dbname string) error {
-	return s.db.Exec(fmt.Sprintf("DROP DATABASE %s", dbname)).Error
+func (s *service) TearDown(config *Config, dbname string) error {
+	// Create a new connection to the postgres database.
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database)
+	tempDB, err := gorm.Open("postgres", connStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer tempDB.Close()
+
+	// Use the new connection to drop the test database.
+	err = tempDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s;", dbname)).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
