@@ -17,4 +17,6 @@ type Cats struct {
 	Sterilized      bool
 	Race            string  `gorm:"type:varchar(100);not null"`
 	Description     *string `gorm:"type:varchar(250)"`
+	Reserved        bool
+	AnnonceID       uint
 }
