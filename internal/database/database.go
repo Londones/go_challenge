@@ -14,15 +14,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type Service interface {
-	FindUserByEmail(email string) (*models.User, error)
-	CreateUser(user *models.User) error
+type Database interface {
+	DB() *gorm.DB
 	Close() error
-	TearDown(config *Config, dbname string) error
 }
 
-type service struct {
-	db *gorm.DB
+type Service struct {
+	Db *gorm.DB
 }
 
 type Config struct {
@@ -34,15 +32,15 @@ type Config struct {
 	AppEnv   string
 }
 
-func New(config *Config) (*service, error) {
+func New(config *Config) (*Service, error) {
 	// Get the root directory of the project.
 	var root string
 	var err error
 
-	if config.AppEnv == "" {
-		root, err = filepath.Abs("../..")
-	} else {
+	if config.AppEnv == "test" {
 		root, err = filepath.Abs("..")
+	} else {
+		root, err = filepath.Abs("../..")
 	}
 
 	if err != nil {
@@ -90,20 +88,29 @@ func New(config *Config) (*service, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	s := &service{db: db}
+	err = migrateAllModels(db)
+	if err != nil {
+		return nil, err
+	}
+
+	s := &Service{Db: db}
 	return s, nil
 }
 
-func (s *service) FindUserByEmail(email string) (*models.User, error) {
-	var user models.User
-	if err := s.db.Where("email = ?", email).First(&user).Error; err != nil {
-		return nil, err
-	}
-	return &user, nil
+func (s *Service) Close() error {
+	return s.Db.Close()
 }
 
-func (s *service) CreateUser(user *models.User) error {
-	return s.db.Create(user).Error
+func migrateAllModels(db *gorm.DB) error {
+	return db.AutoMigrate(
+		&models.Annonce{},
+		&models.Association{},
+		&models.Cats{},
+		&models.Favorite{},
+		&models.Rating{},
+		&models.Roles{},
+		&models.User{},
+	).Error
 }
 
 func createDbIfNotExists(db *gorm.DB, dbName string) error {
@@ -118,24 +125,6 @@ func createDbIfNotExists(db *gorm.DB, dbName string) error {
 	return nil
 }
 
-func (s *service) Close() error {
-	return s.db.Close()
-}
-
-func (s *service) TearDown(config *Config, dbname string) error {
-	// Create a new connection to the postgres database.
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database)
-	tempDB, err := gorm.Open("postgres", connStr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer tempDB.Close()
-
-	// Use the new connection to drop the test database.
-	err = tempDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s;", dbname)).Error
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (s *Service) DB() *gorm.DB {
+	return s.Db
 }
