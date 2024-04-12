@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go-challenge/internal/auth"
+	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
 
 	"github.com/go-chi/chi/v5"
@@ -117,7 +118,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := s.db.FindUserByEmail(email)
+	user, err := queries.FindUserByEmail(email)
 
 	if err != nil {
 		http.Error(w, "user not found", http.StatusNotFound)
@@ -148,6 +149,7 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 	name := r.FormValue("name")
+	address := r.FormValue("address")
 
 	if email == "" || password == "" {
 		http.Error(w, "email and password are required", http.StatusBadRequest)
@@ -164,9 +166,11 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		Email:    email,
 		Password: hashedPassword,
 		Name:     name,
+		Address:  &address,
+		Roles:    []models.Roles{{Name: "user"}},
 	}
 
-	err := s.db.CreateUser(user)
+	err := queries.CreateUser(user)
 
 	if err != nil {
 		http.Error(w, "error creating user", http.StatusInternalServerError)
