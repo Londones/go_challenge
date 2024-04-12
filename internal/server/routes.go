@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	httpSwagger "github.com/swaggo/http-swagger"
+	"go-challenge/internal/controller"
 	"log"
 	"net/http"
 	"time"
@@ -16,6 +18,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/markbates/goth/gothic"
+	_ "github.com/swaggo/http-swagger"
+	_ "go-challenge/cmd/api/docs"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
@@ -25,7 +29,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Group(func(r chi.Router) {
 		r.Use(jwtauth.Verifier(auth.TokenAuth))
 
-		r.Get("/", s.HelloWorldHandler)
+		r.Get("/", controller.HelloWorld())
 		r.Get("/logout/{provider}", s.logoutProvider)
 		r.Get("/logout", s.basicLogout)
 	})
@@ -37,6 +41,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Post("/login", s.LoginHandler)
 
 	r.Post("/register", s.RegisterHandler)
+
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"), //The url pointing to API definition
+	))
 
 	return r
 }
