@@ -29,7 +29,6 @@ type Config struct {
 	Host     string
 	Port     string
 	Database string
-	AppEnv   string
 }
 
 func New(config *Config) (*Service, error) {
@@ -37,11 +36,7 @@ func New(config *Config) (*Service, error) {
 	var root string
 	var err error
 
-	if config.AppEnv == "test" {
-		root, err = filepath.Abs("..")
-	} else {
-		root, err = filepath.Abs("../..")
-	}
+	root, err = filepath.Abs("../..")
 
 	if err != nil {
 		log.Fatal(err)
