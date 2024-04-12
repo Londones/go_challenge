@@ -9,14 +9,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var testUser = &models.User{
+	Email:    "test@example.com",
+	Name:     "Test User",
+	Password: "password123",
+}
+
 func TestCreateUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mockService := queries.NewMockUserQueries(ctrl)
-	mockService.EXPECT().CreateUser(&models.User{Email: "test@example.com"}).Return(nil)
+	mockService.EXPECT().CreateUser(testUser).Return(nil)
 
-	err := mockService.CreateUser(&models.User{Email: "test@example.com"})
+	err := mockService.CreateUser(testUser)
 	assert.NoError(t, err)
 }
 
@@ -25,10 +31,10 @@ func TestFindUserByEmail(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockService := queries.NewMockUserQueries(ctrl)
-	mockService.EXPECT().FindUserByEmail("test@example.com").Return(&models.User{Email: "test@example.com"}, nil)
+	mockService.EXPECT().FindUserByEmail("test@example.com").Return(testUser, nil)
 
 	user, err := mockService.FindUserByEmail("test@example.com")
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
-	assert.Equal(t, "test@example.com", user.Email)
+	assert.Equal(t, testUser.Email, user.Email)
 }
