@@ -15,6 +15,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/google/uuid"
 	"github.com/markbates/goth/gothic"
 )
 
@@ -24,6 +25,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	r.Group(func(r chi.Router) {
 		r.Use(jwtauth.Verifier(auth.TokenAuth))
+
+		r.Use(jwtauth.Authenticator(auth.TokenAuth))
 
 		r.Get("/", s.HelloWorldHandler)
 		r.Get("/logout/{provider}", s.logoutProvider)
@@ -54,9 +57,13 @@ func (s *Server) HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getAuthCallbackFunction(w http.ResponseWriter, r *http.Request) {
+	type contextKey string
+
+	const providerKey contextKey = "provider"
+
 	provider := chi.URLParam(r, "provider")
 
-	r = r.WithContext(context.WithValue(context.Background(), "provider", provider))
+	r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
 
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
@@ -65,8 +72,33 @@ func (s *Server) getAuthCallbackFunction(w http.ResponseWriter, r *http.Request)
 	}
 
 	fmt.Println(user)
+	// check if user with this google id exists
+	existingUser, err := queries.FindUserByGoogleID(user.UserID)
+	if err != nil {
+		// check if user with this email exists
+		existingUser, err = queries.FindUserByEmail(user.Email)
+		if err != nil {
+			// create user
+			newUser := &models.User{
+				ID:       uuid.New().String(),
+				Email:    user.Email,
+				Name:     user.Name,
+				GoogleID: user.UserID,
+				Role:     models.Roles{Name: "user"},
+			}
 
-	token := auth.MakeToken(user.Email)
+			err := queries.CreateUser(newUser)
+			if err != nil {
+				http.Error(w, "error creating user", http.StatusInternalServerError)
+				return
+			}
+		} else {
+			http.Error(w, "An account has already been registered with this email", http.StatusConflict)
+			return
+		}
+	}
+
+	token := auth.MakeToken(existingUser.ID, string(existingUser.Role.Name))
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
@@ -101,9 +133,13 @@ func (s *Server) basicLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) beginAuthProviderCallback(w http.ResponseWriter, r *http.Request) {
+	type contextKey string
+
+	const providerKey contextKey = "provider"
+
 	provider := chi.URLParam(r, "provider")
 
-	r = r.WithContext(context.WithValue(context.Background(), "provider", provider))
+	r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
 
 	gothic.BeginAuthHandler(w, r)
 }
@@ -131,7 +167,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(user)
-	token := auth.MakeToken(email)
+	token := auth.MakeToken(user.ID, string(user.Role.Name))
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
@@ -150,6 +186,8 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	name := r.FormValue("name")
 	address := r.FormValue("address")
+	cp := r.FormValue("cp")
+	city := r.FormValue("city")
 
 	if email == "" || password == "" {
 		http.Error(w, "email and password are required", http.StatusBadRequest)
@@ -163,11 +201,14 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := &models.User{
-		Email:    email,
-		Password: hashedPassword,
-		Name:     name,
-		Address:  &address,
-		Roles:    []models.Roles{{Name: "user"}},
+		ID:         uuid.New().String(),
+		Email:      email,
+		Password:   hashedPassword,
+		Name:       name,
+		AddressRue: address,
+		Cp:         cp,
+		Ville:      city,
+		Role:       models.Roles{Name: "user"},
 	}
 
 	err := queries.CreateUser(user)
@@ -177,7 +218,7 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := auth.MakeToken(email)
+	token := auth.MakeToken(user.ID, "user")
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,

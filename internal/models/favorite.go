@@ -4,6 +4,6 @@ import "github.com/jinzhu/gorm"
 
 type Favorite struct {
 	gorm.Model
-	UserID    uint
+	UserID    string
 	AnnonceID uint
 }

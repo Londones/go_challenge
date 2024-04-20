@@ -6,6 +6,7 @@ import (
 
 type User struct {
 	gorm.Model
+	ID            string `gorm:"type:uuid;primary_key;"`
 	Name          string `gorm:"type:varchar(100);not null"`
 	Email         string `gorm:"type:varchar(100);unique_index;not null"`
 	Password      string `gorm:"type:varchar(100);not null"`
@@ -16,5 +17,6 @@ type User struct {
 	Annonce       []Annonce
 	Favorite      []Annonce
 	Rating        []Rating
-	Roles         []Roles `gorm:"many2many:user_role;"`
+	Role          Roles
+	GoogleID      string
 }

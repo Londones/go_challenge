@@ -21,8 +21,8 @@ var TokenAuth *jwtauth.JWTAuth
 
 var secret = os.Getenv("JWT_SECRET")
 
-func MakeToken(email string) string {
-	_, tokenString, _ := TokenAuth.Encode(map[string]interface{}{"email": email})
+func MakeToken(id string, role string) string {
+	_, tokenString, _ := TokenAuth.Encode(map[string]interface{}{"id": id, "role": role})
 	return tokenString
 }
 
