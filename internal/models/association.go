@@ -13,6 +13,6 @@ type Association struct {
 	//ValidationDocument1 byte Je ne sais pas encore comment les mettre dans les models.
 	//ValidationDocument1 byte
 	//ValidationDocument1 byte
-	Members  []User
-	Verified bool
+	MemberIDs []string `gorm:"type:string[]"`
+	Verified  bool
 }
