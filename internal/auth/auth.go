@@ -2,6 +2,7 @@ package auth
 
 import (
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/go-chi/jwtauth/v5"
@@ -24,6 +25,15 @@ var secret = os.Getenv("JWT_SECRET")
 func MakeToken(id string, role string) string {
 	_, tokenString, _ := TokenAuth.Encode(map[string]interface{}{"id": id, "role": role})
 	return tokenString
+}
+
+func GetTokenFromCookie(r *http.Request) (string, error) {
+	cookie, err := r.Cookie("jwt") // replace with your cookie name
+	if err != nil {
+		return "", err
+	}
+
+	return cookie.Value, nil
 }
 
 func NewAuth() {

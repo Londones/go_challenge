@@ -9,6 +9,7 @@ type UserQueries interface {
 	CreateUser(user *models.User) error
 	GetUserFavorites(userID string) ([]models.Favorite, error)
 	FindUserByID(id string) (*models.User, error)
+	FindUserByGoogleID(googleID string) (*models.User, error)
 }
 
 func FindUserByEmail(email string) (*models.User, error) {
