@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"log"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
+	_ "go-challenge/docs"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
@@ -47,6 +49,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Get("/auth/{provider}", s.beginAuthProviderCallback)
 	r.Post("/login", s.LoginHandler)
 	r.Post("/register", s.RegisterHandler)
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"), //The url pointing to API definition
+	))
 
 	return r
 }
