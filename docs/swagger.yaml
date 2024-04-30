@@ -1,0 +1,224 @@
+basePath: /
+definitions:
+  models.Annonce:
+    properties:
+      cats:
+        items:
+          $ref: '#/definitions/models.Cats'
+        type: array
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      description:
+        type: string
+      favorite:
+        items:
+          $ref: '#/definitions/models.Favorite'
+        type: array
+      id:
+        type: integer
+      rating:
+        items:
+          $ref: '#/definitions/models.Rating'
+        type: array
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  models.Cats:
+    properties:
+      annonceID:
+        type: integer
+      behavior:
+        type: string
+      birthDate:
+        type: string
+      color:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      lastVaccine:
+        type: string
+      lastVaccineName:
+        type: string
+      name:
+        type: string
+      race:
+        type: string
+      reserved:
+        type: boolean
+      sex:
+        type: string
+      sterilized:
+        type: boolean
+      updatedAt:
+        type: string
+    type: object
+  models.Favorite:
+    properties:
+      annonceID:
+        type: integer
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  models.Rating:
+    properties:
+      annonceID:
+        type: integer
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      mark:
+        type: integer
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  models.RoleName:
+    enum:
+    - admin
+    - user
+    type: string
+    x-enum-varnames:
+    - Admin
+    - UserRole
+  models.Roles:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      name:
+        $ref: '#/definitions/models.RoleName'
+      updatedAt:
+        type: string
+    type: object
+  models.User:
+    properties:
+      addressRue:
+        type: string
+      annonce:
+        items:
+          $ref: '#/definitions/models.Annonce'
+        type: array
+      associationID:
+        type: integer
+      cp:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      email:
+        type: string
+      favorite:
+        items:
+          $ref: '#/definitions/models.Annonce'
+        type: array
+      googleID:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      rating:
+        items:
+          $ref: '#/definitions/models.Rating'
+        type: array
+      role:
+        $ref: '#/definitions/models.Roles'
+      updatedAt:
+        type: string
+      ville:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Swagger de PurrfectMatch
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: GO-challenge-PurrfectMatch
+  version: "1.0"
+paths:
+  /register:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Register a new user with the given email, password, name, address,
+        cp, and city
+      parameters:
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: Name
+        in: formData
+        name: name
+        type: string
+      - description: Address
+        in: formData
+        name: address
+        type: string
+      - description: CP
+        in: formData
+        name: cp
+        type: string
+      - description: City
+        in: formData
+        name: city
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Register a new user
+      tags:
+      - users
+swagger: "2.0"
