@@ -30,7 +30,7 @@ import (
 func (s *Server) getAuthCallbackFunction(w http.ResponseWriter, r *http.Request) {
 	type contextKey string
 
-	queriesService := queries.NewQueriesService()
+	queriesService := queries.NewQueriesService(s.dbService)
 
 	const providerKey contextKey = "provider"
 
@@ -157,7 +157,7 @@ func (s *Server) beginAuthProviderCallback(w http.ResponseWriter, r *http.Reques
 // @Router /login [post]
 func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
-	queriesService := queries.NewQueriesService()
+	queriesService := queries.NewQueriesService(s.dbService)
 
 	r.ParseForm()
 	email := r.FormValue("email")
@@ -213,7 +213,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {string} string
 // @Router /register [post]
 func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	queriesService := queries.NewQueriesService()
+	queriesService := queries.NewQueriesService(s.dbService)
 
 	r.ParseForm()
 	email := r.FormValue("email")
@@ -284,7 +284,7 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {string} string "error creating association"
 // @Router /association [post]
 func (s *Server) AssociationCreationHandler(w http.ResponseWriter, r *http.Request) {
-	queriesService := queries.NewQueriesService()
+	queriesService := queries.NewQueriesService(s.dbService)
 
 	r.ParseForm()
 	name := r.FormValue("name")

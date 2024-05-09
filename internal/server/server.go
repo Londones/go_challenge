@@ -18,16 +18,21 @@ type Server struct {
 	port             int
 	db               database.Database
 	uploadcareClient ucare.Client
+	dbService        *database.Service
 }
 
-func NewServer() *http.Server {
+func NewServer() (*http.Server, error) {
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
-	db, _ := database.New(&database.Config{})
+	db, err := database.New(&database.Config{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create database: %v", err)
+	}
 	client, _ := api.CreateUCClient()
 	NewServer := &Server{
 		port:             port,
 		db:               db,
 		uploadcareClient: client,
+		dbService:        db,
 	}
 
 	// Declare Server config
@@ -41,5 +46,5 @@ func NewServer() *http.Server {
 
 	fmt.Printf("Server is running on port %s", server.Addr)
 
-	return server
+	return server, nil
 }
