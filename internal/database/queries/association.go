@@ -9,8 +9,10 @@ type DatabaseService struct {
 	s database.Service
 }
 
-func NewQueriesService() *DatabaseService {
-	return &DatabaseService{}
+func NewQueriesService(s *database.Service) *DatabaseService {
+	return &DatabaseService{
+		s: *s,
+	}
 }
 
 func (s *DatabaseService) CreateAssociation(association *models.Association) (id uint, err error) {

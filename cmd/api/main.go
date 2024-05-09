@@ -26,7 +26,10 @@ import (
 func main() {
 
 	auth.NewAuth()
-	server := server.NewServer()
+	server, error := server.NewServer()
+	if error != nil {
+		panic(fmt.Sprintf("cannot create server: %s", error))
+	}
 
 	err := server.ListenAndServe()
 	if err != nil {
