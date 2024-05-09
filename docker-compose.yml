@@ -12,5 +12,12 @@ services:
     volumes:
       - psql_volume:/var/lib/postgresql/data
 
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - psql
+
 volumes:
   psql_volume:
