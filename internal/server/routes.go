@@ -6,7 +6,11 @@ import (
 	"net/http"
 	"os"
 
+	httpSwagger "github.com/swaggo/http-swagger"
+
 	"go-challenge/internal/auth"
+
+	_ "go-challenge/docs"
 
 	_ "go-challenge/docs"
 

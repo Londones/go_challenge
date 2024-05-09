@@ -36,6 +36,7 @@ func New(config *Config) (*Service, error) {
 	var err error
 
 	root, err = filepath.Abs("./")
+	//root, err = filepath.Abs("../..")
 
 	if err != nil {
 		log.Fatal(err)
@@ -47,7 +48,8 @@ func New(config *Config) (*Service, error) {
 	// Load the .env file.
 	err = godotenv.Load(envPath)
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("Variable root: " + root)
+		//log.Fatal("Error loading .env file")
 	}
 
 	if config.Username == "" {
