@@ -21,15 +21,9 @@
         "/association": {
             "post": {
                 "description": "Create a new association with the provided details",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "associations"
-                ],
+                "consumes": ["application/x-www-form-urlencoded"],
+                "produces": ["application/json"],
+                "tags": ["associations"],
                 "summary": "Create association",
                 "parameters": [
                     {
@@ -100,15 +94,9 @@
         "/auth/{provider}": {
             "get": {
                 "description": "Start the authentication process with the specified provider",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "tags": ["auth"],
                 "summary": "Begin authentication provider callback",
                 "parameters": [
                     {
@@ -138,15 +126,9 @@
         "/auth/{provider}/callback": {
             "get": {
                 "description": "Completes user authentication with the specified provider",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "tags": ["auth"],
                 "summary": "Authentication callback",
                 "parameters": [
                     {
@@ -176,15 +158,9 @@
         "/login": {
             "post": {
                 "description": "Login with the given email and password",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
+                "consumes": ["application/x-www-form-urlencoded"],
+                "produces": ["application/json"],
+                "tags": ["auth"],
                 "summary": "Login",
                 "parameters": [
                     {
@@ -239,12 +215,8 @@
         "/logout/": {
             "get": {
                 "description": "Remove the JWT cookie and redirect to the success page",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
+                "produces": ["application/json"],
+                "tags": ["auth"],
                 "summary": "Basic logout",
                 "responses": {
                     "302": {
@@ -259,12 +231,8 @@
         "/logout/{provider}": {
             "get": {
                 "description": "Logout from the authentication provider and remove the JWT cookie",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
+                "produces": ["application/json"],
+                "tags": ["auth"],
                 "summary": "Logout from provider",
                 "responses": {
                     "307": {
@@ -279,15 +247,9 @@
         "/register": {
             "post": {
                 "description": "Register a new user with the given email, password, name, address, cp, and city",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
+                "consumes": ["application/x-www-form-urlencoded"],
+                "produces": ["application/json"],
+                "tags": ["users"],
                 "summary": "Register a new user",
                 "parameters": [
                     {
@@ -504,14 +466,8 @@
         },
         "models.RoleName": {
             "type": "string",
-            "enum": [
-                "admin",
-                "user"
-            ],
-            "x-enum-varnames": [
-                "Admin",
-                "UserRole"
-            ]
+            "enum": ["admin", "user"],
+            "x-enum-varnames": ["Admin", "UserRole"]
         },
         "models.Roles": {
             "type": "object",
