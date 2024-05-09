@@ -15,7 +15,7 @@ services:
   adminer:
     image: adminer
     ports:
-      - "8080:8080"
+      - "5000:8080"
     depends_on:
       - psql
 

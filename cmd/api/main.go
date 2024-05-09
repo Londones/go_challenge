@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"go-challenge/internal/auth"
 	"go-challenge/internal/server"
+	"net/http"
+
+	"github.com/rs/cors"
 )
 
 //    @title            GO-challenge-PurrfectMatch
@@ -24,18 +27,19 @@ import (
 // Pour lancer le swagger : swag init --parseDependency -d ./internal/server -g ../../cmd/api/main.go
 // puis supprimer les lignes
 func main() {
-
 	auth.NewAuth()
-	server, error := server.NewServer()
-	if error != nil {
-		panic(fmt.Sprintf("cannot create server: %s", error))
+	server, err := server.NewServer()
+	if err != nil {
+		panic(fmt.Sprintf("cannot create server: %s", err))
 	}
 
-	err := server.ListenAndServe()
+	mux := http.NewServeMux()
+	handler := cors.Default().Handler(mux)
+	mux.Handle("/", server.Handler)
+
+	fmt.Println("Server is running on port 8080")
+	err = http.ListenAndServe(":8080", handler)
 	if err != nil {
 		panic(fmt.Sprintf("cannot start server: %s", err))
 	}
-
-	// print that the server is running
-	fmt.Printf("Server is running on port %s", server.Addr)
 }

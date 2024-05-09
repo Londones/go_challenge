@@ -103,6 +103,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/annonce": {
+            "post": {
+                "description": "crée une annonce",
+                "consumes": ["application/x-www-form-urlencoded"],
+                "produces": ["application/json"],
+                "tags": ["annonces"],
+                "summary": "create annonce",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "description",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "userID",
+                        "name": "userID",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Location\" \"Redirect location",
+                        "schema": {
+                            "type": "header"
+                        }
+                    },
+                    "400": {
+                        "description": "all fields are required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error creating association",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/{provider}": {
             "get": {
                 "description": "Start the authentication process with the specified provider",

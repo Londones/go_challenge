@@ -224,6 +224,40 @@ paths:
             summary: Create association
             tags:
                 - associations
+    /annonce:
+        post:
+            consumes:
+                - application/x-www-form-urlencoded
+            description: crée une annonce
+            parameters:
+                - description: Description
+                  in: formData
+                  name: description
+                  required: true
+                  type: string
+                - description: user Id
+                  in: formData
+                  name: userID
+                  required: true
+                  type: string
+            produces:
+                - application/json
+            responses:
+                "201":
+                    description: Location" "Redirect location
+                    schema:
+                        type: header
+                "400":
+                    description: all fields are required
+                    schema:
+                        type: string
+                "500":
+                    description: error creating association
+                    schema:
+                        type: string
+            summary: Create association
+            tags:
+                - annonces
     /auth/{provider}:
         get:
             consumes:
