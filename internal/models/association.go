@@ -1,6 +1,9 @@
 package models
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+	"github.com/lib/pq"
+)
 
 type Association struct {
 	gorm.Model
@@ -13,6 +16,6 @@ type Association struct {
 	//ValidationDocument1 byte Je ne sais pas encore comment les mettre dans les models.
 	//ValidationDocument1 byte
 	//ValidationDocument1 byte
-	MemberIDs []string `gorm:"type:string[]"`
+	MemberIDs pq.StringArray `gorm:"type:varchar(100)[]"`
 	Verified  bool
 }
