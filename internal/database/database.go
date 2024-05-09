@@ -16,7 +16,6 @@ import (
 
 type Database interface {
 	DB() *gorm.DB
-	Close() error
 }
 
 type Service struct {
@@ -36,7 +35,7 @@ func New(config *Config) (*Service, error) {
 	var root string
 	var err error
 
-	root, err = filepath.Abs("../..")
+	root, err = filepath.Abs("./")
 
 	if err != nil {
 		log.Fatal(err)
@@ -68,36 +67,52 @@ func New(config *Config) (*Service, error) {
 	}
 
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/?sslmode=disable", config.Username, config.Password, config.Host, config.Port)
-	db, err := gorm.Open("postgres", connStr)
+	dbTemp, err := gorm.Open("postgres", connStr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to server: %w", err)
+		fmt.Printf("failed to connect to server: %v", err)
 	}
 
-	err = createDbIfNotExists(db, config.Database)
+	err = createDbIfNotExists(dbTemp, config.Database)
 	if err != nil {
-		return nil, err
+		fmt.Printf("failed to create db: %v", err)
 	}
 
-	db, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database))
+	db, err := gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database))
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		fmt.Printf("failed to connect to database: %v", err)
 	}
 
 	err = migrateAllModels(db)
 	if err != nil {
-		return nil, err
+		fmt.Printf("failed to migrate models: %v", err)
 	}
 
 	s := &Service{Db: db}
+
+	// print that the database is connected
+	fmt.Printf("Connected to database %s\n", config.Database)
+
 	return s, nil
 }
 
-func (s *Service) Close() error {
-	return s.Db.Close()
+func createDbIfNotExists(db *gorm.DB, dbName string) error {
+	defer db.Close()
+	var count int
+	err := db.Raw("SELECT count(*) FROM pg_database WHERE datname = ?", dbName).Count(&count).Error
+	if err != nil {
+		return fmt.Errorf("failed to check if db exists: %w", err)
+	}
+	if count == 0 {
+		err = db.Exec(fmt.Sprintf("CREATE DATABASE %s", dbName)).Error
+		if err != nil {
+			return fmt.Errorf("failed to create db: %w", err)
+		}
+	}
+	return nil
 }
 
 func migrateAllModels(db *gorm.DB) error {
-	return db.AutoMigrate(
+	err := db.AutoMigrate(
 		&models.Annonce{},
 		&models.Association{},
 		&models.Cats{},
@@ -106,18 +121,10 @@ func migrateAllModels(db *gorm.DB) error {
 		&models.Roles{},
 		&models.User{},
 	).Error
-}
-
-func createDbIfNotExists(db *gorm.DB, dbName string) error {
-	var count int
-	db.Raw("SELECT COUNT(*) FROM pg_database WHERE datname = ?", dbName).Count(&count)
-	if count == 0 {
-		err := db.Exec(fmt.Sprintf("CREATE DATABASE %s", dbName)).Error
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		fmt.Printf("AutoMigrate error: %v\n", err)
 	}
-	return nil
+	return err
 }
 
 func (s *Service) DB() *gorm.DB {
