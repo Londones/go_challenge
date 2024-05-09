@@ -331,3 +331,42 @@ func (s *Server) AssociationCreationHandler(w http.ResponseWriter, r *http.Reque
 
 	http.Redirect(w, r, fmt.Sprintf(os.Getenv("CLIENT_URL")+"/association/%d", id), http.StatusCreated)
 }
+
+// annonceCreationHandler godoc
+func (s *Server) AnnonceCreationHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+
+	r.ParseForm()
+	description := r.FormValue("description")
+
+	if description == "" {
+		http.Error(w, "description is required", http.StatusBadRequest)
+		return
+	}
+
+	_, claims, err := jwtauth.FromContext(r.Context())
+	if err != nil {
+		http.Error(w, "error getting claims", http.StatusInternalServerError)
+		return
+	}
+
+	userID := claims["id"].(string)
+	user, err := queriesService.FindUserByID(userID)
+	if err != nil {
+		http.Error(w, "error finding user", http.StatusInternalServerError)
+		return
+	}
+
+	annonce := &models.Annonce{
+		Description: &description,
+		UserID:      user.ID,
+	}
+
+	createAnnonce, err := queriesService.CreateAnnonce(annonce)
+	if err != nil {
+		http.Error(w, "error creating annonce", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf(os.Getenv("CLIENT_URL")+"/annonce/%d", createAnnonce), http.StatusCreated)
+}
