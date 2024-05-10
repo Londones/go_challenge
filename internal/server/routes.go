@@ -44,6 +44,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Use(jwtauth.Verifier(auth.TokenAuth))
 		r.Use(jwtauth.Authenticator(auth.TokenAuth))
 		r.Use(UserOnly)
+		r.Post("/annonce", s.AnnonceCreationHandler)
 
 	})
 
@@ -56,9 +57,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"), //The url pointing to API definition
 	))
-
-	// Nouvelle route pour la création d'annonce
-	r.Post("/annonce", s.AnnonceCreationHandler)
 
 	return r
 }

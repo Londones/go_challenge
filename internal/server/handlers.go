@@ -360,14 +360,12 @@ func (s *Server) AnnonceCreationHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Obtient l'ID de l'utilisateur à partir des revendications
-	userID := r.FormValue("userID")
-	if userID == "" {
-		http.Error(w, "user id is required", http.StatusInternalServerError)
+	_, claims, err := jwtauth.FromContext(r.Context())
+	if err != nil {
+		http.Error(w, "error getting claims", http.StatusInternalServerError)
 		return
 	}
-
-	// Trouve l'utilisateur dans la base de données
+	userID := claims["id"].(string)
 	user, err := queriesService.FindUserByID(userID)
 	if err != nil {
 		http.Error(w, "error finding user", http.StatusInternalServerError)
