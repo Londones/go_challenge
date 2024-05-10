@@ -5,6 +5,7 @@ import (
 	"go-challenge/internal/auth"
 	"go-challenge/internal/server"
 	"net/http"
+	"os"
 
 	"github.com/rs/cors"
 )
@@ -33,12 +34,25 @@ func main() {
 		panic(fmt.Sprintf("cannot create server: %s", err))
 	}
 
+	// Création d'un nouveau ServeMux
 	mux := http.NewServeMux()
+
+	// Gestion des CORS pour tout le ServeMux
 	handler := cors.Default().Handler(mux)
+
+	// Définir le gestionnaire pour la racine du ServeMux
 	mux.Handle("/", server.Handler)
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	fmt.Println(port)
+
+	// Lancement du serveur
 	fmt.Println("Server is running on port 8080")
-	err = http.ListenAndServe(":8080", handler)
+	err = http.ListenAndServe(":"+port, handler)
 	if err != nil {
 		panic(fmt.Sprintf("cannot start server: %s", err))
 	}
