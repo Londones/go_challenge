@@ -125,6 +125,8 @@ func migrateAllModels(db *gorm.DB) error {
 	).Error
 	if err != nil {
 		fmt.Printf("AutoMigrate error: %v\n", err)
+	} else {
+		fmt.Println("Migrated models successfully")
 	}
 	return err
 }

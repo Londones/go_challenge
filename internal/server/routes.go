@@ -10,12 +10,13 @@ import (
 
 	_ "go-challenge/docs"
 
+	_ "go-challenge/docs"
+	"go-challenge/internal/utils"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
 	httpSwagger "github.com/swaggo/http-swagger"
-	_ "go-challenge/docs"
-	"go-challenge/internal/utils"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
@@ -39,6 +40,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 			r.Use(UserOnly)
 		})
 
+		r.Post("/annonce", s.AnnonceCreationHandler)
 		r.Post("/profile/picture", s.ModifyProfilePictureHandler)
 
 		// Auth routes
