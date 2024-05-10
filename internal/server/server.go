@@ -27,7 +27,10 @@ func NewServer() (*http.Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create database: %v", err)
 	}
-	client, _ := api.CreateUCClient()
+	client, err := api.CreateUCClient()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create uploadcare client: %v", err)
+	}
 	NewServer := &Server{
 		port:             port,
 		db:               db,
@@ -44,7 +47,7 @@ func NewServer() (*http.Server, error) {
 		WriteTimeout: 30 * time.Second,
 	}
 
-	fmt.Printf("Server is running on port %s", server.Addr)
+	fmt.Printf("Server is running on port %s\n", server.Addr)
 
 	return server, nil
 }

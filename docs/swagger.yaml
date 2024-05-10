@@ -1,400 +1,465 @@
 basePath: /
 definitions:
-    models.Annonce:
-        properties:
-            cats:
-                items:
-                    $ref: "#/definitions/models.Cats"
-                type: array
-            createdAt:
-                type: string
-            deletedAt:
-                type: string
-            description:
-                type: string
-            favorite:
-                items:
-                    $ref: "#/definitions/models.Favorite"
-                type: array
-            id:
-                type: integer
-            rating:
-                items:
-                    $ref: "#/definitions/models.Rating"
-                type: array
-            updatedAt:
-                type: string
-            userID:
-                type: string
-        type: object
-    models.Cats:
-        properties:
-            annonceID:
-                type: integer
-            behavior:
-                type: string
-            birthDate:
-                type: string
-            color:
-                type: string
-            createdAt:
-                type: string
-            deletedAt:
-                type: string
-            description:
-                type: string
-            id:
-                type: integer
-            lastVaccine:
-                type: string
-            lastVaccineName:
-                type: string
-            name:
-                type: string
-            race:
-                type: string
-            reserved:
-                type: boolean
-            sex:
-                type: string
-            sterilized:
-                type: boolean
-            updatedAt:
-                type: string
-        type: object
-    models.Favorite:
-        properties:
-            annonceID:
-                type: integer
-            createdAt:
-                type: string
-            deletedAt:
-                type: string
-            id:
-                type: integer
-            updatedAt:
-                type: string
-            userID:
-                type: string
-        type: object
-    models.Rating:
-        properties:
-            annonceID:
-                type: integer
-            createdAt:
-                type: string
-            deletedAt:
-                type: string
-            id:
-                type: integer
-            mark:
-                type: integer
-            updatedAt:
-                type: string
-            userID:
-                type: string
-        type: object
-    models.RoleName:
-        enum:
-            - admin
-            - user
+  models.Annonce:
+    properties:
+      cats:
+        items:
+          $ref: '#/definitions/models.Cats'
+        type: array
+      createdAt:
         type: string
-        x-enum-varnames:
-            - Admin
-            - UserRole
-    models.Roles:
-        properties:
-            createdAt:
-                type: string
-            deletedAt:
-                type: string
-            id:
-                type: integer
-            name:
-                $ref: "#/definitions/models.RoleName"
-            updatedAt:
-                type: string
-        type: object
-    models.User:
-        properties:
-            addressRue:
-                type: string
-            annonce:
-                items:
-                    $ref: "#/definitions/models.Annonce"
-                type: array
-            associationID:
-                type: integer
-            cp:
-                type: string
-            createdAt:
-                type: string
-            deletedAt:
-                type: string
-            email:
-                type: string
-            favorite:
-                items:
-                    $ref: "#/definitions/models.Annonce"
-                type: array
-            googleID:
-                type: string
-            id:
-                type: string
-            name:
-                type: string
-            password:
-                type: string
-            rating:
-                items:
-                    $ref: "#/definitions/models.Rating"
-                type: array
-            role:
-                $ref: "#/definitions/models.Roles"
-            updatedAt:
-                type: string
-            ville:
-                type: string
-        type: object
+      deletedAt:
+        type: string
+      description:
+        type: string
+      favorite:
+        items:
+          $ref: '#/definitions/models.Favorite'
+        type: array
+      id:
+        type: integer
+      rating:
+        items:
+          $ref: '#/definitions/models.Rating'
+        type: array
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  models.Cats:
+    properties:
+      annonceID:
+        type: integer
+      behavior:
+        type: string
+      birthDate:
+        type: string
+      color:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      lastVaccine:
+        type: string
+      lastVaccineName:
+        type: string
+      name:
+        type: string
+      picturesURL:
+        items:
+          type: string
+        type: array
+      race:
+        type: string
+      reserved:
+        type: boolean
+      sex:
+        type: string
+      sterilized:
+        type: boolean
+      updatedAt:
+        type: string
+    type: object
+  models.Favorite:
+    properties:
+      annonceID:
+        type: integer
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  models.Rating:
+    properties:
+      annonceID:
+        type: integer
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      mark:
+        type: integer
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  models.RoleName:
+    enum:
+    - admin
+    - user
+    type: string
+    x-enum-varnames:
+    - Admin
+    - UserRole
+  models.Roles:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      name:
+        $ref: '#/definitions/models.RoleName'
+      updatedAt:
+        type: string
+    type: object
+  models.User:
+    properties:
+      addressRue:
+        type: string
+      annonce:
+        items:
+          $ref: '#/definitions/models.Annonce'
+        type: array
+      associationID:
+        type: integer
+      cp:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      email:
+        type: string
+      favorite:
+        items:
+          $ref: '#/definitions/models.Annonce'
+        type: array
+      googleID:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      profilePicURL:
+        type: string
+      rating:
+        items:
+          $ref: '#/definitions/models.Rating'
+        type: array
+      role:
+        $ref: '#/definitions/models.Roles'
+      updatedAt:
+        type: string
+      ville:
+        type: string
+    type: object
 host: localhost:8080
 info:
-    contact:
-        email: support@swagger.io
-        name: API Support
-        url: http://www.swagger.io/support
-    description: Swagger de PurrfectMatch
-    license:
-        name: Apache 2.0
-        url: http://www.apache.org/licenses/LICENSE-2.0.html
-    termsOfService: http://swagger.io/terms/
-    title: GO-challenge-PurrfectMatch
-    version: "1.0"
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Swagger de PurrfectMatch
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: GO-challenge-PurrfectMatch
+  version: "1.0"
 paths:
-    /association:
-        post:
-            consumes:
-                - application/x-www-form-urlencoded
-            description: Create a new association with the provided details
-            parameters:
-                - description: Name
-                  in: formData
-                  name: name
-                  required: true
-                  type: string
-                - description: Address
-                  in: formData
-                  name: address
-                  required: true
-                  type: string
-                - description: Postal Code
-                  in: formData
-                  name: cp
-                  required: true
-                  type: string
-                - description: City
-                  in: formData
-                  name: city
-                  required: true
-                  type: string
-                - description: Phone
-                  in: formData
-                  name: phone
-                  required: true
-                  type: string
-                - description: Email
-                  in: formData
-                  name: email
-                  required: true
-                  type: string
-            produces:
-                - application/json
-            responses:
-                "201":
-                    description: Location" "Redirect location
-                    schema:
-                        type: header
-                "400":
-                    description: all fields are required
-                    schema:
-                        type: string
-                "500":
-                    description: error creating association
-                    schema:
-                        type: string
-            summary: Create association
-            tags:
-                - associations
-    /auth/{provider}:
-        get:
-            consumes:
-                - application/json
-            description: Start the authentication process with the specified provider
-            parameters:
-                - description: Authentication Provider
-                  in: path
-                  name: provider
-                  required: true
-                  type: string
-            produces:
-                - application/json
-            responses:
-                "200":
-                    description: Authentication process started
-                    schema:
-                        type: string
-                "500":
-                    description: Error message
-                    schema:
-                        type: string
-            summary: Begin authentication provider callback
-            tags:
-                - auth
-    /auth/{provider}/callback:
-        get:
-            consumes:
-                - application/json
-            description: Completes user authentication with the specified provider
-            parameters:
-                - description: Authentication Provider
-                  in: path
-                  name: provider
-                  required: true
-                  type: string
-            produces:
-                - application/json
-            responses:
-                "200":
-                    description: Authenticated user
-                    schema:
-                        $ref: "#/definitions/models.User"
-                "500":
-                    description: Error message
-                    schema:
-                        type: string
-            summary: Authentication callback
-            tags:
-                - auth
-    /login:
-        post:
-            consumes:
-                - application/x-www-form-urlencoded
-            description: Login with the given email and password
-            parameters:
-                - description: Email
-                  in: formData
-                  name: email
-                  required: true
-                  type: string
-                - description: Password
-                  in: formData
-                  name: password
-                  required: true
-                  type: string
-            produces:
-                - application/json
-            responses:
-                "302":
-                    description: Location" "Redirect location
-                    headers:
-                        Set-Cookie:
-                            description: jwt={token}; HttpOnly; SameSite=Lax; Expires={expiry}
-                            type: string
-                    schema:
-                        type: header
-                "400":
-                    description: email and password are required
-                    schema:
-                        type: string
-                "401":
-                    description: invalid password
-                    schema:
-                        type: string
-                "404":
-                    description: user not found
-                    schema:
-                        type: string
-            summary: Login
-            tags:
-                - auth
-    /logout/:
-        get:
-            description: Remove the JWT cookie and redirect to the success page
-            produces:
-                - application/json
-            responses:
-                "302":
-                    description: Location" "Redirect location
-                    schema:
-                        type: header
-            summary: Basic logout
-            tags:
-                - auth
-    /logout/{provider}:
-        get:
-            description: Logout from the authentication provider and remove the JWT cookie
-            produces:
-                - application/json
-            responses:
-                "307":
-                    description: Location" "Redirect location
-                    schema:
-                        type: header
-            summary: Logout from provider
-            tags:
-                - auth
-    /register:
-        post:
-            consumes:
-                - application/x-www-form-urlencoded
-            description: Register a new user with the given email, password, name, address,
-                cp, and city
-            parameters:
-                - description: Email
-                  in: formData
-                  name: email
-                  required: true
-                  type: string
-                - description: Password
-                  in: formData
-                  name: password
-                  required: true
-                  type: string
-                - description: Name
-                  in: formData
-                  name: name
-                  type: string
-                - description: Address
-                  in: formData
-                  name: address
-                  type: string
-                - description: CP
-                  in: formData
-                  name: cp
-                  type: string
-                - description: City
-                  in: formData
-                  name: city
-                  type: string
-            produces:
-                - application/json
-            responses:
-                "201":
-                    description: Created
-                    headers:
-                        Set-Cookie:
-                            description: jwt={token}; HttpOnly; SameSite=Lax; Expires={expiry}
-                            type: string
-                    schema:
-                        type: string
-                "400":
-                    description: Bad Request
-                    schema:
-                        type: string
-                "500":
-                    description: Internal Server Error
-                    schema:
-                        type: string
-            summary: Register a new user
-            tags:
-                - users
+  /association:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new association with the provided details
+      parameters:
+      - description: Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Address
+        in: formData
+        name: address
+        required: true
+        type: string
+      - description: Postal Code
+        in: formData
+        name: cp
+        required: true
+        type: string
+      - description: City
+        in: formData
+        name: city
+        required: true
+        type: string
+      - description: Phone
+        in: formData
+        name: phone
+        required: true
+        type: string
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Location" "Redirect location
+          schema:
+            type: header
+        "400":
+          description: all fields are required
+          schema:
+            type: string
+        "500":
+          description: error creating association
+          schema:
+            type: string
+      summary: Create association
+      tags:
+      - associations
+  /auth/{provider}:
+    get:
+      consumes:
+      - application/json
+      description: Start the authentication process with the specified provider
+      parameters:
+      - description: Authentication Provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Authentication process started
+          schema:
+            type: string
+        "500":
+          description: Error message
+          schema:
+            type: string
+      summary: Begin authentication provider callback
+      tags:
+      - auth
+  /auth/{provider}/callback:
+    get:
+      consumes:
+      - application/json
+      description: Completes user authentication with the specified provider
+      parameters:
+      - description: Authentication Provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Authenticated user
+          schema:
+            $ref: '#/definitions/models.User'
+        "500":
+          description: Error message
+          schema:
+            type: string
+      summary: Authentication callback
+      tags:
+      - auth
+  /cat:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new cat with the provided details
+      parameters:
+      - description: Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Image
+        in: formData
+        name: uploaded_file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created cat
+          schema:
+            $ref: '#/definitions/models.Cats'
+        "400":
+          description: all fields are required
+          schema:
+            type: string
+        "500":
+          description: error creating cat
+          schema:
+            type: string
+      summary: Create cat
+      tags:
+      - cats
+  /login:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Login with the given email and password
+      parameters:
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Location" "Redirect location
+          headers:
+            Set-Cookie:
+              description: jwt={token}; HttpOnly; SameSite=Lax; Expires={expiry}
+              type: string
+          schema:
+            type: header
+        "400":
+          description: email and password are required
+          schema:
+            type: string
+        "401":
+          description: invalid password
+          schema:
+            type: string
+        "404":
+          description: user not found
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - auth
+  /logout:
+    get:
+      description: Remove the JWT cookie and redirect to the success page
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Location" "Redirect location
+          schema:
+            type: header
+      summary: Basic logout
+      tags:
+      - auth
+  /logout/{provider}:
+    get:
+      description: Logout from the authentication provider and remove the JWT cookie
+      produces:
+      - application/json
+      responses:
+        "307":
+          description: Location" "Redirect location
+          schema:
+            type: header
+      summary: Logout from provider
+      tags:
+      - auth
+  /profile/picture:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Modify the profile picture of the authenticated user
+      parameters:
+      - description: Image
+        in: formData
+        name: uploaded_file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile picture updated successfully
+          schema:
+            type: string
+        "500":
+          description: error updating user
+          schema:
+            type: string
+      summary: Modify profile picture
+      tags:
+      - users
+  /register:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Register a new user with the given email, password, name, address,
+        cp, and city
+      parameters:
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: Name
+        in: formData
+        name: name
+        type: string
+      - description: Address
+        in: formData
+        name: address
+        type: string
+      - description: CP
+        in: formData
+        name: cp
+        type: string
+      - description: City
+        in: formData
+        name: city
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          headers:
+            Set-Cookie:
+              description: jwt={token}; HttpOnly; SameSite=Lax; Expires={expiry}
+              type: string
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Register a new user
+      tags:
+      - users
 swagger: "2.0"
