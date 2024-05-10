@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -31,6 +32,8 @@ func UserOnly(next http.Handler) http.Handler {
 
 		userID := claims["id"].(string)
 		routeUserID := chi.URLParam(r, "id")
+
+		fmt.Println(userID, routeUserID)
 
 		if userID != routeUserID {
 			http.Error(w, "Forbidden", http.StatusForbidden)

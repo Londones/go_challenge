@@ -44,3 +44,8 @@ func (s *DatabaseService) GetUserFavorites(userID string) ([]models.Favorite, er
 	}
 	return favorites, nil
 }
+
+func (s *DatabaseService) UpdateUser(user *models.User) error {
+	db := s.s.DB()
+	return db.Save(user).Error
+}
