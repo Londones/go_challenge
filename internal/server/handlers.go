@@ -513,3 +513,69 @@ func (s *Server) AssociationCreationHandler(w http.ResponseWriter, r *http.Reque
 
 	http.Redirect(w, r, fmt.Sprintf(os.Getenv("CLIENT_URL")+"/association/%d", id), http.StatusCreated)
 }
+
+// AnnonceCreationHandler godoc
+// @Summary Create annonce
+// @Description Create a new annonce with the provided details
+// @Tags annonces
+// @Accept  x-www-form-urlencoded
+// @Produce  json
+// @Param description formData string true "Description of the annonce"
+// @Param userID formData string true "User ID"
+// @Param cats formData []string true "Categories of the annonce"
+// @Param favorite formData []string true "Favorite list of the annonce"
+// @Param rating formData []string true "Rating of the annonce"
+// @Success 201 {string} string "Location of the created annonce"
+// @Failure 400 {string} string "Missing or invalid fields in the request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /annonce [post]
+func (s *Server) AnnonceCreationHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+
+	r.ParseForm()
+	description := r.FormValue("description")
+
+	if description == "" {
+		http.Error(w, "description is required", http.StatusBadRequest)
+		return
+	}
+
+	_, claims, err := jwtauth.FromContext(r.Context())
+	if err != nil {
+		http.Error(w, "error getting claims", http.StatusInternalServerError)
+		return
+	}
+	userID := claims["id"].(string)
+	user, err := queriesService.FindUserByID(userID)
+	if err != nil {
+		http.Error(w, "error finding user", http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println(user.ID)
+
+	cats := []models.Cats{}
+	favorites := []models.Favorite{}
+	ratings := []models.Rating{}
+
+	// Crée une nouvelle annonce
+	annonce := &models.Annonce{
+		Description: &description,
+		UserID:      user.ID,
+		Cats:        cats,
+		Favorite:    favorites,
+		Rating:      ratings,
+	}
+
+	// Crée l'annonce dans la base de données
+	createAnnonce, err := queriesService.CreateAnnonce(annonce)
+	if err != nil {
+		http.Error(w, "error creating annonce", http.StatusInternalServerError)
+		return
+	}
+
+	// Renvoie l'annonce créée au format JSON
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(createAnnonce)
+}

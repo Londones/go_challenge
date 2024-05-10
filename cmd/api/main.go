@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"go-challenge/internal/auth"
 	"go-challenge/internal/server"
+	"net/http"
+	"os"
+
+	"github.com/rs/cors"
 )
 
 //    @title            GO-challenge-PurrfectMatch
@@ -24,18 +28,32 @@ import (
 // Pour lancer le swagger : swag init --parseDependency -d ./internal/server -g ../../cmd/api/main.go
 // puis supprimer les lignes
 func main() {
-
 	auth.NewAuth()
-	server, error := server.NewServer()
-	if error != nil {
-		panic(fmt.Sprintf("cannot create server: %s", error))
+	server, err := server.NewServer()
+	if err != nil {
+		panic(fmt.Sprintf("cannot create server: %s", err))
 	}
 
-	err := server.ListenAndServe()
+	// Création d'un nouveau ServeMux
+	mux := http.NewServeMux()
+
+	// Gestion des CORS pour tout le ServeMux
+	handler := cors.Default().Handler(mux)
+
+	// Définir le gestionnaire pour la racine du ServeMux
+	mux.Handle("/", server.Handler)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	fmt.Println(port)
+
+	// Lancement du serveur
+	fmt.Println("Server is running on port" + port)
+	err = http.ListenAndServe(":"+port, handler)
 	if err != nil {
 		panic(fmt.Sprintf("cannot start server: %s", err))
 	}
-
-	// print that the server is running
-	fmt.Printf("Server is running on port %s", server.Addr)
 }
