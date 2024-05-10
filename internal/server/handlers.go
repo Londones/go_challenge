@@ -2,12 +2,16 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"go-challenge/internal/utils"
+	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
+	"go-challenge/internal/api"
 	"go-challenge/internal/auth"
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
@@ -239,14 +243,15 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := &models.User{
-		ID:         uuid.New().String(),
-		Email:      email,
-		Password:   hashedPassword,
-		Name:       name,
-		AddressRue: address,
-		Cp:         cp,
-		Ville:      city,
-		Role:       models.Roles{Name: "user"},
+		ID:            uuid.New().String(),
+		Email:         email,
+		Password:      hashedPassword,
+		Name:          name,
+		AddressRue:    address,
+		Cp:            cp,
+		Ville:         city,
+		Role:          models.Roles{Name: "user"},
+		ProfilePicURL: "default",
 	}
 
 	err := queriesService.CreateUser(user)
@@ -267,6 +272,179 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusCreated)
+}
+
+// CatCreationHandler godoc
+// @Summary Create cat
+// @Description Create a new cat with the provided details
+// @Tags cats
+// @Accept  x-www-form-urlencoded
+// @Produce  json
+// @Param name formData string true "Name"
+// @Param uploaded_file formData file true "Image"
+// @Success 201 {object} models.Cats "Created cat"
+// @Failure 400 {string} string "all fields are required"
+// @Failure 500 {string} string "error creating cat"
+// @Router /cat [post]
+func (s *Server) CatCreationHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+	fileURLs := make([]string, 0)
+
+	err := r.ParseMultipartForm(10 << 20) // 10 MB is the max memory size
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	name := r.FormValue("name")
+
+	if name == "" {
+		http.Error(w, "all fields are required", http.StatusBadRequest)
+		return
+	}
+
+	// Get the file from the form
+	files := r.MultipartForm.File["uploaded_file"]
+	for _, header := range files {
+		file, err := header.Open()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+
+		// Get the extension of the uploaded file
+		ext := filepath.Ext(header.Filename)
+
+		// Create a temporary file with the same extension
+		tempFile, err := os.CreateTemp(os.TempDir(), "upload-*"+ext)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer os.Remove(tempFile.Name()) // clean up
+
+		// Copy the uploaded file to the temporary file
+		_, err = io.Copy(tempFile, file)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Upload the file to uploadcare
+		FileURL, _, err := api.UploadImage(s.uploadcareClient, tempFile.Name())
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		fileURLs = append(fileURLs, FileURL)
+	}
+
+	cat := &models.Cats{
+		Name:        name,
+		PicturesURL: fileURLs,
+	}
+
+	_, err = queriesService.CreateCat(cat)
+	if err != nil {
+		http.Error(w, "error creating cat", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(cat)
+	if err != nil {
+		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
+		return
+	}
+
+}
+
+// ModifyProfilePictureHandler godoc
+// @Summary Modify profile picture
+// @Description Modify the profile picture of the authenticated user
+// @Tags users
+// @Accept  x-www-form-urlencoded
+// @Produce  json
+// @Param uploaded_file formData file true "Image"
+// @Success 200 {string} string "Profile picture updated successfully"
+// @Failure 500 {string} string "error getting claims"
+// @Failure 500 {string} string "error finding user"
+// @Failure 500 {string} string "error updating user"
+// @Router /profile/picture [post]
+func (s *Server) ModifyProfilePictureHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+
+	err := r.ParseMultipartForm(10 << 20) // 10 MB is the max memory size
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println("failed to parse form")
+		return
+	}
+
+	// Get the file from the form
+	file, header, err := r.FormFile("uploaded_file")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println("failed to get file")
+		return
+	}
+	defer file.Close()
+
+	// Get the extension of the uploaded file
+	ext := filepath.Ext(header.Filename)
+
+	// Create a temporary file with the same extension
+	tempFile, err := os.CreateTemp(os.TempDir(), "upload-*"+ext)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println("failed to create temp file")
+		return
+	}
+	defer os.Remove(tempFile.Name()) // clean up
+
+	// Copy the uploaded file to the temporary file
+	_, err = io.Copy(tempFile, file)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println("failed to copy file")
+		return
+	}
+
+	// Upload the file to uploadcare
+	FileURL, _, err := api.UploadImage(s.uploadcareClient, tempFile.Name())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		errorMsg := fmt.Errorf("failed to upload file to uploadcare: %v", err)
+		fmt.Println(errorMsg)
+		return
+	}
+
+	_, claims, err := jwtauth.FromContext(r.Context())
+	if err != nil {
+		http.Error(w, "error getting claims", http.StatusInternalServerError)
+		return
+	}
+
+	userID := claims["id"].(string)
+	user, err := queriesService.FindUserByID(userID)
+	if err != nil {
+		http.Error(w, "error finding user", http.StatusInternalServerError)
+		return
+	}
+
+	user.ProfilePicURL = FileURL
+
+	err = queriesService.UpdateUser(user)
+	if err != nil {
+		http.Error(w, "error updating user", http.StatusInternalServerError)
+		return
+	}
+
+	// return success message
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Profile picture updated successfully"))
 }
 
 // AssociationCreationHandler godoc
