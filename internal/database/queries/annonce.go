@@ -60,3 +60,12 @@ func (s *DatabaseService) DeleteAnnonce(id string) error {
 
 	return nil
 }
+
+func (s *DatabaseService) GetAllAnnonces() ([]models.Annonce, error) {
+	db := s.s.DB()
+	var annonces []models.Annonce
+	if err := db.Find(&annonces).Error; err != nil {
+		return nil, err
+	}
+	return annonces, nil
+}

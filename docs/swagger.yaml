@@ -265,6 +265,36 @@ paths:
       summary: Delete annonce
       tags:
       - annonces
+    get:
+      description: Retrieve an annonce from the database by its ID
+      parameters:
+      - description: ID of the annonce to retrieve
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Annonce details
+          schema:
+            $ref: '#/definitions/models.Annonce'
+        "400":
+          description: Invalid ID format
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get an annonce by ID
+      tags:
+      - annonces
     put:
       consumes:
       - application/x-www-form-urlencoded
@@ -306,6 +336,25 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Modify annonce description
+      tags:
+      - annonces
+  /annonces:
+    get:
+      description: Retrieve all annonces from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of annonces
+          schema:
+            items:
+              $ref: '#/definitions/models.Annonce'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get all annonces
       tags:
       - annonces
   /association:

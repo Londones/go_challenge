@@ -40,9 +40,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 			r.Use(UserOnly)
 		})
 
+		r.Get("/annonces", s.GetAllAnnoncesHandler)
+		r.Get("/annonce/{id}", s.GetAnnonceByIDHandler)
 		r.Post("/annonce", s.AnnonceCreationHandler)
 		r.Put("/annonce/{id}", s.ModifyDescriptionAnnonceHandler)
 		r.Delete("/annonce/{id}", s.DeleteAnnonceHandler)
+
 		r.Post("/profile/picture", s.ModifyProfilePictureHandler)
 
 		// Auth routes

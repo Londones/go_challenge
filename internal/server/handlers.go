@@ -17,6 +17,8 @@ import (
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
 
+	"errors"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/google/uuid"
@@ -515,6 +517,65 @@ func (s *Server) AssociationCreationHandler(w http.ResponseWriter, r *http.Reque
 	http.Redirect(w, r, fmt.Sprintf(os.Getenv("CLIENT_URL")+"/association/%d", id), http.StatusCreated)
 }
 
+// **ANNONCES
+// GetAllAnnoncesHandler godoc
+// @Summary Get all annonces
+// @Description Retrieve all annonces from the database
+// @Tags annonces
+// @Produce json
+// @Success 200 {array} models.Annonce "List of annonces"
+// @Failure 500 {string} string "Internal server error"
+// @Router /annonces [get]
+func (s *Server) GetAllAnnoncesHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+
+	annonces, err := queriesService.GetAllAnnonces()
+	if err != nil {
+		http.Error(w, "error getting annonces", http.StatusInternalServerError)
+		return
+	}
+
+	// Renvoie les annonces sous forme de réponse JSON
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(annonces)
+}
+
+// GetAnnonceByIDHandler godoc
+// @Summary Get an annonce by ID
+// @Description Retrieve an annonce from the database by its ID
+// @Tags annonces
+// @Produce json
+// @Param id path string true "ID of the annonce to retrieve"
+// @Success 200 {object} models.Annonce "Annonce details"
+// @Failure 400 {string} string "Invalid ID format"
+// @Failure 404 {string} string "Annonce not found"
+// @Failure 500 {string} string "Internal server error"
+// @Router /annonce/{id} [get]
+func (s *Server) GetAnnonceByIDHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+
+	annonceID := chi.URLParam(r, "id")
+	if annonceID == "" {
+		http.Error(w, "ID of the annonce is required", http.StatusBadRequest)
+		return
+	}
+
+	annonce, err := queriesService.FindAnnonceByID(annonceID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Annonce not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error retrieving annonce", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(annonce)
+}
+
 // AnnonceCreationHandler godoc
 // @Summary Create annonce
 // @Description Create a new annonce with the provided details
@@ -696,3 +757,5 @@ func (s *Server) DeleteAnnonceHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+//**ANNONCES
