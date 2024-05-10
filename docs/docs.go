@@ -9,16 +9,7 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "API Support",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
-        },
-        "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -263,6 +254,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/cat": {
+            "post": {
+                "description": "Create a new cat with the provided details",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Create cat",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image",
+                        "name": "uploaded_file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created cat",
+                        "schema": {
+                            "$ref": "#/definitions/models.Cats"
+                        }
+                    },
+                    "400": {
+                        "description": "all fields are required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error creating cat",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Login with the given email and password",
@@ -361,6 +403,44 @@ const docTemplate = `{
                         "description": "Location\" \"Redirect location",
                         "schema": {
                             "type": "header"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/picture": {
+            "post": {
+                "description": "Modify the profile picture of the authenticated user",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Modify profile picture",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Image",
+                        "name": "uploaded_file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile picture updated successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error updating user",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -526,6 +606,12 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "picturesURL": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "race": {
                     "type": "string"
                 },
@@ -668,6 +754,9 @@ const docTemplate = `{
                 "password": {
                     "type": "string"
                 },
+                "profilePicURL": {
+                    "type": "string"
+                },
                 "rating": {
                     "type": "array",
                     "items": {
@@ -690,12 +779,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
-	Host:             "localhost:8080",
-	BasePath:         "/",
+	Version:          "",
+	Host:             "",
+	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "GO-challenge-PurrfectMatch",
-	Description:      "Swagger de PurrfectMatch",
+	Title:            "",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
