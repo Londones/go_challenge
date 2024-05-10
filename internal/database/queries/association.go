@@ -5,23 +5,26 @@ import (
 	"go-challenge/internal/models"
 )
 
-var (
-	s  = database.Service{}
-	db = s.DB()
-)
-
-type AssociationQueries interface {
-	CreateAssociation(association *models.Association) error
+type DatabaseService struct {
+	s database.Service
 }
 
-func CreateAssociation(association *models.Association) (id uint, err error) {
+func NewQueriesService(s *database.Service) *DatabaseService {
+	return &DatabaseService{
+		s: *s,
+	}
+}
+
+func (s *DatabaseService) CreateAssociation(association *models.Association) (id uint, err error) {
+	db := s.s.DB()
 	if err := db.Create(association).Error; err != nil {
 		return 0, err
 	}
 	return association.ID, nil
 }
 
-func AddUserToAssociation(associationID uint, userID string) error {
+func (s *DatabaseService) AddUserToAssociation(associationID uint, userID string) error {
+	db := s.s.DB()
 	var association models.Association
 	if err := db.Where("id = ?", associationID).First(&association).Error; err != nil {
 		return err

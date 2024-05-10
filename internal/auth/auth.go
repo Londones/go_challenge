@@ -53,7 +53,7 @@ func NewAuth() {
 	gothic.Store = store
 
 	goth.UseProviders(
-		google.New(googleClientID, googleClientSecret, "http://localhost:8080/auth/google/callback"),
+		google.New(googleClientID, googleClientSecret, os.Getenv("SERVER_URL")+"/auth/google/callback"),
 	)
 }
 
