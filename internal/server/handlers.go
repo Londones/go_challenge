@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go-challenge/internal/utils"
 	"io"
 	"net/http"
 	"os"
@@ -116,6 +117,7 @@ func (s *Server) logoutProvider(res http.ResponseWriter, req *http.Request) {
 // @Success 302 {header} string "Location" "Redirect location"
 // @Router /logout [get]
 func (s *Server) basicLogout(w http.ResponseWriter, r *http.Request) {
+	utils.Logger("debug", "Accès route", "basicLogout", "")
 	http.SetCookie(w, &http.Cookie{
 		Name:   "jwt",
 		MaxAge: -1,
@@ -160,6 +162,7 @@ func (s *Server) beginAuthProviderCallback(w http.ResponseWriter, r *http.Reques
 // @Failure 401 {string} string "invalid password"
 // @Router /login [post]
 func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	utils.Logger("debug", "Accès route", "Login", "")
 
 	queriesService := queries.NewQueriesService(s.dbService)
 
@@ -217,6 +220,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {string} string
 // @Router /register [post]
 func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	utils.Logger("debug", "Accès route", "Register", "")
 	queriesService := queries.NewQueriesService(s.dbService)
 
 	r.ParseForm()
