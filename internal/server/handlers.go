@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"go-challenge/internal/utils"
 	"net/http"
 	"time"
 
@@ -85,6 +86,7 @@ func (s *Server) logoutProvider(res http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Server) basicLogout(w http.ResponseWriter, r *http.Request) {
+	utils.Logger("debug", "Accès route", "basicLogout", "")
 	http.SetCookie(w, &http.Cookie{
 		Name:   "jwt",
 		MaxAge: -1,
@@ -105,6 +107,7 @@ func (s *Server) beginAuthProviderCallback(w http.ResponseWriter, r *http.Reques
 }
 
 func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	utils.Logger("debug", "Accès route", "Login", "")
 	r.ParseForm()
 	email := r.FormValue("email")
 	password := r.FormValue("password")
@@ -157,6 +160,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {string} string
 // @Router /register [post]
 func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	utils.Logger("debug", "Accès route", "Register", "")
 	r.ParseForm()
 	email := r.FormValue("email")
 	password := r.FormValue("password")
