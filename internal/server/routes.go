@@ -41,6 +41,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 		})
 
 		r.Post("/annonce", s.AnnonceCreationHandler)
+		r.Put("/annonce/{id}", s.ModifyDescriptionAnnonceHandler)
+		r.Delete("/annonce/{id}", s.DeleteAnnonceHandler)
 		r.Post("/profile/picture", s.ModifyProfilePictureHandler)
 
 		// Auth routes

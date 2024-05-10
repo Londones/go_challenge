@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"go-challenge/internal/utils"
@@ -578,4 +579,120 @@ func (s *Server) AnnonceCreationHandler(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(createAnnonce)
+}
+
+// ModifyDescriptionAnnonceHandler godoc
+// @Summary Modify annonce description
+// @Description Modify the description of an existing annonce
+// @Tags annonces
+// @Accept  x-www-form-urlencoded
+// @Produce  json
+// @Param id path string true "ID of the annonce to modify"
+// @Param description formData string true "New description of the annonce"
+// @Security ApiKeyAuth
+// @Success 200 {object} models.Annonce "Updated annonce"
+// @Failure 400 {string} string "Missing or invalid fields in the request"
+// @Failure 403 {string} string "User is not authorized to modify this annonce"
+// @Failure 404 {string} string "Annonce not found"
+// @Failure 500 {string} string "Internal server error"
+// @Router /annonce/{id} [put]
+func (s *Server) ModifyDescriptionAnnonceHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+
+	r.ParseForm()
+
+	// Récup l'id de l'annonce à modifier depuis les params de la requête
+	annonceID := chi.URLParam(r, "id")
+
+	// Get updated description
+	description := r.FormValue("description")
+
+	if description == "" {
+		http.Error(w, "description is required", http.StatusBadRequest)
+		return
+	}
+
+	// Get user ID
+	_, claims, err := jwtauth.FromContext(r.Context())
+	if err != nil {
+		http.Error(w, "error getting claims", http.StatusInternalServerError)
+		return
+	}
+	userID := claims["id"].(string)
+	user, err := queriesService.FindUserByID(userID)
+	if err != nil {
+		http.Error(w, "error finding user", http.StatusInternalServerError)
+		return
+	}
+
+	existingAnnonce, err := queriesService.FindAnnonceByID(annonceID)
+	if err != nil {
+		http.Error(w, "error finding annonce", http.StatusNotFound)
+		return
+	}
+
+	if existingAnnonce.UserID != user.ID {
+		http.Error(w, "user is not authorized to modify this annonce", http.StatusForbidden)
+		return
+	}
+
+	// Update description
+	updatedAnnonce, err := queriesService.UpdateAnnonceDescription(annonceID, description)
+	if err != nil {
+		http.Error(w, "Error updating annonce", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(updatedAnnonce)
+}
+
+// DeleteAnnonceHandler godoc
+// @Summary Delete annonce
+// @Description Delete an existing annonce
+// @Tags annonces
+// @Security ApiKeyAuth
+// @Param id path string true "ID of the annonce to delete"
+// @Success 204 {string} string "Annonce deleted successfully"
+// @Failure 403 {string} string "User is not authorized to delete this annonce"
+// @Failure 404 {string} string "Annonce not found"
+// @Failure 500 {string} string "Internal server error"
+// @Router /annonce/{id} [delete]
+func (s *Server) DeleteAnnonceHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+
+	// Get l'id de l'annonce à supprimer depuis les params de la requête
+	annonceID := chi.URLParam(r, "id")
+
+	annonce, err := queriesService.FindAnnonceByID(annonceID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "annonce not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "error finding annonce", http.StatusInternalServerError)
+		return
+	}
+
+	// Get user ID
+	_, claims, err := jwtauth.FromContext(r.Context())
+	if err != nil {
+		http.Error(w, "error getting claims", http.StatusInternalServerError)
+		return
+	}
+	userID := claims["id"].(string)
+
+	if annonce.UserID != userID {
+		http.Error(w, "user is not authorized to modify this annonce", http.StatusForbidden)
+		return
+	}
+
+	// Supprimer l'annonce
+	if err := queriesService.DeleteAnnonce(annonceID); err != nil {
+		http.Error(w, "error deleting annonce", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
