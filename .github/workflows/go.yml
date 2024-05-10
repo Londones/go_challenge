@@ -16,6 +16,8 @@ jobs:
               uses: actions/setup-go@v5.0.0
             - name: Get dependencies
               run: go get -v -t -d ./...
+            - name: Add Go binaries to PATH
+              run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
             - name: Generate Swagger documentation
               run: swag init --parseDependency -d ./internal/server -g ../../cmd/api/main.go
             - name: Commit Swagger documentation
