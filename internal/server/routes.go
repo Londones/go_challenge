@@ -57,6 +57,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"), //The url pointing to API definition
 	))
 
+	// Nouvelle route pour la création d'annonce
+	r.Post("/annonce", s.AnnonceCreationHandler)
+
 	return r
 }
 

@@ -24,6 +24,90 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/annonce": {
+            "post": {
+                "description": "Create a new annonce with the provided details",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "annonces"
+                ],
+                "summary": "Create annonce",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Description of the annonce",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Categories of the annonce",
+                        "name": "cats",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Favorite list of the annonce",
+                        "name": "favorite",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Rating of the annonce",
+                        "name": "rating",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Location of the created annonce",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid fields in the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/association": {
             "post": {
                 "description": "Create a new association with the provided details",
@@ -77,51 +161,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Email",
                         "name": "email",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Location\" \"Redirect location",
-                        "schema": {
-                            "type": "header"
-                        }
-                    },
-                    "400": {
-                        "description": "all fields are required",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "error creating association",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/annonce": {
-            "post": {
-                "description": "crée une annonce",
-                "consumes": ["application/x-www-form-urlencoded"],
-                "produces": ["application/json"],
-                "tags": ["annonces"],
-                "summary": "create annonce",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "description",
-                        "name": "description",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "userID",
-                        "name": "userID",
                         "in": "formData",
                         "required": true
                     }
@@ -287,7 +326,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/logout/": {
+        "/logout": {
             "get": {
                 "description": "Remove the JWT cookie and redirect to the success page",
                 "produces": [
