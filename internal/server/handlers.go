@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go-challenge/internal/utils"
 	"net/http"
+	"os"
 	"time"
 
 	"go-challenge/internal/auth"
@@ -17,8 +18,20 @@ import (
 	"github.com/markbates/goth/gothic"
 )
 
+// getAuthCallbackFunction godoc
+// @Summary Authentication callback
+// @Description Completes user authentication with the specified provider
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param provider path string true "Authentication Provider"
+// @Success 200 {object} models.User "Authenticated user"
+// @Failure 500 {string} string "Error message"
+// @Router /auth/{provider}/callback [get]
 func (s *Server) getAuthCallbackFunction(w http.ResponseWriter, r *http.Request) {
 	type contextKey string
+
+	queriesService := queries.NewQueriesService(s.dbService)
 
 	const providerKey contextKey = "provider"
 
@@ -34,10 +47,10 @@ func (s *Server) getAuthCallbackFunction(w http.ResponseWriter, r *http.Request)
 
 	fmt.Println(user)
 	// check if user with this google id exists
-	existingUser, err := queries.FindUserByGoogleID(user.UserID)
+	existingUser, err := queriesService.FindUserByGoogleID(user.UserID)
 	if err != nil {
 		// check if user with this email exists
-		existingUser, err = queries.FindUserByEmail(user.Email)
+		existingUser, err = queriesService.FindUserByEmail(user.Email)
 		if err != nil {
 			// create user
 			newUser := &models.User{
@@ -48,7 +61,7 @@ func (s *Server) getAuthCallbackFunction(w http.ResponseWriter, r *http.Request)
 				Role:     models.Roles{Name: "user"},
 			}
 
-			err := queries.CreateUser(newUser)
+			err := queriesService.CreateUser(newUser)
 			if err != nil {
 				http.Error(w, "error creating user", http.StatusInternalServerError)
 				return
@@ -69,9 +82,16 @@ func (s *Server) getAuthCallbackFunction(w http.ResponseWriter, r *http.Request)
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	http.Redirect(w, r, "http://localhost:8000/auth/success", http.StatusFound)
+	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusFound)
 }
 
+// logoutProvider godoc
+// @Summary Logout from provider
+// @Description Logout from the authentication provider and remove the JWT cookie
+// @Tags auth
+// @Produce  json
+// @Success 307 {header} string "Location" "Redirect location"
+// @Router /logout/{provider} [get]
 func (s *Server) logoutProvider(res http.ResponseWriter, req *http.Request) {
 	gothic.Logout(res, req)
 
@@ -85,6 +105,13 @@ func (s *Server) logoutProvider(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusTemporaryRedirect)
 }
 
+// basicLogout godoc
+// @Summary Basic logout
+// @Description Remove the JWT cookie and redirect to the success page
+// @Tags auth
+// @Produce  json
+// @Success 302 {header} string "Location" "Redirect location"
+// @Router /logout [get]
 func (s *Server) basicLogout(w http.ResponseWriter, r *http.Request) {
 	utils.Logger("debug", "Accès route", "basicLogout", "")
 	http.SetCookie(w, &http.Cookie{
@@ -94,6 +121,16 @@ func (s *Server) basicLogout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "http://localhost:8000/auth/success", http.StatusFound)
 }
 
+// beginAuthProviderCallback godoc
+// @Summary Begin authentication provider callback
+// @Description Start the authentication process with the specified provider
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param provider path string true "Authentication Provider"
+// @Success 200 {string} string "Authentication process started"
+// @Failure 500 {string} string "Error message"
+// @Router /auth/{provider} [get]
 func (s *Server) beginAuthProviderCallback(w http.ResponseWriter, r *http.Request) {
 	type contextKey string
 
@@ -106,8 +143,25 @@ func (s *Server) beginAuthProviderCallback(w http.ResponseWriter, r *http.Reques
 	gothic.BeginAuthHandler(w, r)
 }
 
+// LoginHandler godoc
+// @Summary Login
+// @Description Login with the given email and password
+// @Tags auth
+// @Accept  x-www-form-urlencoded
+// @Produce  json
+// @Param email formData string true "Email"
+// @Param password formData string true "Password"
+// @Success 302 {header} string "Location" "Redirect location"
+// @Header 302 {string} Set-Cookie "jwt={token}; HttpOnly; SameSite=Lax; Expires={expiry}"
+// @Failure 400 {string} string "email and password are required"
+// @Failure 404 {string} string "user not found"
+// @Failure 401 {string} string "invalid password"
+// @Router /login [post]
 func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	utils.Logger("debug", "Accès route", "Login", "")
+
+	queriesService := queries.NewQueriesService(s.dbService)
+
 	r.ParseForm()
 	email := r.FormValue("email")
 	password := r.FormValue("password")
@@ -117,7 +171,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := queries.FindUserByEmail(email)
+	user, err := queriesService.FindUserByEmail(email)
 
 	if err != nil {
 		http.Error(w, "user not found", http.StatusNotFound)
@@ -140,7 +194,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	http.Redirect(w, r, "http://localhost:8000/auth/success", http.StatusFound)
+	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusFound)
 }
 
 // RegisterHandler godoc
@@ -155,12 +209,16 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 // @Param address formData string false "Address"
 // @Param cp formData string false "CP"
 // @Param city formData string false "City"
-// @Success 200 {object} models.User
+// @Success 201 {string} string
+// @Header 201 {string} Set-Cookie "jwt={token}; HttpOnly; SameSite=Lax; Expires={expiry}"
 // @Failure 400 {string} string
+// @Failure 500 {string} string
 // @Failure 500 {string} string
 // @Router /register [post]
 func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	utils.Logger("debug", "Accès route", "Register", "")
+	queriesService := queries.NewQueriesService(s.dbService)
+
 	r.ParseForm()
 	email := r.FormValue("email")
 	password := r.FormValue("password")
@@ -191,7 +249,7 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		Role:       models.Roles{Name: "user"},
 	}
 
-	err := queries.CreateUser(user)
+	err := queriesService.CreateUser(user)
 
 	if err != nil {
 		http.Error(w, "error creating user", http.StatusInternalServerError)
@@ -208,10 +266,30 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	http.Redirect(w, r, "http://localhost:8000/auth/success", http.StatusFound)
+	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusCreated)
 }
 
+// AssociationCreationHandler godoc
+// @Summary Create association
+// @Description Create a new association with the provided details
+// @Tags associations
+// @Accept  x-www-form-urlencoded
+// @Produce  json
+// @Param name formData string true "Name"
+// @Param address formData string true "Address"
+// @Param cp formData string true "Postal Code"
+// @Param city formData string true "City"
+// @Param phone formData string true "Phone"
+// @Param email formData string true "Email"
+// @Success 201 {header} string "Location" "Redirect location"
+// @Failure 400 {string} string "all fields are required"
+// @Failure 500 {string} string "error getting claims"
+// @Failure 500 {string} string "error finding user"
+// @Failure 500 {string} string "error creating association"
+// @Router /association [post]
 func (s *Server) AssociationCreationHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+
 	r.ParseForm()
 	name := r.FormValue("name")
 	address := r.FormValue("address")
@@ -232,7 +310,7 @@ func (s *Server) AssociationCreationHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	userID := claims["id"].(string)
-	user, err := queries.FindUserByID(userID)
+	user, err := queriesService.FindUserByID(userID)
 	if err != nil {
 		http.Error(w, "error finding user", http.StatusInternalServerError)
 		return
@@ -249,12 +327,11 @@ func (s *Server) AssociationCreationHandler(w http.ResponseWriter, r *http.Reque
 		Verified:   false,
 	}
 
-	id, err := queries.CreateAssociation(association)
+	id, err := queriesService.CreateAssociation(association)
 	if err != nil {
 		http.Error(w, "error creating association", http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("http://localhost:8000/association/%d", id), http.StatusCreated)
-
+	http.Redirect(w, r, fmt.Sprintf(os.Getenv("CLIENT_URL")+"/association/%d", id), http.StatusCreated)
 }
