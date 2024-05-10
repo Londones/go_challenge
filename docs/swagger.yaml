@@ -234,6 +234,80 @@ paths:
       summary: Create annonce
       tags:
       - annonces
+  /annonce/{id}:
+    delete:
+      description: Delete an existing annonce
+      parameters:
+      - description: ID of the annonce to delete
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Annonce deleted successfully
+          schema:
+            type: string
+        "403":
+          description: User is not authorized to delete this annonce
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Delete annonce
+      tags:
+      - annonces
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Modify the description of an existing annonce
+      parameters:
+      - description: ID of the annonce to modify
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New description of the annonce
+        in: formData
+        name: description
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated annonce
+          schema:
+            $ref: '#/definitions/models.Annonce'
+        "400":
+          description: Missing or invalid fields in the request
+          schema:
+            type: string
+        "403":
+          description: User is not authorized to modify this annonce
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Modify annonce description
+      tags:
+      - annonces
   /association:
     post:
       consumes:
