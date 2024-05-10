@@ -21,4 +21,5 @@ type User struct {
 	Rating        []Rating
 	Role          Roles
 	GoogleID      string
+	ProfilePicURL string `gorm:"type:varchar(500)"`
 }
