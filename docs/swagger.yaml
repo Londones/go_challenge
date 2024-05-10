@@ -51,6 +51,10 @@ definitions:
         type: string
       name:
         type: string
+      picturesURL:
+        items:
+          type: string
+        type: array
       race:
         type: string
       reserved:
@@ -144,6 +148,8 @@ definitions:
       name:
         type: string
       password:
+        type: string
+      profilePicURL:
         type: string
       rating:
         items:
@@ -332,6 +338,40 @@ paths:
       summary: Authentication callback
       tags:
       - auth
+  /cat:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new cat with the provided details
+      parameters:
+      - description: Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Image
+        in: formData
+        name: uploaded_file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created cat
+          schema:
+            $ref: '#/definitions/models.Cats'
+        "400":
+          description: all fields are required
+          schema:
+            type: string
+        "500":
+          description: error creating cat
+          schema:
+            type: string
+      summary: Create cat
+      tags:
+      - cats
   /login:
     post:
       consumes:
@@ -400,6 +440,31 @@ paths:
       summary: Logout from provider
       tags:
       - auth
+  /profile/picture:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Modify the profile picture of the authenticated user
+      parameters:
+      - description: Image
+        in: formData
+        name: uploaded_file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile picture updated successfully
+          schema:
+            type: string
+        "500":
+          description: error updating user
+          schema:
+            type: string
+      summary: Modify profile picture
+      tags:
+      - users
   /register:
     post:
       consumes:

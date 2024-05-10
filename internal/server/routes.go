@@ -2,7 +2,7 @@ package server
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -11,6 +11,7 @@ import (
 	_ "go-challenge/docs"
 
 	_ "go-challenge/docs"
+	"go-challenge/internal/utils"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -22,30 +23,29 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
+	r.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
+
 	r.Group(func(r chi.Router) {
-		// Protected routes for any authenticated user
+		// Apply JWT middleware to all routes within this group
 		r.Use(jwtauth.Verifier(auth.TokenAuth))
 		r.Use(jwtauth.Authenticator(auth.TokenAuth))
 
+		r.Group(func(r chi.Router) {
+			// Protected routes for admin users
+			r.Use(AdminOnly)
+		})
+
+		r.Group(func(r chi.Router) {
+			// Protected routes for personal user data
+			r.Use(UserOnly)
+		})
+
+		r.Post("/annonce", s.AnnonceCreationHandler)
+		r.Post("/profile/picture", s.ModifyProfilePictureHandler)
+
+		// Auth routes
 		r.Get("/logout/{provider}", s.logoutProvider)
 		r.Get("/logout", s.basicLogout)
-	})
-
-	r.Group(func(r chi.Router) {
-		// Protected routes for admin users
-		r.Use(jwtauth.Verifier(auth.TokenAuth))
-		r.Use(jwtauth.Authenticator(auth.TokenAuth))
-		r.Use(AdminOnly)
-
-	})
-
-	r.Group(func(r chi.Router) {
-		// Protected routes for personal user data
-		r.Use(jwtauth.Verifier(auth.TokenAuth))
-		r.Use(jwtauth.Authenticator(auth.TokenAuth))
-		r.Use(UserOnly)
-		r.Post("/annonce", s.AnnonceCreationHandler)
-
 	})
 
 	// Public routes
@@ -62,12 +62,14 @@ func (s *Server) RegisterRoutes() http.Handler {
 }
 
 func (s *Server) HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
+	utils.Logger("debug", "Accès route", "HelloWorld", "")
+
 	resp := make(map[string]string)
 	resp["message"] = "Hello World"
 
 	jsonResp, err := json.Marshal(resp)
 	if err != nil {
-		log.Fatalf("error handling JSON marshal. Err: %v", err)
+		utils.Logger("fatal", "Route", "HelloWorld", fmt.Sprintf("error handling JSON marshal. Err: %v", err))
 	}
 
 	_, _ = w.Write(jsonResp)

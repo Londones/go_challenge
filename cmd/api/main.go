@@ -51,7 +51,7 @@ func main() {
 	fmt.Println(port)
 
 	// Lancement du serveur
-	fmt.Println("Server is running on port 8080")
+	fmt.Println("Server is running on port" + port)
 	err = http.ListenAndServe(":"+port, handler)
 	if err != nil {
 		panic(fmt.Sprintf("cannot start server: %s", err))
