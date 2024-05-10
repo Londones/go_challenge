@@ -2,16 +2,15 @@ package server
 
 import (
 	"encoding/json"
-	httpSwagger "github.com/swaggo/http-swagger"
-	"log"
-	"net/http"
-
-	"go-challenge/internal/auth"
-
+	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
+	httpSwagger "github.com/swaggo/http-swagger"
 	_ "go-challenge/docs"
+	"go-challenge/internal/auth"
+	"go-challenge/internal/utils"
+	"net/http"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
@@ -57,12 +56,15 @@ func (s *Server) RegisterRoutes() http.Handler {
 }
 
 func (s *Server) HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
+	utils.Logger("debug", "Accès route", "HelloWorld", "")
+
 	resp := make(map[string]string)
 	resp["message"] = "Hello World"
 
 	jsonResp, err := json.Marshal(resp)
 	if err != nil {
-		log.Fatalf("error handling JSON marshal. Err: %v", err)
+		//log.Fatalf("error handling JSON marshal. Err: %v", err)
+		utils.Logger("fatal", "Route", "HelloWorld", fmt.Sprintf("error handling JSON marshal. Err: %v", err))
 	}
 
 	_, _ = w.Write(jsonResp)
