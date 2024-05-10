@@ -118,7 +118,7 @@ func (s *Server) basicLogout(w http.ResponseWriter, r *http.Request) {
 		Name:   "jwt",
 		MaxAge: -1,
 	})
-	http.Redirect(w, r, "http://localhost:8000/auth/success", http.StatusFound)
+	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusFound)
 }
 
 // beginAuthProviderCallback godoc
