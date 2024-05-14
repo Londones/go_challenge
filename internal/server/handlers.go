@@ -23,6 +23,7 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/google/uuid"
 	"github.com/markbates/goth/gothic"
+	"gorm.io/gorm"
 )
 
 // getAuthCallbackFunction godoc
@@ -277,93 +278,6 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusCreated)
 }
 
-// CatCreationHandler godoc
-// @Summary Create cat
-// @Description Create a new cat with the provided details
-// @Tags cats
-// @Accept  x-www-form-urlencoded
-// @Produce  json
-// @Param name formData string true "Name"
-// @Param uploaded_file formData file true "Image"
-// @Success 201 {object} models.Cats "Created cat"
-// @Failure 400 {string} string "all fields are required"
-// @Failure 500 {string} string "error creating cat"
-// @Router /cat [post]
-func (s *Server) CatCreationHandler(w http.ResponseWriter, r *http.Request) {
-	queriesService := queries.NewQueriesService(s.dbService)
-	fileURLs := make([]string, 0)
-
-	err := r.ParseMultipartForm(10 << 20) // 10 MB is the max memory size
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	name := r.FormValue("name")
-
-	if name == "" {
-		http.Error(w, "all fields are required", http.StatusBadRequest)
-		return
-	}
-
-	// Get the file from the form
-	files := r.MultipartForm.File["uploaded_file"]
-	for _, header := range files {
-		file, err := header.Open()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer file.Close()
-
-		// Get the extension of the uploaded file
-		ext := filepath.Ext(header.Filename)
-
-		// Create a temporary file with the same extension
-		tempFile, err := os.CreateTemp(os.TempDir(), "upload-*"+ext)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer os.Remove(tempFile.Name()) // clean up
-
-		// Copy the uploaded file to the temporary file
-		_, err = io.Copy(tempFile, file)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		// Upload the file to uploadcare
-		FileURL, _, err := api.UploadImage(s.uploadcareClient, tempFile.Name())
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		fileURLs = append(fileURLs, FileURL)
-	}
-
-	cat := &models.Cats{
-		Name:        name,
-		PicturesURL: fileURLs,
-	}
-
-	_, err = queriesService.CreateCat(cat)
-	if err != nil {
-		http.Error(w, "error creating cat", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(cat)
-	if err != nil {
-		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
-		return
-	}
-
-}
-
 // ModifyProfilePictureHandler godoc
 // @Summary Modify profile picture
 // @Description Modify the profile picture of the authenticated user
@@ -616,17 +530,10 @@ func (s *Server) AnnonceCreationHandler(w http.ResponseWriter, r *http.Request) 
 
 	fmt.Println(user.ID)
 
-	cats := []models.Cats{}
-	favorites := []models.Favorite{}
-	ratings := []models.Rating{}
-
 	// Crée une nouvelle annonce
 	annonce := &models.Annonce{
 		Description: &description,
 		UserID:      user.ID,
-		Cats:        cats,
-		Favorite:    favorites,
-		Rating:      ratings,
 	}
 
 	// Crée l'annonce dans la base de données
@@ -759,3 +666,190 @@ func (s *Server) DeleteAnnonceHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 //**ANNONCES
+
+// **CHATS
+
+// CatCreationHandler godoc
+// @Summary Create cat
+// @Description Create a new cat with the provided details
+// @Tags cats
+// @Accept  x-www-form-urlencoded
+// @Produce  json
+// @Param name formData string true "Name"
+// @Param uploaded_file formData file true "Image"
+// @Success 201 {object} models.Cats "Created cat"
+// @Failure 400 {string} string "all fields are required"
+// @Failure 500 {string} string "error creating cat"
+// @Router /cat [post]
+func (s *Server) CatCreationHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+	fileURLs := make([]string, 0)
+
+	err := r.ParseMultipartForm(10 << 20) // 10 MB is the max memory size
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	name := r.FormValue("name")
+
+	if name == "" {
+		http.Error(w, "all fields are required", http.StatusBadRequest)
+		return
+	}
+
+	// Get the file from the form
+	files := r.MultipartForm.File["uploaded_file"]
+	for _, header := range files {
+		file, err := header.Open()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+
+		// Get the extension of the uploaded file
+		ext := filepath.Ext(header.Filename)
+
+		// Create a temporary file with the same extension
+		tempFile, err := os.CreateTemp(os.TempDir(), "upload-*"+ext)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer os.Remove(tempFile.Name()) // clean up
+
+		// Copy the uploaded file to the temporary file
+		_, err = io.Copy(tempFile, file)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Upload the file to uploadcare
+		FileURL, _, err := api.UploadImage(s.uploadcareClient, tempFile.Name())
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		fileURLs = append(fileURLs, FileURL)
+	}
+
+	cat := &models.Cats{
+		Name:        name,
+		PicturesURL: fileURLs,
+	}
+
+	_, err = queriesService.CreateCat(cat)
+	if err != nil {
+		http.Error(w, "error creating cat", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(cat)
+	if err != nil {
+		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
+		return
+	}
+}
+
+// GetAllCatsHandler godoc
+// @Summary Get all cats
+// @Description Retrieve a list of all cats
+// @Tags cats
+// @Produce  json
+// @Success 200 {array} models.Cats "List of cats"
+// @Failure 500 {string} string "error fetching cats"
+// @Router /cats [get]
+func (s *Server) GetAllCatsHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+
+	cats, err := queriesService.GetAllCats()
+	if err != nil {
+		http.Error(w, "error fetching cats", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(cats)
+	if err != nil {
+		http.Error(w, "error encoding cats to JSON", http.StatusInternalServerError)
+		return
+	}
+}
+
+// GetCatByIDHandler godoc
+// @Summary Get cat by ID
+// @Description Retrieve a cat by its ID
+// @Tags cats
+// @Param id query string true "Cat ID"
+// @Produce  json
+// @Success 200 {object} models.Cats "Found cat"
+// @Failure 400 {string} string "cat ID is required"
+// @Failure 404 {string} string "cat not found"
+// @Failure 500 {string} string "error fetching cat"
+// @Router /cat/{id} [get]
+func (s *Server) GetCatByIDHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+	params := r.URL.Query()
+	id := params.Get("id")
+
+	if id == "" {
+		http.Error(w, "cat ID is required", http.StatusBadRequest)
+		return
+	}
+
+	cat, err := queriesService.FindCatByID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, fmt.Sprintf("cat with ID %s not found", id), http.StatusNotFound)
+			return
+		}
+		http.Error(w, "error fetching cat", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(cat)
+	if err != nil {
+		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
+		return
+	}
+}
+
+// DeleteCatByIDHandler godoc
+// @Summary Delete cat by ID
+// @Description Delete a cat by its ID
+// @Tags cats
+// @Param id query string true "Cat ID"
+// @Success 204 "No Content"
+// @Failure 400 {string} string "cat ID is required"
+// @Failure 404 {string} string "cat not found"
+// @Failure 500 {string} string "error deleting cat"
+// @Router /cat/{id} [delete]
+func (s *Server) DeleteCatByIDHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+	params := r.URL.Query()
+	id := params.Get("id")
+
+	if id == "" {
+		http.Error(w, "cat ID is required", http.StatusBadRequest)
+		return
+	}
+
+	err := queriesService.DeleteCatByID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, fmt.Sprintf("cat with ID %s not found", id), http.StatusNotFound)
+			return
+		}
+		http.Error(w, "error deleting cat", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// **CHATS
