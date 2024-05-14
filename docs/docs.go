@@ -503,6 +503,121 @@ const docTemplate = `{
                 }
             }
         },
+        "/cat/{id}": {
+            "get": {
+                "description": "Retrieve a cat by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Get cat by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cat ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Found cat",
+                        "schema": {
+                            "$ref": "#/definitions/models.Cats"
+                        }
+                    },
+                    "400": {
+                        "description": "cat ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "cat not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error fetching cat",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a cat by its ID",
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Delete cat by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cat ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "cat ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "cat not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error deleting cat",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cats": {
+            "get": {
+                "description": "Retrieve a list of all cats",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Get all cats",
+                "responses": {
+                    "200": {
+                        "description": "List of cats",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Cats"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error fetching cats",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Login with the given email and password",
@@ -730,12 +845,6 @@ const docTemplate = `{
         "models.Annonce": {
             "type": "object",
             "properties": {
-                "cats": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Cats"
-                    }
-                },
                 "createdAt": {
                     "type": "string"
                 },
@@ -745,20 +854,8 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "favorite": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Favorite"
-                    }
-                },
                 "id": {
                     "type": "integer"
-                },
-                "rating": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Rating"
-                    }
                 },
                 "updatedAt": {
                     "type": "string"
@@ -823,29 +920,6 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.Favorite": {
-            "type": "object",
-            "properties": {
-                "annonceID": {
-                    "type": "integer"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "updatedAt": {
-                    "type": "string"
-                },
-                "userID": {
                     "type": "string"
                 }
             }

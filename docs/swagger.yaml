@@ -2,26 +2,14 @@ basePath: /
 definitions:
   models.Annonce:
     properties:
-      cats:
-        items:
-          $ref: '#/definitions/models.Cats'
-        type: array
       createdAt:
         type: string
       deletedAt:
         type: string
       description:
         type: string
-      favorite:
-        items:
-          $ref: '#/definitions/models.Favorite'
-        type: array
       id:
         type: integer
-      rating:
-        items:
-          $ref: '#/definitions/models.Rating'
-        type: array
       updatedAt:
         type: string
       userID:
@@ -64,21 +52,6 @@ definitions:
       sterilized:
         type: boolean
       updatedAt:
-        type: string
-    type: object
-  models.Favorite:
-    properties:
-      annonceID:
-        type: integer
-      createdAt:
-        type: string
-      deletedAt:
-        type: string
-      id:
-        type: integer
-      updatedAt:
-        type: string
-      userID:
         type: string
     type: object
   models.Rating:
@@ -493,6 +466,82 @@ paths:
           schema:
             type: string
       summary: Create cat
+      tags:
+      - cats
+  /cat/{id}:
+    delete:
+      description: Delete a cat by its ID
+      parameters:
+      - description: Cat ID
+        in: query
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: cat ID is required
+          schema:
+            type: string
+        "404":
+          description: cat not found
+          schema:
+            type: string
+        "500":
+          description: error deleting cat
+          schema:
+            type: string
+      summary: Delete cat by ID
+      tags:
+      - cats
+    get:
+      description: Retrieve a cat by its ID
+      parameters:
+      - description: Cat ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Found cat
+          schema:
+            $ref: '#/definitions/models.Cats'
+        "400":
+          description: cat ID is required
+          schema:
+            type: string
+        "404":
+          description: cat not found
+          schema:
+            type: string
+        "500":
+          description: error fetching cat
+          schema:
+            type: string
+      summary: Get cat by ID
+      tags:
+      - cats
+  /cats:
+    get:
+      description: Retrieve a list of all cats
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of cats
+          schema:
+            items:
+              $ref: '#/definitions/models.Cats'
+            type: array
+        "500":
+          description: error fetching cats
+          schema:
+            type: string
+      summary: Get all cats
       tags:
       - cats
   /login:
