@@ -456,7 +456,7 @@ func (s *Server) GetAllAnnoncesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetAnnonceByIDHandler godoc
-// @Summary Get an annonce by ID
+// @Summary Get an annonces by ID
 // @Description Retrieve an annonce from the database by its ID
 // @Tags annonces
 // @Produce json
@@ -465,7 +465,7 @@ func (s *Server) GetAllAnnoncesHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {string} string "Invalid ID format"
 // @Failure 404 {string} string "Annonce not found"
 // @Failure 500 {string} string "Internal server error"
-// @Router /annonce/{id} [get]
+// @Router /annonces/{id} [get]
 func (s *Server) GetAnnonceByIDHandler(w http.ResponseWriter, r *http.Request) {
 	queriesService := queries.NewQueriesService(s.dbService)
 
@@ -491,20 +491,17 @@ func (s *Server) GetAnnonceByIDHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // AnnonceCreationHandler godoc
-// @Summary Create annonce
+// @Summary Create annonces
 // @Description Create a new annonce with the provided details
 // @Tags annonces
 // @Accept  x-www-form-urlencoded
 // @Produce  json
 // @Param description formData string true "Description of the annonce"
 // @Param userID formData string true "User ID"
-// @Param cats formData []string true "Categories of the annonce"
-// @Param favorite formData []string true "Favorite list of the annonce"
-// @Param rating formData []string true "Rating of the annonce"
 // @Success 201 {string} string "Location of the created annonce"
 // @Failure 400 {string} string "Missing or invalid fields in the request"
 // @Failure 500 {string} string "Internal server error"
-// @Router /annonce [post]
+// @Router /annonces [post]
 func (s *Server) AnnonceCreationHandler(w http.ResponseWriter, r *http.Request) {
 	queriesService := queries.NewQueriesService(s.dbService)
 
@@ -522,6 +519,8 @@ func (s *Server) AnnonceCreationHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	userID := claims["id"].(string)
+
+	fmt.Println(userID)
 	user, err := queriesService.FindUserByID(userID)
 	if err != nil {
 		http.Error(w, "error finding user", http.StatusInternalServerError)
@@ -550,7 +549,7 @@ func (s *Server) AnnonceCreationHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 // ModifyDescriptionAnnonceHandler godoc
-// @Summary Modify annonce description
+// @Summary Modify annonces description
 // @Description Modify the description of an existing annonce
 // @Tags annonces
 // @Accept  x-www-form-urlencoded
@@ -563,7 +562,7 @@ func (s *Server) AnnonceCreationHandler(w http.ResponseWriter, r *http.Request) 
 // @Failure 403 {string} string "User is not authorized to modify this annonce"
 // @Failure 404 {string} string "Annonce not found"
 // @Failure 500 {string} string "Internal server error"
-// @Router /annonce/{id} [put]
+// @Router /annonces/{id} [put]
 func (s *Server) ModifyDescriptionAnnonceHandler(w http.ResponseWriter, r *http.Request) {
 	queriesService := queries.NewQueriesService(s.dbService)
 
@@ -626,7 +625,7 @@ func (s *Server) ModifyDescriptionAnnonceHandler(w http.ResponseWriter, r *http.
 // @Failure 403 {string} string "User is not authorized to delete this annonce"
 // @Failure 404 {string} string "Annonce not found"
 // @Failure 500 {string} string "Internal server error"
-// @Router /annonce/{id} [delete]
+// @Router /annonces/{id} [delete]
 func (s *Server) DeleteAnnonceHandler(w http.ResponseWriter, r *http.Request) {
 	queriesService := queries.NewQueriesService(s.dbService)
 
@@ -680,7 +679,7 @@ func (s *Server) DeleteAnnonceHandler(w http.ResponseWriter, r *http.Request) {
 // @Success 201 {object} models.Cats "Created cat"
 // @Failure 400 {string} string "all fields are required"
 // @Failure 500 {string} string "error creating cat"
-// @Router /cat [post]
+// @Router /cats [post]
 func (s *Server) CatCreationHandler(w http.ResponseWriter, r *http.Request) {
 	queriesService := queries.NewQueriesService(s.dbService)
 	fileURLs := make([]string, 0)
@@ -692,6 +691,8 @@ func (s *Server) CatCreationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	name := r.FormValue("name")
+
+	fmt.Println(name)
 
 	if name == "" {
 		http.Error(w, "all fields are required", http.StatusBadRequest)
@@ -790,7 +791,7 @@ func (s *Server) GetAllCatsHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {string} string "cat ID is required"
 // @Failure 404 {string} string "cat not found"
 // @Failure 500 {string} string "error fetching cat"
-// @Router /cat/{id} [get]
+// @Router /cats/{id} [get]
 func (s *Server) GetCatByIDHandler(w http.ResponseWriter, r *http.Request) {
 	queriesService := queries.NewQueriesService(s.dbService)
 	params := r.URL.Query()
@@ -828,8 +829,8 @@ func (s *Server) GetCatByIDHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {string} string "cat ID is required"
 // @Failure 404 {string} string "cat not found"
 // @Failure 500 {string} string "error deleting cat"
-// @Router /cat/{id} [delete]
-func (s *Server) DeleteCatByIDHandler(w http.ResponseWriter, r *http.Request) {
+// @Router /cats/{id} [delete]
+func (s *Server) DeleteCatHandler(w http.ResponseWriter, r *http.Request) {
 	queriesService := queries.NewQueriesService(s.dbService)
 	params := r.URL.Query()
 	id := params.Get("id")

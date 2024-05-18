@@ -9,6 +9,8 @@ import (
 )
 
 func (s *DatabaseService) CreateCat(cat *models.Cats) (id uint, err error) {
+
+	fmt.Println("creation du chat")
 	db := s.s.DB()
 	if err := db.Create(cat).Error; err != nil {
 		return 0, err
