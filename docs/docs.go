@@ -24,7 +24,34 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/annonce": {
+        "/annonces": {
+            "get": {
+                "description": "Retrieve all annonces from the database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "annonces"
+                ],
+                "summary": "Get all annonces",
+                "responses": {
+                    "200": {
+                        "description": "List of annonces",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Annonce"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create a new annonce with the provided details",
                 "consumes": [
@@ -36,7 +63,7 @@ const docTemplate = `{
                 "tags": [
                     "annonces"
                 ],
-                "summary": "Create annonce",
+                "summary": "Create annonces",
                 "parameters": [
                     {
                         "type": "string",
@@ -49,39 +76,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "User ID",
                         "name": "userID",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "Categories of the annonce",
-                        "name": "cats",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "Favorite list of the annonce",
-                        "name": "favorite",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "Rating of the annonce",
-                        "name": "rating",
                         "in": "formData",
                         "required": true
                     }
@@ -108,7 +102,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/annonce/{id}": {
+        "/annonces/{id}": {
             "get": {
                 "description": "Retrieve an annonce from the database by its ID",
                 "produces": [
@@ -117,7 +111,7 @@ const docTemplate = `{
                 "tags": [
                     "annonces"
                 ],
-                "summary": "Get an annonce by ID",
+                "summary": "Get an annonces by ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -170,7 +164,7 @@ const docTemplate = `{
                 "tags": [
                     "annonces"
                 ],
-                "summary": "Modify annonce description",
+                "summary": "Modify annonces description",
                 "parameters": [
                     {
                         "type": "string",
@@ -257,35 +251,6 @@ const docTemplate = `{
                         "description": "Annonce not found",
                         "schema": {
                             "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/annonces": {
-            "get": {
-                "description": "Retrieve all annonces from the database",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "annonces"
-                ],
-                "summary": "Get all annonces",
-                "responses": {
-                    "200": {
-                        "description": "List of annonces",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Annonce"
-                            }
                         }
                     },
                     "500": {
@@ -452,7 +417,34 @@ const docTemplate = `{
                 }
             }
         },
-        "/cat": {
+        "/cats": {
+            "get": {
+                "description": "Retrieve a list of all cats",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Get all cats",
+                "responses": {
+                    "200": {
+                        "description": "List of cats",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Cats"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error fetching cats",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create a new cat with the provided details",
                 "consumes": [
@@ -503,7 +495,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/cat/{id}": {
+        "/cats/{id}": {
             "get": {
                 "description": "Retrieve a cat by its ID",
                 "produces": [
@@ -582,35 +574,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "error deleting cat",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/cats": {
-            "get": {
-                "description": "Retrieve a list of all cats",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "cats"
-                ],
-                "summary": "Get all cats",
-                "responses": {
-                    "200": {
-                        "description": "List of cats",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Cats"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "error fetching cats",
                         "schema": {
                             "type": "string"
                         }

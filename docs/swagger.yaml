@@ -149,7 +149,25 @@ info:
   title: GO-challenge-PurrfectMatch
   version: "1.0"
 paths:
-  /annonce:
+  /annonces:
+    get:
+      description: Retrieve all annonces from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of annonces
+          schema:
+            items:
+              $ref: '#/definitions/models.Annonce'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get all annonces
+      tags:
+      - annonces
     post:
       consumes:
       - application/x-www-form-urlencoded
@@ -165,30 +183,6 @@ paths:
         name: userID
         required: true
         type: string
-      - collectionFormat: csv
-        description: Categories of the annonce
-        in: formData
-        items:
-          type: string
-        name: cats
-        required: true
-        type: array
-      - collectionFormat: csv
-        description: Favorite list of the annonce
-        in: formData
-        items:
-          type: string
-        name: favorite
-        required: true
-        type: array
-      - collectionFormat: csv
-        description: Rating of the annonce
-        in: formData
-        items:
-          type: string
-        name: rating
-        required: true
-        type: array
       produces:
       - application/json
       responses:
@@ -204,10 +198,10 @@ paths:
           description: Internal server error
           schema:
             type: string
-      summary: Create annonce
+      summary: Create annonces
       tags:
       - annonces
-  /annonce/{id}:
+  /annonces/{id}:
     delete:
       description: Delete an existing annonce
       parameters:
@@ -265,7 +259,7 @@ paths:
           description: Internal server error
           schema:
             type: string
-      summary: Get an annonce by ID
+      summary: Get an annonces by ID
       tags:
       - annonces
     put:
@@ -308,26 +302,7 @@ paths:
             type: string
       security:
       - ApiKeyAuth: []
-      summary: Modify annonce description
-      tags:
-      - annonces
-  /annonces:
-    get:
-      description: Retrieve all annonces from the database
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of annonces
-          schema:
-            items:
-              $ref: '#/definitions/models.Annonce'
-            type: array
-        "500":
-          description: Internal server error
-          schema:
-            type: string
-      summary: Get all annonces
+      summary: Modify annonces description
       tags:
       - annonces
   /association:
@@ -434,7 +409,25 @@ paths:
       summary: Authentication callback
       tags:
       - auth
-  /cat:
+  /cats:
+    get:
+      description: Retrieve a list of all cats
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of cats
+          schema:
+            items:
+              $ref: '#/definitions/models.Cats'
+            type: array
+        "500":
+          description: error fetching cats
+          schema:
+            type: string
+      summary: Get all cats
+      tags:
+      - cats
     post:
       consumes:
       - application/x-www-form-urlencoded
@@ -468,7 +461,7 @@ paths:
       summary: Create cat
       tags:
       - cats
-  /cat/{id}:
+  /cats/{id}:
     delete:
       description: Delete a cat by its ID
       parameters:
@@ -523,25 +516,6 @@ paths:
           schema:
             type: string
       summary: Get cat by ID
-      tags:
-      - cats
-  /cats:
-    get:
-      description: Retrieve a list of all cats
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of cats
-          schema:
-            items:
-              $ref: '#/definitions/models.Cats'
-            type: array
-        "500":
-          description: error fetching cats
-          schema:
-            type: string
-      summary: Get all cats
       tags:
       - cats
   /login:
