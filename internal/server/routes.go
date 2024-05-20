@@ -50,6 +50,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		//**	Cats routes
 		r.Get("/cats", s.GetAllCatsHandler)
 		r.Get("/cats/{id}", s.GetCatByIDHandler)
+		r.Put("/cats/{id}", s.UpdateCatHandler)
 		r.Post("/cats", s.CatCreationHandler)
 		r.Delete("/cats/{id}", s.DeleteCatHandler)
 
