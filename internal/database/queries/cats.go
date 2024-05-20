@@ -19,6 +19,7 @@ func (s *DatabaseService) CreateCat(cat *models.Cats) (id uint, err error) {
 }
 
 func (s *DatabaseService) FindCatByID(id string) (*models.Cats, error) {
+
 	db := s.s.DB()
 	var cat models.Cats
 	if err := db.Where("ID = ?", id).First(&cat).Error; err != nil {
@@ -66,6 +67,24 @@ func (s *DatabaseService) DeleteCatByID(id string) error {
 	}
 
 	if err := db.Delete(&cat).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *DatabaseService) UpdateCat(cat *models.Cats) error {
+	db := s.s.DB()
+
+	var existingCat models.Cats
+	if err := db.Where("id = ?", cat.ID).First(&existingCat).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("cat with ID %s not found", cat.ID)
+		}
+		return err
+	}
+
+	if err := db.Model(&existingCat).Updates(cat).Error; err != nil {
 		return err
 	}
 

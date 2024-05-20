@@ -18,7 +18,7 @@ definitions:
   models.Cats:
     properties:
       annonceID:
-        type: integer
+        type: string
       behavior:
         type: string
       birthDate:
@@ -47,7 +47,7 @@ definitions:
         type: string
       reserved:
         type: boolean
-      sex:
+      sexe:
         type: string
       sterilized:
         type: boolean
@@ -187,7 +187,7 @@ paths:
       - application/json
       responses:
         "201":
-          description: Location of the created annonce
+          description: annonce created successfully
           schema:
             type: string
         "400":
@@ -281,7 +281,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Updated annonce
+          description: annonce updated successfully
           schema:
             $ref: '#/definitions/models.Annonce'
         "400":
@@ -438,6 +438,68 @@ paths:
         name: name
         required: true
         type: string
+      - description: Birth Date
+        example: "2021-01-01"
+        format: date
+        in: formData
+        name: BirthDate
+        required: true
+        type: string
+      - description: Sexe
+        in: formData
+        name: sexe
+        required: true
+        type: string
+      - description: Last Vaccine Date
+        example: "2022-06-15"
+        format: date
+        in: formData
+        name: LastVaccine
+        type: string
+      - description: Last Vaccine Name
+        in: formData
+        name: LastVaccineName
+        type: string
+      - description: Color
+        in: formData
+        name: Color
+        required: true
+        type: string
+      - description: Behavior
+        in: formData
+        name: Behavior
+        required: true
+        type: string
+      - description: Sterilized
+        enum:
+        - "true"
+        - "false"
+        in: formData
+        name: Sterilized
+        required: true
+        type: string
+      - description: Race
+        in: formData
+        name: Race
+        required: true
+        type: string
+      - description: Description
+        in: formData
+        name: Description
+        type: string
+      - description: Reserved
+        enum:
+        - "true"
+        - "false"
+        in: formData
+        name: Reserved
+        required: true
+        type: string
+      - description: Annonce ID
+        in: formData
+        name: AnnonceID
+        required: true
+        type: string
       - description: Image
         in: formData
         name: uploaded_file
@@ -447,7 +509,7 @@ paths:
       - application/json
       responses:
         "201":
-          description: Created cat
+          description: "cat created\tsuccessfully"
           schema:
             $ref: '#/definitions/models.Cats'
         "400":
@@ -516,6 +578,106 @@ paths:
           schema:
             type: string
       summary: Get cat by ID
+      tags:
+      - cats
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Update the details of an existing cat
+      parameters:
+      - description: ID of the cat to update
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Name of the cat
+        in: formData
+        name: name
+        type: string
+      - description: Birth date of the cat
+        example: "2021-01-01"
+        format: date
+        in: formData
+        name: BirthDate
+        type: string
+      - description: Sex of the cat
+        in: formData
+        name: sexe
+        type: string
+      - description: Last vaccine date of the cat
+        example: "2022-06-15"
+        format: date
+        in: formData
+        name: LastVaccine
+        type: string
+      - description: Name of the last vaccine administered
+        in: formData
+        name: LastVaccineName
+        type: string
+      - description: Color of the cat
+        in: formData
+        name: Color
+        type: string
+      - description: Behavior of the cat
+        in: formData
+        name: Behavior
+        type: string
+      - description: Whether the cat is sterilized
+        enum:
+        - "true"
+        - "false"
+        in: formData
+        name: Sterilized
+        type: string
+      - description: Race of the cat
+        in: formData
+        name: Race
+        type: string
+      - description: Description of the cat
+        in: formData
+        name: Description
+        type: string
+      - description: Whether the cat is reserved
+        enum:
+        - "true"
+        - "false"
+        in: formData
+        name: Reserved
+        type: string
+      - description: ID of the annonce associated with the cat
+        in: formData
+        name: AnnonceID
+        type: string
+      - description: Image of the cat
+        in: formData
+        name: uploaded_file
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cat updated successfully
+          schema:
+            $ref: '#/definitions/models.Cats'
+        "400":
+          description: Missing or invalid fields in the request
+          schema:
+            type: string
+        "403":
+          description: User is not authorized to update this cat
+          schema:
+            type: string
+        "404":
+          description: Cat not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Update cat
       tags:
       - cats
   /login:
