@@ -12,12 +12,12 @@ import (
 	"path/filepath"
 	"time"
 
+	"errors"
 	"go-challenge/internal/api"
 	"go-challenge/internal/auth"
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
-
-	"errors"
+	"strings"
 
 	"strconv"
 
@@ -167,21 +167,38 @@ func (s *Server) beginAuthProviderCallback(w http.ResponseWriter, r *http.Reques
 // @Failure 404 {string} string "user not found"
 // @Failure 401 {string} string "invalid password"
 // @Router /login [post]
-
+// ** ancien login	handler
 func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	utils.Logger("debug", "Accès route", "Login", "")
 
-	queriesService := queries.NewQueriesService(s.dbService)
+	contentType := r.Header.Get("Content-Type")
+	var email, password string
 
-	r.ParseForm()
-	email := r.FormValue("email")
-	password := r.FormValue("password")
+	// Vérifier si le type de contenu est JSON
+	if strings.Contains(contentType, "application/json") {
+		var creds struct {
+			Email    string `json:"email"`
+			Password string `json:"password"`
+		}
+		err := json.NewDecoder(r.Body).Decode(&creds)
+		if err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+		email = creds.Email
+		password = creds.Password
+	} else {
+		r.ParseForm()
+		email = r.FormValue("email")
+		password = r.FormValue("password")
+	}
 
 	if email == "" || password == "" {
 		http.Error(w, "email and password are required", http.StatusBadRequest)
 		return
 	}
 
+	queriesService := queries.NewQueriesService(s.dbService)
 	user, err := queriesService.FindUserByEmail(email)
 	if err != nil {
 		http.Error(w, "user not found", http.StatusNotFound)
@@ -207,47 +224,6 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(response))
 }
-
-//** ancien login	handler
-// func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
-// 	utils.Logger("debug", "Accès route", "Login", "")
-
-// 	queriesService := queries.NewQueriesService(s.dbService)
-
-// 	r.ParseForm()
-// 	email := r.FormValue("email")
-// 	password := r.FormValue("password")
-
-// 	if email == "" || password == "" {
-// 		http.Error(w, "email and password are required", http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	user, err := queriesService.FindUserByEmail(email)
-
-// 	if err != nil {
-// 		http.Error(w, "user not found", http.StatusNotFound)
-// 		return
-// 	}
-
-// 	if !auth.CheckPasswordHash(password, user.Password) {
-// 		http.Error(w, "invalid password", http.StatusUnauthorized)
-// 		return
-// 	}
-
-// 	fmt.Println(user)
-// 	token := auth.MakeToken(user.ID, string(user.Role.Name))
-
-// 	http.SetCookie(w, &http.Cookie{
-// 		HttpOnly: true,
-// 		Expires:  time.Now().Add(24 * time.Hour),
-// 		Name:     "jwt",
-// 		Value:    token,
-// 		SameSite: http.SameSiteLaxMode,
-// 	})
-
-// 	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusFound)
-// }
 
 // RegisterHandler godoc
 // @Summary Register a new user
