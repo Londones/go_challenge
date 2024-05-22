@@ -167,6 +167,7 @@ func (s *Server) beginAuthProviderCallback(w http.ResponseWriter, r *http.Reques
 // @Failure 404 {string} string "user not found"
 // @Failure 401 {string} string "invalid password"
 // @Router /login [post]
+
 func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	utils.Logger("debug", "Accès route", "Login", "")
 
@@ -182,7 +183,6 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := queriesService.FindUserByEmail(email)
-
 	if err != nil {
 		http.Error(w, "user not found", http.StatusNotFound)
 		return
@@ -193,9 +193,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(user)
 	token := auth.MakeToken(user.ID, string(user.Role.Name))
-
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
 		Expires:  time.Now().Add(24 * time.Hour),
@@ -204,8 +202,52 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusFound)
+	w.Header().Set("Content-Type", "application/json")
+	response := fmt.Sprintf(`{"success": true, "token": "%s"}`, token)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(response))
 }
+
+//** ancien login	handler
+// func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
+// 	utils.Logger("debug", "Accès route", "Login", "")
+
+// 	queriesService := queries.NewQueriesService(s.dbService)
+
+// 	r.ParseForm()
+// 	email := r.FormValue("email")
+// 	password := r.FormValue("password")
+
+// 	if email == "" || password == "" {
+// 		http.Error(w, "email and password are required", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	user, err := queriesService.FindUserByEmail(email)
+
+// 	if err != nil {
+// 		http.Error(w, "user not found", http.StatusNotFound)
+// 		return
+// 	}
+
+// 	if !auth.CheckPasswordHash(password, user.Password) {
+// 		http.Error(w, "invalid password", http.StatusUnauthorized)
+// 		return
+// 	}
+
+// 	fmt.Println(user)
+// 	token := auth.MakeToken(user.ID, string(user.Role.Name))
+
+// 	http.SetCookie(w, &http.Cookie{
+// 		HttpOnly: true,
+// 		Expires:  time.Now().Add(24 * time.Hour),
+// 		Name:     "jwt",
+// 		Value:    token,
+// 		SameSite: http.SameSiteLaxMode,
+// 	})
+
+// 	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusFound)
+// }
 
 // RegisterHandler godoc
 // @Summary Register a new user
