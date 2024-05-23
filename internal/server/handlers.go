@@ -909,7 +909,6 @@ func (s *Server) CatCreationHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {string} string "Cat not found"
 // @Failure 500 {string} string "Internal server error"
 // @Router /cats/{id} [put]
-
 // **revenir sur la fonction pour la finir
 func (s *Server) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
 	queriesService := queries.NewQueriesService(s.dbService)
