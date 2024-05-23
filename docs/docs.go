@@ -67,6 +67,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "title of the annonce",
+                        "name": "title",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "Description of the annonce",
                         "name": "description",
                         "in": "formData",
@@ -74,8 +81,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "User ID",
-                        "name": "userID",
+                        "description": "cat ID",
+                        "name": "catID",
                         "in": "formData",
                         "required": true
                     }
@@ -627,155 +634,6 @@ const docTemplate = `{
                     }
                 }
             },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Update the details of an existing cat",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "cats"
-                ],
-                "summary": "Update cat",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID of the cat to update",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Name of the cat",
-                        "name": "name",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "format": "date",
-                        "example": "2021-01-01",
-                        "description": "Birth date of the cat",
-                        "name": "BirthDate",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sex of the cat",
-                        "name": "sexe",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "format": "date",
-                        "example": "2022-06-15",
-                        "description": "Last vaccine date of the cat",
-                        "name": "LastVaccine",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Name of the last vaccine administered",
-                        "name": "LastVaccineName",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Color of the cat",
-                        "name": "Color",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Behavior of the cat",
-                        "name": "Behavior",
-                        "in": "formData"
-                    },
-                    {
-                        "enum": [
-                            "true",
-                            "false"
-                        ],
-                        "type": "string",
-                        "description": "Whether the cat is sterilized",
-                        "name": "Sterilized",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Race of the cat",
-                        "name": "Race",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Description of the cat",
-                        "name": "Description",
-                        "in": "formData"
-                    },
-                    {
-                        "enum": [
-                            "true",
-                            "false"
-                        ],
-                        "type": "string",
-                        "description": "Whether the cat is reserved",
-                        "name": "Reserved",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "ID of the annonce associated with the cat",
-                        "name": "AnnonceID",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "file",
-                        "description": "Image of the cat",
-                        "name": "uploaded_file",
-                        "in": "formData"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Cat updated successfully",
-                        "schema": {
-                            "$ref": "#/definitions/models.Cats"
-                        }
-                    },
-                    "400": {
-                        "description": "Missing or invalid fields in the request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "403": {
-                        "description": "User is not authorized to update this cat",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "404": {
-                        "description": "Cat not found",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
             "delete": {
                 "description": "Delete a cat by its ID",
                 "tags": [
@@ -1043,6 +901,9 @@ const docTemplate = `{
         "models.Annonce": {
             "type": "object",
             "properties": {
+                "catID": {
+                    "type": "string"
+                },
                 "createdAt": {
                     "type": "string"
                 },
@@ -1054,6 +915,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "title": {
+                    "type": "string"
                 },
                 "updatedAt": {
                     "type": "string"
