@@ -516,20 +516,43 @@ func (s *Server) GetAnnonceByIDHandler(w http.ResponseWriter, r *http.Request) {
 // @Tags annonces
 // @Accept  x-www-form-urlencoded
 // @Produce  json
+// @Param title formData string true "title of the annonce"
 // @Param description formData string true "Description of the annonce"
-// @Param userID formData string true "User ID"
+// @Param catID formData string true "cat ID"
 // @Success 201 {string} string "annonce created successfully"
 // @Failure 400 {string} string "Missing or invalid fields in the request"
 // @Failure 500 {string} string "Internal server error"
 // @Router /annonces [post]
 func (s *Server) AnnonceCreationHandler(w http.ResponseWriter, r *http.Request) {
-	queriesService := queries.NewQueriesService(s.dbService)
+	utils.Logger("debug", "Accès route", "AnnonceCreation", "")
 
-	r.ParseForm()
-	description := r.FormValue("description")
+	contentType := r.Header.Get("Content-Type")
+	var title, description, catID string
 
-	if description == "" {
-		http.Error(w, "description is required", http.StatusBadRequest)
+	// Vérifier si le type de contenu est JSON
+	if strings.Contains(contentType, "application/json") {
+		var data struct {
+			Title       string `json:"title"`
+			Description string `json:"description"`
+			CatID       string `json:"catID"`
+		}
+		err := json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+		title = data.Title
+		description = data.Description
+		catID = data.CatID
+	} else {
+		r.ParseForm()
+		title = r.FormValue("title")
+		description = r.FormValue("description")
+		catID = r.FormValue("catID")
+	}
+
+	if title == "" || description == "" || catID == "" {
+		http.Error(w, "title, description, and catID are required", http.StatusBadRequest)
 		return
 	}
 
@@ -540,32 +563,50 @@ func (s *Server) AnnonceCreationHandler(w http.ResponseWriter, r *http.Request) 
 	}
 	userID := claims["id"].(string)
 
-	fmt.Println(userID)
+	queriesService := queries.NewQueriesService(s.dbService)
 	user, err := queriesService.FindUserByID(userID)
 	if err != nil {
 		http.Error(w, "error finding user", http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Println(user.ID)
-
-	// Crée une nouvelle annonce
-	annonce := &models.Annonce{
-		Description: &description,
-		UserID:      user.ID,
+	cat, err := queriesService.FindCatByID(catID)
+	if err != nil {
+		http.Error(w, "error finding cat", http.StatusInternalServerError)
+		return
 	}
 
-	// Crée l'annonce dans la base de données
-	createAnnonce, err := queriesService.CreateAnnonce(annonce)
+	annonce := &models.Annonce{
+		Title:       title,
+		Description: &description,
+		UserID:      user.ID,
+		CatID:       fmt.Sprintf("%d", cat.ID),
+	}
+
+	annonceID, err := queriesService.CreateAnnonce(annonce)
 	if err != nil {
 		http.Error(w, "error creating annonce", http.StatusInternalServerError)
 		return
 	}
 
-	// Renvoie l'annonce créée au format JSON
+	createdAnnonce, err := queriesService.FindAnnonceByID(fmt.Sprintf("%d", annonceID))
+	if err != nil {
+		http.Error(w, "error retrieving created annonce", http.StatusInternalServerError)
+		return
+	}
+
+	response := struct {
+		Success string          `json:"success"`
+		Annonce *models.Annonce `json:"annonce"`
+	}{
+		Success: "true",
+		Annonce: createdAnnonce,
+	}
+
+	// Return the response as JSON
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(createAnnonce)
+	json.NewEncoder(w).Encode(response)
 }
 
 // ModifyDescriptionAnnonceHandler godoc
