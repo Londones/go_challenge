@@ -3,7 +3,7 @@ name: Go Test
 on:
     push:
         branches:
-            - "*"
+            - "dev"
 
 jobs:
     build:
@@ -39,7 +39,7 @@ jobs:
               uses: peter-evans/create-pull-request@v6
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
-                  base: ${{ github.head_ref }}
+                  base: dev
                   title: Update Swagger documentation
                   body: |
                     This PR updates the Swagger documentation.
