@@ -11,7 +11,7 @@ type Cats struct {
 	gorm.Model
 	Name            string `gorm:"type:varchar(100);not null"`
 	BirthDate       *time.Time
-	Sex             string `gorm:"type:varchar(7)"`
+	Sexe            string `gorm:"type:varchar(7)"`
 	LastVaccine     *time.Time
 	LastVaccineName string `gorm:"type:varchar(100)"`
 	Color           string `gorm:"type:varchar(100)"`
@@ -20,6 +20,6 @@ type Cats struct {
 	Race            string  `gorm:"type:varchar(100)"`
 	Description     *string `gorm:"type:varchar(250)"`
 	Reserved        bool
-	AnnonceID       uint
+	AnnonceID       string         `gorm:"type:varchar(100)"`
 	PicturesURL     pq.StringArray `gorm:"type:varchar(500)[]"`
 }

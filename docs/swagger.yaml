@@ -2,26 +2,18 @@ basePath: /
 definitions:
   models.Annonce:
     properties:
-      cats:
-        items:
-          $ref: '#/definitions/models.Cats'
-        type: array
+      catID:
+        type: string
       createdAt:
         type: string
       deletedAt:
         type: string
       description:
         type: string
-      favorite:
-        items:
-          $ref: '#/definitions/models.Favorite'
-        type: array
       id:
         type: integer
-      rating:
-        items:
-          $ref: '#/definitions/models.Rating'
-        type: array
+      title:
+        type: string
       updatedAt:
         type: string
       userID:
@@ -30,7 +22,7 @@ definitions:
   models.Cats:
     properties:
       annonceID:
-        type: integer
+        type: string
       behavior:
         type: string
       birthDate:
@@ -59,26 +51,11 @@ definitions:
         type: string
       reserved:
         type: boolean
-      sex:
+      sexe:
         type: string
       sterilized:
         type: boolean
       updatedAt:
-        type: string
-    type: object
-  models.Favorite:
-    properties:
-      annonceID:
-        type: integer
-      createdAt:
-        type: string
-      deletedAt:
-        type: string
-      id:
-        type: integer
-      updatedAt:
-        type: string
-      userID:
         type: string
     type: object
   models.Rating:
@@ -176,51 +153,50 @@ info:
   title: GO-challenge-PurrfectMatch
   version: "1.0"
 paths:
-  /annonce:
+  /annonces:
+    get:
+      description: Retrieve all annonces from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of annonces
+          schema:
+            items:
+              $ref: '#/definitions/models.Annonce'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get all annonces
+      tags:
+      - annonces
     post:
       consumes:
       - application/x-www-form-urlencoded
       description: Create a new annonce with the provided details
       parameters:
+      - description: title of the annonce
+        in: formData
+        name: title
+        required: true
+        type: string
       - description: Description of the annonce
         in: formData
         name: description
         required: true
         type: string
-      - description: User ID
+      - description: cat ID
         in: formData
-        name: userID
+        name: catID
         required: true
         type: string
-      - collectionFormat: csv
-        description: Categories of the annonce
-        in: formData
-        items:
-          type: string
-        name: cats
-        required: true
-        type: array
-      - collectionFormat: csv
-        description: Favorite list of the annonce
-        in: formData
-        items:
-          type: string
-        name: favorite
-        required: true
-        type: array
-      - collectionFormat: csv
-        description: Rating of the annonce
-        in: formData
-        items:
-          type: string
-        name: rating
-        required: true
-        type: array
       produces:
       - application/json
       responses:
         "201":
-          description: Location of the created annonce
+          description: annonce created successfully
           schema:
             type: string
         "400":
@@ -231,7 +207,111 @@ paths:
           description: Internal server error
           schema:
             type: string
-      summary: Create annonce
+      summary: Create annonces
+      tags:
+      - annonces
+  /annonces/{id}:
+    delete:
+      description: Delete an existing annonce
+      parameters:
+      - description: ID of the annonce to delete
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Annonce deleted successfully
+          schema:
+            type: string
+        "403":
+          description: User is not authorized to delete this annonce
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Delete annonce
+      tags:
+      - annonces
+    get:
+      description: Retrieve an annonce from the database by its ID
+      parameters:
+      - description: ID of the annonce to retrieve
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Annonce details
+          schema:
+            $ref: '#/definitions/models.Annonce'
+        "400":
+          description: Invalid ID format
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get an annonces by ID
+      tags:
+      - annonces
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Modify the description of an existing annonce
+      parameters:
+      - description: ID of the annonce to modify
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New description of the annonce
+        in: formData
+        name: description
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: annonce updated successfully
+          schema:
+            $ref: '#/definitions/models.Annonce'
+        "400":
+          description: Missing or invalid fields in the request
+          schema:
+            type: string
+        "403":
+          description: User is not authorized to modify this annonce
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Modify annonces description
       tags:
       - annonces
   /association:
@@ -338,7 +418,25 @@ paths:
       summary: Authentication callback
       tags:
       - auth
-  /cat:
+  /cats:
+    get:
+      description: Retrieve a list of all cats
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of cats
+          schema:
+            items:
+              $ref: '#/definitions/models.Cats'
+            type: array
+        "500":
+          description: error fetching cats
+          schema:
+            type: string
+      summary: Get all cats
+      tags:
+      - cats
     post:
       consumes:
       - application/x-www-form-urlencoded
@@ -347,6 +445,68 @@ paths:
       - description: Name
         in: formData
         name: name
+        required: true
+        type: string
+      - description: Birth Date
+        example: "2021-01-01"
+        format: date
+        in: formData
+        name: BirthDate
+        required: true
+        type: string
+      - description: Sexe
+        in: formData
+        name: sexe
+        required: true
+        type: string
+      - description: Last Vaccine Date
+        example: "2022-06-15"
+        format: date
+        in: formData
+        name: LastVaccine
+        type: string
+      - description: Last Vaccine Name
+        in: formData
+        name: LastVaccineName
+        type: string
+      - description: Color
+        in: formData
+        name: Color
+        required: true
+        type: string
+      - description: Behavior
+        in: formData
+        name: Behavior
+        required: true
+        type: string
+      - description: Sterilized
+        enum:
+        - "true"
+        - "false"
+        in: formData
+        name: Sterilized
+        required: true
+        type: string
+      - description: Race
+        in: formData
+        name: Race
+        required: true
+        type: string
+      - description: Description
+        in: formData
+        name: Description
+        type: string
+      - description: Reserved
+        enum:
+        - "true"
+        - "false"
+        in: formData
+        name: Reserved
+        required: true
+        type: string
+      - description: Annonce ID
+        in: formData
+        name: AnnonceID
         required: true
         type: string
       - description: Image
@@ -358,7 +518,7 @@ paths:
       - application/json
       responses:
         "201":
-          description: Created cat
+          description: "cat created\tsuccessfully"
           schema:
             $ref: '#/definitions/models.Cats'
         "400":
@@ -370,6 +530,63 @@ paths:
           schema:
             type: string
       summary: Create cat
+      tags:
+      - cats
+  /cats/{id}:
+    delete:
+      description: Delete a cat by its ID
+      parameters:
+      - description: Cat ID
+        in: query
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: cat ID is required
+          schema:
+            type: string
+        "404":
+          description: cat not found
+          schema:
+            type: string
+        "500":
+          description: error deleting cat
+          schema:
+            type: string
+      summary: Delete cat by ID
+      tags:
+      - cats
+    get:
+      description: Retrieve a cat by its ID
+      parameters:
+      - description: Cat ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Found cat
+          schema:
+            $ref: '#/definitions/models.Cats'
+        "400":
+          description: cat ID is required
+          schema:
+            type: string
+        "404":
+          description: cat not found
+          schema:
+            type: string
+        "500":
+          description: error fetching cat
+          schema:
+            type: string
+      summary: Get cat by ID
       tags:
       - cats
   /login:
