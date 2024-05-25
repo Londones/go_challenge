@@ -29,6 +29,7 @@ jobs:
                   git config --local user.email "action@github.com"
                   git config --local user.name "GitHub Action"
                   git checkout -b docs-update-${GITHUB_SHA}
+                  git pull origin docs-update-${GITHUB_SHA} --allow-unrelated-histories || true
                   git add docs/
                   git commit -m "Update Swagger documentation" || echo "No changes to commit"
                   git push origin docs-update-${GITHUB_SHA}
