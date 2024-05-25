@@ -40,7 +40,7 @@ jobs:
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   base: dev
-                  branch: docs-update-${GITHUB_SHA}
+                  branch: docs-update-${{ github.sha }}
                   title: Update Swagger documentation
                   body: |
                     This PR updates the Swagger documentation.
