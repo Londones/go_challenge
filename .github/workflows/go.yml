@@ -44,4 +44,5 @@ jobs:
                   title: Update Swagger documentation
                   body: |
                     This PR updates the Swagger documentation.
+                  rebase: false
             
