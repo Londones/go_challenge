@@ -16,6 +16,8 @@ jobs:
               uses: actions/setup-go@v5.0.0
             - name: Get dependencies
               run: go get -v -t -d ./...
+            - name: Run tests
+              run: go test -v ./...
             - name: Add Go binaries to PATH
               run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
             - name: Install Swag
@@ -26,8 +28,18 @@ jobs:
               run: |
                   git config --local user.email "action@github.com"
                   git config --local user.name "GitHub Action"
+                  git checkout -b docs-update-${GITHUB_SHA}
                   git add docs/
                   git commit -m "Update Swagger documentation" || echo "No changes to commit"
-                  git push
-            - name: Run tests
-              run: go test -v ./...
+                  git push origin docs-update-${GITHUB_SHA}
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            - name: Create Pull Request
+              uses: peter-evans/create-pull-request@v6
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  base: ${{ github.head_ref }}
+                  title: Update Swagger documentation
+                  body: |
+                    This PR updates the Swagger documentation.
+            
