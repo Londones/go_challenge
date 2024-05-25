@@ -44,5 +44,9 @@ jobs:
                   title: Update Swagger documentation
                   body: |
                     This PR updates the Swagger documentation.
-                  rebase: false
+                  reviewers: |
+                      Aliciasaci
+                      Londones
+                      maithi-trandiep
+                      Mel-Red
             
