@@ -24,7 +24,34 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/annonce": {
+        "/annonces": {
+            "get": {
+                "description": "Retrieve all annonces from the database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "annonces"
+                ],
+                "summary": "Get all annonces",
+                "responses": {
+                    "200": {
+                        "description": "List of annonces",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Annonce"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create a new annonce with the provided details",
                 "consumes": [
@@ -36,8 +63,15 @@ const docTemplate = `{
                 "tags": [
                     "annonces"
                 ],
-                "summary": "Create annonce",
+                "summary": "Create annonces",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "title of the annonce",
+                        "name": "title",
+                        "in": "formData",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Description of the annonce",
@@ -47,54 +81,181 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "User ID",
-                        "name": "userID",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "Categories of the annonce",
-                        "name": "cats",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "Favorite list of the annonce",
-                        "name": "favorite",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "Rating of the annonce",
-                        "name": "rating",
+                        "description": "cat ID",
+                        "name": "catID",
                         "in": "formData",
                         "required": true
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Location of the created annonce",
+                        "description": "annonce created successfully",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "400": {
                         "description": "Missing or invalid fields in the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/annonces/{id}": {
+            "get": {
+                "description": "Retrieve an annonce from the database by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "annonces"
+                ],
+                "summary": "Get an annonces by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the annonce to retrieve",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Annonce details",
+                        "schema": {
+                            "$ref": "#/definitions/models.Annonce"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Annonce not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Modify the description of an existing annonce",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "annonces"
+                ],
+                "summary": "Modify annonces description",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the annonce to modify",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "New description of the annonce",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "annonce updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Annonce"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid fields in the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "User is not authorized to modify this annonce",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Annonce not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Delete an existing annonce",
+                "tags": [
+                    "annonces"
+                ],
+                "summary": "Delete annonce",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the annonce to delete",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Annonce deleted successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "User is not authorized to delete this annonce",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Annonce not found",
                         "schema": {
                             "type": "string"
                         }
@@ -263,7 +424,34 @@ const docTemplate = `{
                 }
             }
         },
-        "/cat": {
+        "/cats": {
+            "get": {
+                "description": "Retrieve a list of all cats",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Get all cats",
+                "responses": {
+                    "200": {
+                        "description": "List of cats",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Cats"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error fetching cats",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create a new cat with the provided details",
                 "consumes": [
@@ -285,6 +473,92 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2021-01-01",
+                        "description": "Birth Date",
+                        "name": "BirthDate",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sexe",
+                        "name": "sexe",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2022-06-15",
+                        "description": "Last Vaccine Date",
+                        "name": "LastVaccine",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Last Vaccine Name",
+                        "name": "LastVaccineName",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Color",
+                        "name": "Color",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Behavior",
+                        "name": "Behavior",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "true",
+                            "false"
+                        ],
+                        "type": "string",
+                        "description": "Sterilized",
+                        "name": "Sterilized",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Race",
+                        "name": "Race",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Description",
+                        "name": "Description",
+                        "in": "formData"
+                    },
+                    {
+                        "enum": [
+                            "true",
+                            "false"
+                        ],
+                        "type": "string",
+                        "description": "Reserved",
+                        "name": "Reserved",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Annonce ID",
+                        "name": "AnnonceID",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
                         "type": "file",
                         "description": "Image",
                         "name": "uploaded_file",
@@ -294,7 +568,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created cat",
+                        "description": "cat created\tsuccessfully",
                         "schema": {
                             "$ref": "#/definitions/models.Cats"
                         }
@@ -307,6 +581,92 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "error creating cat",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cats/{id}": {
+            "get": {
+                "description": "Retrieve a cat by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Get cat by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cat ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Found cat",
+                        "schema": {
+                            "$ref": "#/definitions/models.Cats"
+                        }
+                    },
+                    "400": {
+                        "description": "cat ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "cat not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error fetching cat",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a cat by its ID",
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Delete cat by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cat ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "cat ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "cat not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error deleting cat",
                         "schema": {
                             "type": "string"
                         }
@@ -541,11 +901,8 @@ const docTemplate = `{
         "models.Annonce": {
             "type": "object",
             "properties": {
-                "cats": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Cats"
-                    }
+                "catID": {
+                    "type": "string"
                 },
                 "createdAt": {
                     "type": "string"
@@ -556,20 +913,11 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "favorite": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Favorite"
-                    }
-                },
                 "id": {
                     "type": "integer"
                 },
-                "rating": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Rating"
-                    }
+                "title": {
+                    "type": "string"
                 },
                 "updatedAt": {
                     "type": "string"
@@ -583,7 +931,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "annonceID": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "behavior": {
                     "type": "string"
@@ -627,36 +975,13 @@ const docTemplate = `{
                 "reserved": {
                     "type": "boolean"
                 },
-                "sex": {
+                "sexe": {
                     "type": "string"
                 },
                 "sterilized": {
                     "type": "boolean"
                 },
                 "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.Favorite": {
-            "type": "object",
-            "properties": {
-                "annonceID": {
-                    "type": "integer"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "updatedAt": {
-                    "type": "string"
-                },
-                "userID": {
                     "type": "string"
                 }
             }
