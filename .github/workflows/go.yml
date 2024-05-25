@@ -18,6 +18,8 @@ jobs:
               run: go get -v -t -d ./...
             - name: Add Go binaries to PATH
               run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+            - name: Install Swag
+              run: go install github.com/swaggo/swag/cmd/swag@latest
             - name: Generate Swagger documentation
               run: swag init --parseDependency -d ./internal/server -g ../../cmd/api/main.go
             - name: Commit Swagger documentation
