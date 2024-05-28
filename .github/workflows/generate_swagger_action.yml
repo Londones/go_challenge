@@ -1,4 +1,4 @@
-name: Go Test
+name: Generate Swagger documentation and create Pull Request
 
 on:
     push:
@@ -12,18 +12,25 @@ jobs:
         steps:
             - name: Check out code into the Go module directory
               uses: actions/checkout@v4
+
             - name: Setup Go environment
               uses: actions/setup-go@v5.0.0
+
             - name: Get dependencies
               run: go get -v -t -d ./...
+
             - name: Run tests
               run: go test -v ./...
+
             - name: Add Go binaries to PATH
               run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
             - name: Install Swag
               run: go install github.com/swaggo/swag/cmd/swag@latest
+
             - name: Generate Swagger documentation
               run: swag init --parseDependency -d ./internal/server -g ../../cmd/api/main.go
+
             - name: Commit Swagger documentation
               run: |
                   git config --local user.email "action@github.com"
@@ -35,6 +42,7 @@ jobs:
                   git push origin docs-update-${GITHUB_SHA}
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Create Pull Request
               uses: peter-evans/create-pull-request@v6
               with:
@@ -43,10 +51,9 @@ jobs:
                   branch: docs-update-${{ github.sha }}
                   title: Update Swagger documentation
                   body: |
-                    This PR updates the Swagger documentation.
+                      This PR updates the Swagger documentation.
                   reviewers: |
                       Aliciasaci
                       Londones
                       maithi-trandiep
                       Mel-Red
-            
