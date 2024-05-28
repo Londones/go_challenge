@@ -28,6 +28,7 @@ type Config struct {
 	Host     string
 	Port     string
 	Database string
+	Env      string
 }
 
 func New(config *Config) (*Service, error) {
@@ -52,36 +53,48 @@ func New(config *Config) (*Service, error) {
 		//log.Fatal("Error loading .env file")
 	}
 
-	if config.Username == "" {
-		config.Username = os.Getenv("DB_USERNAME")
-	}
-	if config.Password == "" {
-		config.Password = os.Getenv("DB_PASSWORD")
-	}
-	if config.Host == "" {
-		config.Host = os.Getenv("DB_HOST")
-	}
-	if config.Port == "" {
-		config.Port = os.Getenv("DB_PORT")
-	}
-	if config.Database == "" {
-		config.Database = os.Getenv("DB_DATABASE")
-	}
+	config.Env = os.Getenv("APP_ENV")
 
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/?sslmode=disable", config.Username, config.Password, config.Host, config.Port)
-	dbTemp, err := gorm.Open("postgres", connStr)
-	if err != nil {
-		fmt.Printf("failed to connect to server: %v", err)
-	}
+	var db *gorm.DB
 
-	err = createDbIfNotExists(dbTemp, config.Database)
-	if err != nil {
-		fmt.Printf("failed to create db: %v", err)
-	}
+	if config.Env == "local" {
 
-	db, err := gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database))
-	if err != nil {
-		fmt.Printf("failed to connect to database: %v", err)
+		if config.Username == "" {
+			config.Username = os.Getenv("DB_USERNAME")
+		}
+		if config.Password == "" {
+			config.Password = os.Getenv("DB_PASSWORD")
+		}
+		if config.Host == "" {
+			config.Host = os.Getenv("DB_HOST")
+		}
+		if config.Port == "" {
+			config.Port = os.Getenv("DB_PORT")
+		}
+		if config.Database == "" {
+			config.Database = os.Getenv("DB_DATABASE")
+		}
+
+		connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/?sslmode=disable", config.Username, config.Password, config.Host, config.Port)
+		dbTemp, err := gorm.Open("postgres", connStr)
+		if err != nil {
+			fmt.Printf("failed to connect to server: %v", err)
+		}
+
+		err = createDbIfNotExists(dbTemp, config.Database)
+		if err != nil {
+			fmt.Printf("failed to create db: %v", err)
+		}
+
+		db, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database))
+		if err != nil {
+			fmt.Printf("failed to connect to database: %v", err)
+		}
+	} else {
+		db, err = gorm.Open("postgres", os.Getenv("DATABASE_URL"))
+		if err != nil {
+			fmt.Printf("failed to connect to database: %v", err)
+		}
 	}
 
 	err = migrateAllModels(db)

@@ -9,8 +9,6 @@ import (
 	"go-challenge/internal/auth"
 
 	_ "go-challenge/docs"
-
-	_ "go-challenge/docs"
 	"go-challenge/internal/utils"
 
 	"github.com/go-chi/chi/v5"
