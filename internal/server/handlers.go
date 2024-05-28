@@ -180,6 +180,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			Email    string `json:"email"`
 			Password string `json:"password"`
 		}
+
 		err := json.NewDecoder(r.Body).Decode(&creds)
 		if err != nil {
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
@@ -227,7 +228,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 // RegisterHandler godoc
 // @Summary Register a new user
-// @Description Register a new user with the given email, password, name, address, cp, and city
+// @Description Register a new user with the given email, password, name, address, cp, and ville
 // @Tags users
 // @Accept  x-www-form-urlencoded
 // @Produce  json
@@ -236,7 +237,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 // @Param name formData string false "Name"
 // @Param address formData string false "Address"
 // @Param cp formData string false "CP"
-// @Param city formData string false "City"
+// @Param ville formData string false "Ville"
 // @Success 201 {string} string
 // @Header 201 {string} Set-Cookie "jwt={token}; HttpOnly; SameSite=Lax; Expires={expiry}"
 // @Failure 400 {string} string
@@ -247,13 +248,53 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	utils.Logger("debug", "Accès route", "Register", "")
 	queriesService := queries.NewQueriesService(s.dbService)
 
-	r.ParseForm()
-	email := r.FormValue("email")
-	password := r.FormValue("password")
-	name := r.FormValue("name")
-	address := r.FormValue("address")
-	cp := r.FormValue("cp")
-	city := r.FormValue("city")
+	contentType := r.Header.Get("Content-Type")
+	var email, password, name, addressRue, cp, ville string
+
+	// Vérifier si le type de contenu est JSON
+	if strings.Contains(contentType, "application/json") {
+		var reqBody struct {
+			Email      string `json:"email"`
+			Password   string `json:"password"`
+			Name       string `json:"name"`
+			AddressRue string `json:"addressRue"`
+			Cp         string `json:"cp"`
+			Ville      string `json:"ville"`
+		}
+
+		err := json.NewDecoder(r.Body).Decode(&reqBody)
+		if err != nil {
+			http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+			return
+		}
+
+		email = reqBody.Email
+		password = reqBody.Password
+		name = reqBody.Name
+		addressRue = reqBody.AddressRue
+		cp = reqBody.Cp
+		ville = reqBody.Ville
+	} else {
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Invalid form data", http.StatusBadRequest)
+			return
+		}
+
+		email = r.FormValue("email")
+		password = r.FormValue("password")
+		name = r.FormValue("name")
+		addressRue = r.FormValue("addressRue")
+		cp = r.FormValue("cp")
+		ville = r.FormValue("ville")
+	}
+
+	fmt.Println("email: " + email)
+	fmt.Println("password: " + password)
+	fmt.Println("name: " + name)
+	fmt.Println("adresse: " + addressRue)
+	fmt.Println("cp: " + cp)
+	fmt.Println("ville: " + ville)
 
 	if email == "" || password == "" {
 		http.Error(w, "email and password are required", http.StatusBadRequest)
@@ -271,15 +312,14 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		Email:         email,
 		Password:      hashedPassword,
 		Name:          name,
-		AddressRue:    address,
+		AddressRue:    addressRue,
 		Cp:            cp,
-		Ville:         city,
+		Ville:         ville,
 		Role:          models.Roles{Name: "user"},
 		ProfilePicURL: "default",
 	}
 
 	err := queriesService.CreateUser(user)
-
 	if err != nil {
 		http.Error(w, "error creating user", http.StatusInternalServerError)
 		return
@@ -295,7 +335,10 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	response := fmt.Sprintf(`{"success": true, "token": "%s"}`, token)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(response))
 }
 
 // ModifyProfilePictureHandler godoc
