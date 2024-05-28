@@ -2,6 +2,7 @@ package auth
 
 import (
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/go-chi/jwtauth/v5"
@@ -21,9 +22,18 @@ var TokenAuth *jwtauth.JWTAuth
 
 var secret = os.Getenv("JWT_SECRET")
 
-func MakeToken(email string) string {
-	_, tokenString, _ := TokenAuth.Encode(map[string]interface{}{"email": email})
+func MakeToken(id string, role string) string {
+	_, tokenString, _ := TokenAuth.Encode(map[string]interface{}{"id": id, "role": role})
 	return tokenString
+}
+
+func GetTokenFromCookie(r *http.Request) (string, error) {
+	cookie, err := r.Cookie("jwt") // replace with your cookie name
+	if err != nil {
+		return "", err
+	}
+
+	return cookie.Value, nil
 }
 
 func NewAuth() {
@@ -43,7 +53,7 @@ func NewAuth() {
 	gothic.Store = store
 
 	goth.UseProviders(
-		google.New(googleClientID, googleClientSecret, "http://localhost:8080/auth/google/callback"),
+		google.New(googleClientID, googleClientSecret, os.Getenv("SERVER_URL")+"/auth/google/callback"),
 	)
 }
 

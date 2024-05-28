@@ -1,0 +1,1255 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Swagger de PurrfectMatch",
+        "title": "GO-challenge-PurrfectMatch",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/annonces": {
+            "get": {
+                "description": "Retrieve all annonces from the database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "annonces"
+                ],
+                "summary": "Get all annonces",
+                "responses": {
+                    "200": {
+                        "description": "List of annonces",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Annonce"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new annonce with the provided details",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "annonces"
+                ],
+                "summary": "Create annonces",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "title of the annonce",
+                        "name": "title",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Description of the annonce",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "cat ID",
+                        "name": "catID",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "annonce created successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid fields in the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/annonces/{id}": {
+            "get": {
+                "description": "Retrieve an annonce from the database by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "annonces"
+                ],
+                "summary": "Get an annonces by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the annonce to retrieve",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Annonce details",
+                        "schema": {
+                            "$ref": "#/definitions/models.Annonce"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Annonce not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Modify the description of an existing annonce",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "annonces"
+                ],
+                "summary": "Modify annonces description",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the annonce to modify",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "New description of the annonce",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "annonce updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Annonce"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid fields in the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "User is not authorized to modify this annonce",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Annonce not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Delete an existing annonce",
+                "tags": [
+                    "annonces"
+                ],
+                "summary": "Delete annonce",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the annonce to delete",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Annonce deleted successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "User is not authorized to delete this annonce",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Annonce not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/association": {
+            "post": {
+                "description": "Create a new association with the provided details",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "associations"
+                ],
+                "summary": "Create association",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Address",
+                        "name": "address",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Postal Code",
+                        "name": "cp",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "City",
+                        "name": "city",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Phone",
+                        "name": "phone",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Email",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Location\" \"Redirect location",
+                        "schema": {
+                            "type": "header"
+                        }
+                    },
+                    "400": {
+                        "description": "all fields are required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error creating association",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/{provider}": {
+            "get": {
+                "description": "Start the authentication process with the specified provider",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Begin authentication provider callback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authentication Provider",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Authentication process started",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/{provider}/callback": {
+            "get": {
+                "description": "Completes user authentication with the specified provider",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Authentication callback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authentication Provider",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Authenticated user",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "500": {
+                        "description": "Error message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cats": {
+            "get": {
+                "description": "Retrieve a list of all cats",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Get all cats",
+                "responses": {
+                    "200": {
+                        "description": "List of cats",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Cats"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error fetching cats",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new cat with the provided details",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Create cat",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2021-01-01",
+                        "description": "Birth Date",
+                        "name": "BirthDate",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sexe",
+                        "name": "sexe",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2022-06-15",
+                        "description": "Last Vaccine Date",
+                        "name": "LastVaccine",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Last Vaccine Name",
+                        "name": "LastVaccineName",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Color",
+                        "name": "Color",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Behavior",
+                        "name": "Behavior",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "true",
+                            "false"
+                        ],
+                        "type": "string",
+                        "description": "Sterilized",
+                        "name": "Sterilized",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Race",
+                        "name": "Race",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Description",
+                        "name": "Description",
+                        "in": "formData"
+                    },
+                    {
+                        "enum": [
+                            "true",
+                            "false"
+                        ],
+                        "type": "string",
+                        "description": "Reserved",
+                        "name": "Reserved",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Annonce ID",
+                        "name": "AnnonceID",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image",
+                        "name": "uploaded_file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "cat created\tsuccessfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Cats"
+                        }
+                    },
+                    "400": {
+                        "description": "all fields are required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error creating cat",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cats/{id}": {
+            "get": {
+                "description": "Retrieve a cat by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Get cat by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cat ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Found cat",
+                        "schema": {
+                            "$ref": "#/definitions/models.Cats"
+                        }
+                    },
+                    "400": {
+                        "description": "cat ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "cat not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error fetching cat",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update the details of an existing cat",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Update cat",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the cat to update",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name of the cat",
+                        "name": "name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2021-01-01",
+                        "description": "Birth date of the cat",
+                        "name": "BirthDate",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sex of the cat",
+                        "name": "sexe",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2022-06-15",
+                        "description": "Last vaccine date of the cat",
+                        "name": "LastVaccine",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name of the last vaccine administered",
+                        "name": "LastVaccineName",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Color of the cat",
+                        "name": "Color",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Behavior of the cat",
+                        "name": "Behavior",
+                        "in": "formData"
+                    },
+                    {
+                        "enum": [
+                            "true",
+                            "false"
+                        ],
+                        "type": "string",
+                        "description": "Whether the cat is sterilized",
+                        "name": "Sterilized",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Race of the cat",
+                        "name": "Race",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Description of the cat",
+                        "name": "Description",
+                        "in": "formData"
+                    },
+                    {
+                        "enum": [
+                            "true",
+                            "false"
+                        ],
+                        "type": "string",
+                        "description": "Whether the cat is reserved",
+                        "name": "Reserved",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of the annonce associated with the cat",
+                        "name": "AnnonceID",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image of the cat",
+                        "name": "uploaded_file",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cat updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Cats"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid fields in the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "User is not authorized to update this cat",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Cat not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a cat by its ID",
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Delete cat by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cat ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "cat ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "cat not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error deleting cat",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "description": "Login with the given email and password",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Email",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Location\" \"Redirect location",
+                        "schema": {
+                            "type": "header"
+                        },
+                        "headers": {
+                            "Set-Cookie": {
+                                "type": "string",
+                                "description": "jwt={token}; HttpOnly; SameSite=Lax; Expires={expiry}"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "email and password are required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "invalid password",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "user not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "get": {
+                "description": "Remove the JWT cookie and redirect to the success page",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Basic logout",
+                "responses": {
+                    "302": {
+                        "description": "Location\" \"Redirect location",
+                        "schema": {
+                            "type": "header"
+                        }
+                    }
+                }
+            }
+        },
+        "/logout/{provider}": {
+            "get": {
+                "description": "Logout from the authentication provider and remove the JWT cookie",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Logout from provider",
+                "responses": {
+                    "307": {
+                        "description": "Location\" \"Redirect location",
+                        "schema": {
+                            "type": "header"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/picture": {
+            "post": {
+                "description": "Modify the profile picture of the authenticated user",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Modify profile picture",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Image",
+                        "name": "uploaded_file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile picture updated successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error updating user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/register": {
+            "post": {
+                "description": "Register a new user with the given email, password, name, address, cp, and ville",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Email",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Address",
+                        "name": "address",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "CP",
+                        "name": "cp",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ville",
+                        "name": "ville",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "headers": {
+                            "Set-Cookie": {
+                                "type": "string",
+                                "description": "jwt={token}; HttpOnly; SameSite=Lax; Expires={expiry}"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Annonce": {
+            "type": "object",
+            "properties": {
+                "catID": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Cats": {
+            "type": "object",
+            "properties": {
+                "annonceID": {
+                    "type": "string"
+                },
+                "behavior": {
+                    "type": "string"
+                },
+                "birthDate": {
+                    "type": "string"
+                },
+                "color": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lastVaccine": {
+                    "type": "string"
+                },
+                "lastVaccineName": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "picturesURL": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "race": {
+                    "type": "string"
+                },
+                "reserved": {
+                    "type": "boolean"
+                },
+                "sexe": {
+                    "type": "string"
+                },
+                "sterilized": {
+                    "type": "boolean"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Rating": {
+            "type": "object",
+            "properties": {
+                "annonceID": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "mark": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.RoleName": {
+            "type": "string",
+            "enum": [
+                "admin",
+                "user"
+            ],
+            "x-enum-varnames": [
+                "Admin",
+                "UserRole"
+            ]
+        },
+        "models.Roles": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "$ref": "#/definitions/models.RoleName"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "addressRue": {
+                    "type": "string"
+                },
+                "annonce": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Annonce"
+                    }
+                },
+                "associationID": {
+                    "type": "integer"
+                },
+                "cp": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "favorite": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Annonce"
+                    }
+                },
+                "googleID": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "profilePicURL": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Rating"
+                    }
+                },
+                "role": {
+                    "$ref": "#/definitions/models.Roles"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "ville": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

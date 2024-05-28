@@ -1,21 +1,11 @@
 package queries
 
 import (
-	"go-challenge/internal/database"
 	"go-challenge/internal/models"
 )
 
-type UserQueries interface {
-	FindUserByEmail(email string) (*models.User, error)
-	CreateUser(user *models.User) error
-}
-
-var (
-	s  = database.Service{}
-	db = s.DB()
-)
-
-func FindUserByEmail(email string) (*models.User, error) {
+func (s *DatabaseService) FindUserByEmail(email string) (*models.User, error) {
+	db := s.s.DB()
 	var user models.User
 	if err := db.Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, err
@@ -23,6 +13,39 @@ func FindUserByEmail(email string) (*models.User, error) {
 	return &user, nil
 }
 
-func CreateUser(user *models.User) error {
+func (s *DatabaseService) FindUserByID(id string) (*models.User, error) {
+	db := s.s.DB()
+	var user models.User
+	if err := db.Where("ID = ?", id).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (s *DatabaseService) FindUserByGoogleID(googleID string) (*models.User, error) {
+	db := s.s.DB()
+	var user models.User
+	if err := db.Where("googleID = ?", googleID).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (s *DatabaseService) CreateUser(user *models.User) error {
+	db := s.s.DB()
 	return db.Create(user).Error
+}
+
+func (s *DatabaseService) GetUserFavorites(userID string) ([]models.Favorite, error) {
+	db := s.s.DB()
+	var favorites []models.Favorite
+	if err := db.Where("userID = ?", userID).Find(&favorites).Error; err != nil {
+		return nil, err
+	}
+	return favorites, nil
+}
+
+func (s *DatabaseService) UpdateUser(user *models.User) error {
+	db := s.s.DB()
+	return db.Save(user).Error
 }

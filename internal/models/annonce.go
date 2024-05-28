@@ -6,9 +6,8 @@ import (
 
 type Annonce struct {
 	gorm.Model
+	Title       string  `gorm:"type:varchar(250)"`
 	Description *string `gorm:"type:varchar(250)"`
-	UserID      uint
-	Cats        []Cats
-	Favorite    []Favorite
-	Rating      []Rating
+	UserID      string
+	CatID       string
 }

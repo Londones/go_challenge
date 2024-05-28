@@ -1,22 +1,25 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
 	"time"
+
+	"github.com/jinzhu/gorm"
+	"github.com/lib/pq"
 )
 
 type Cats struct {
 	gorm.Model
 	Name            string `gorm:"type:varchar(100);not null"`
 	BirthDate       *time.Time
-	Sex             string `gorm:"type:varchar(7); not null"`
+	Sexe            string `gorm:"type:varchar(7)"`
 	LastVaccine     *time.Time
-	LastVaccineName string `gorm:"type:varchar(100);not null"`
-	Color           string `gorm:"type:varchar(100);not null"`
-	Behavior        string `gorm:"type:varchar(100);not null"`
+	LastVaccineName string `gorm:"type:varchar(100)"`
+	Color           string `gorm:"type:varchar(100)"`
+	Behavior        string `gorm:"type:varchar(100)"`
 	Sterilized      bool
-	Race            string  `gorm:"type:varchar(100);not null"`
+	Race            string  `gorm:"type:varchar(100)"`
 	Description     *string `gorm:"type:varchar(250)"`
 	Reserved        bool
-	AnnonceID       uint
+	AnnonceID       string         `gorm:"type:varchar(100)"`
+	PicturesURL     pq.StringArray `gorm:"type:varchar(500)[]"`
 }

@@ -1,20 +1,23 @@
-name: Go Test
+name: Run Go tests
 
 on:
     push:
-        branches:
-            - "*"
+        branches-ignore:
+            - master
+            - dev
 
 jobs:
-    build:
-        name: Run Tests
+    test:
         runs-on: ubuntu-latest
         steps:
-            - name: Check out code into the Go module directory
+            - name: Check out code
               uses: actions/checkout@v4
+
             - name: Setup Go environment
               uses: actions/setup-go@v5.0.0
+
             - name: Get dependencies
               run: go get -v -t -d ./...
+
             - name: Run tests
               run: go test -v ./...

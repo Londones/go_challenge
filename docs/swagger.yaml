@@ -1,0 +1,840 @@
+basePath: /
+definitions:
+  models.Annonce:
+    properties:
+      catID:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  models.Cats:
+    properties:
+      annonceID:
+        type: string
+      behavior:
+        type: string
+      birthDate:
+        type: string
+      color:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      lastVaccine:
+        type: string
+      lastVaccineName:
+        type: string
+      name:
+        type: string
+      picturesURL:
+        items:
+          type: string
+        type: array
+      race:
+        type: string
+      reserved:
+        type: boolean
+      sexe:
+        type: string
+      sterilized:
+        type: boolean
+      updatedAt:
+        type: string
+    type: object
+  models.Rating:
+    properties:
+      annonceID:
+        type: integer
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      mark:
+        type: integer
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  models.RoleName:
+    enum:
+    - admin
+    - user
+    type: string
+    x-enum-varnames:
+    - Admin
+    - UserRole
+  models.Roles:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      name:
+        $ref: '#/definitions/models.RoleName'
+      updatedAt:
+        type: string
+    type: object
+  models.User:
+    properties:
+      addressRue:
+        type: string
+      annonce:
+        items:
+          $ref: '#/definitions/models.Annonce'
+        type: array
+      associationID:
+        type: integer
+      cp:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      email:
+        type: string
+      favorite:
+        items:
+          $ref: '#/definitions/models.Annonce'
+        type: array
+      googleID:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      profilePicURL:
+        type: string
+      rating:
+        items:
+          $ref: '#/definitions/models.Rating'
+        type: array
+      role:
+        $ref: '#/definitions/models.Roles'
+      updatedAt:
+        type: string
+      ville:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Swagger de PurrfectMatch
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: GO-challenge-PurrfectMatch
+  version: "1.0"
+paths:
+  /annonces:
+    get:
+      description: Retrieve all annonces from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of annonces
+          schema:
+            items:
+              $ref: '#/definitions/models.Annonce'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get all annonces
+      tags:
+      - annonces
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new annonce with the provided details
+      parameters:
+      - description: title of the annonce
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Description of the annonce
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: cat ID
+        in: formData
+        name: catID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: annonce created successfully
+          schema:
+            type: string
+        "400":
+          description: Missing or invalid fields in the request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create annonces
+      tags:
+      - annonces
+  /annonces/{id}:
+    delete:
+      description: Delete an existing annonce
+      parameters:
+      - description: ID of the annonce to delete
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Annonce deleted successfully
+          schema:
+            type: string
+        "403":
+          description: User is not authorized to delete this annonce
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Delete annonce
+      tags:
+      - annonces
+    get:
+      description: Retrieve an annonce from the database by its ID
+      parameters:
+      - description: ID of the annonce to retrieve
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Annonce details
+          schema:
+            $ref: '#/definitions/models.Annonce'
+        "400":
+          description: Invalid ID format
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get an annonces by ID
+      tags:
+      - annonces
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Modify the description of an existing annonce
+      parameters:
+      - description: ID of the annonce to modify
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New description of the annonce
+        in: formData
+        name: description
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: annonce updated successfully
+          schema:
+            $ref: '#/definitions/models.Annonce'
+        "400":
+          description: Missing or invalid fields in the request
+          schema:
+            type: string
+        "403":
+          description: User is not authorized to modify this annonce
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Modify annonces description
+      tags:
+      - annonces
+  /association:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new association with the provided details
+      parameters:
+      - description: Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Address
+        in: formData
+        name: address
+        required: true
+        type: string
+      - description: Postal Code
+        in: formData
+        name: cp
+        required: true
+        type: string
+      - description: City
+        in: formData
+        name: city
+        required: true
+        type: string
+      - description: Phone
+        in: formData
+        name: phone
+        required: true
+        type: string
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Location" "Redirect location
+          schema:
+            type: header
+        "400":
+          description: all fields are required
+          schema:
+            type: string
+        "500":
+          description: error creating association
+          schema:
+            type: string
+      summary: Create association
+      tags:
+      - associations
+  /auth/{provider}:
+    get:
+      consumes:
+      - application/json
+      description: Start the authentication process with the specified provider
+      parameters:
+      - description: Authentication Provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Authentication process started
+          schema:
+            type: string
+        "500":
+          description: Error message
+          schema:
+            type: string
+      summary: Begin authentication provider callback
+      tags:
+      - auth
+  /auth/{provider}/callback:
+    get:
+      consumes:
+      - application/json
+      description: Completes user authentication with the specified provider
+      parameters:
+      - description: Authentication Provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Authenticated user
+          schema:
+            $ref: '#/definitions/models.User'
+        "500":
+          description: Error message
+          schema:
+            type: string
+      summary: Authentication callback
+      tags:
+      - auth
+  /cats:
+    get:
+      description: Retrieve a list of all cats
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of cats
+          schema:
+            items:
+              $ref: '#/definitions/models.Cats'
+            type: array
+        "500":
+          description: error fetching cats
+          schema:
+            type: string
+      summary: Get all cats
+      tags:
+      - cats
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new cat with the provided details
+      parameters:
+      - description: Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Birth Date
+        example: "2021-01-01"
+        format: date
+        in: formData
+        name: BirthDate
+        required: true
+        type: string
+      - description: Sexe
+        in: formData
+        name: sexe
+        required: true
+        type: string
+      - description: Last Vaccine Date
+        example: "2022-06-15"
+        format: date
+        in: formData
+        name: LastVaccine
+        type: string
+      - description: Last Vaccine Name
+        in: formData
+        name: LastVaccineName
+        type: string
+      - description: Color
+        in: formData
+        name: Color
+        required: true
+        type: string
+      - description: Behavior
+        in: formData
+        name: Behavior
+        required: true
+        type: string
+      - description: Sterilized
+        enum:
+        - "true"
+        - "false"
+        in: formData
+        name: Sterilized
+        required: true
+        type: string
+      - description: Race
+        in: formData
+        name: Race
+        required: true
+        type: string
+      - description: Description
+        in: formData
+        name: Description
+        type: string
+      - description: Reserved
+        enum:
+        - "true"
+        - "false"
+        in: formData
+        name: Reserved
+        required: true
+        type: string
+      - description: Annonce ID
+        in: formData
+        name: AnnonceID
+        required: true
+        type: string
+      - description: Image
+        in: formData
+        name: uploaded_file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: "cat created\tsuccessfully"
+          schema:
+            $ref: '#/definitions/models.Cats'
+        "400":
+          description: all fields are required
+          schema:
+            type: string
+        "500":
+          description: error creating cat
+          schema:
+            type: string
+      summary: Create cat
+      tags:
+      - cats
+  /cats/{id}:
+    delete:
+      description: Delete a cat by its ID
+      parameters:
+      - description: Cat ID
+        in: query
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: cat ID is required
+          schema:
+            type: string
+        "404":
+          description: cat not found
+          schema:
+            type: string
+        "500":
+          description: error deleting cat
+          schema:
+            type: string
+      summary: Delete cat by ID
+      tags:
+      - cats
+    get:
+      description: Retrieve a cat by its ID
+      parameters:
+      - description: Cat ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Found cat
+          schema:
+            $ref: '#/definitions/models.Cats'
+        "400":
+          description: cat ID is required
+          schema:
+            type: string
+        "404":
+          description: cat not found
+          schema:
+            type: string
+        "500":
+          description: error fetching cat
+          schema:
+            type: string
+      summary: Get cat by ID
+      tags:
+      - cats
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Update the details of an existing cat
+      parameters:
+      - description: ID of the cat to update
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Name of the cat
+        in: formData
+        name: name
+        type: string
+      - description: Birth date of the cat
+        example: "2021-01-01"
+        format: date
+        in: formData
+        name: BirthDate
+        type: string
+      - description: Sex of the cat
+        in: formData
+        name: sexe
+        type: string
+      - description: Last vaccine date of the cat
+        example: "2022-06-15"
+        format: date
+        in: formData
+        name: LastVaccine
+        type: string
+      - description: Name of the last vaccine administered
+        in: formData
+        name: LastVaccineName
+        type: string
+      - description: Color of the cat
+        in: formData
+        name: Color
+        type: string
+      - description: Behavior of the cat
+        in: formData
+        name: Behavior
+        type: string
+      - description: Whether the cat is sterilized
+        enum:
+        - "true"
+        - "false"
+        in: formData
+        name: Sterilized
+        type: string
+      - description: Race of the cat
+        in: formData
+        name: Race
+        type: string
+      - description: Description of the cat
+        in: formData
+        name: Description
+        type: string
+      - description: Whether the cat is reserved
+        enum:
+        - "true"
+        - "false"
+        in: formData
+        name: Reserved
+        type: string
+      - description: ID of the annonce associated with the cat
+        in: formData
+        name: AnnonceID
+        type: string
+      - description: Image of the cat
+        in: formData
+        name: uploaded_file
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cat updated successfully
+          schema:
+            $ref: '#/definitions/models.Cats'
+        "400":
+          description: Missing or invalid fields in the request
+          schema:
+            type: string
+        "403":
+          description: User is not authorized to update this cat
+          schema:
+            type: string
+        "404":
+          description: Cat not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Update cat
+      tags:
+      - cats
+  /login:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Login with the given email and password
+      parameters:
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Location" "Redirect location
+          headers:
+            Set-Cookie:
+              description: jwt={token}; HttpOnly; SameSite=Lax; Expires={expiry}
+              type: string
+          schema:
+            type: header
+        "400":
+          description: email and password are required
+          schema:
+            type: string
+        "401":
+          description: invalid password
+          schema:
+            type: string
+        "404":
+          description: user not found
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - auth
+  /logout:
+    get:
+      description: Remove the JWT cookie and redirect to the success page
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Location" "Redirect location
+          schema:
+            type: header
+      summary: Basic logout
+      tags:
+      - auth
+  /logout/{provider}:
+    get:
+      description: Logout from the authentication provider and remove the JWT cookie
+      produces:
+      - application/json
+      responses:
+        "307":
+          description: Location" "Redirect location
+          schema:
+            type: header
+      summary: Logout from provider
+      tags:
+      - auth
+  /profile/picture:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Modify the profile picture of the authenticated user
+      parameters:
+      - description: Image
+        in: formData
+        name: uploaded_file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile picture updated successfully
+          schema:
+            type: string
+        "500":
+          description: error updating user
+          schema:
+            type: string
+      summary: Modify profile picture
+      tags:
+      - users
+  /register:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Register a new user with the given email, password, name, address,
+        cp, and ville
+      parameters:
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: Name
+        in: formData
+        name: name
+        type: string
+      - description: Address
+        in: formData
+        name: address
+        type: string
+      - description: CP
+        in: formData
+        name: cp
+        type: string
+      - description: Ville
+        in: formData
+        name: ville
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          headers:
+            Set-Cookie:
+              description: jwt={token}; HttpOnly; SameSite=Lax; Expires={expiry}
+              type: string
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Register a new user
+      tags:
+      - users
+swagger: "2.0"
