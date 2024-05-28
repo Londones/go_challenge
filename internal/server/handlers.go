@@ -146,9 +146,15 @@ func (s *Server) beginAuthProviderCallback(w http.ResponseWriter, r *http.Reques
 
 	const providerKey contextKey = "provider"
 
-	provider := chi.URLParam(r, "provider")
+	q := r.URL.Query()
 
-	r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
+	q.Add("provider", chi.URLParam(r, "provider"))
+
+	r.URL.RawQuery = q.Encode()
+
+	//provider := chi.URLParam(r, "provider")
+
+	//r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
 
 	gothic.BeginAuthHandler(w, r)
 }
