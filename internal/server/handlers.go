@@ -24,6 +24,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"github.com/markbates/goth/gothic"
 	"gorm.io/gorm"
 )
@@ -518,6 +519,40 @@ func (s *Server) GetAllAnnoncesHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(annonces)
 }
 
+// GetUserAnnoncesHandler godoc
+// @Summary Get user's annonces
+// @Description Retrieve all annonces for a specific user from the database
+// @Tags annonces
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {array} models.Annonce "List of user's annonces"
+// @Failure 400 {string} string "Bad request - missing userID parameter"
+// @Failure 500 {string} string "Internal server error"
+// @Router /users/{id}/annonces [get]
+func (s *Server) GetUserAnnoncesHandler(w http.ResponseWriter, r *http.Request) {
+	// Récupère l'ID de l'utilisateur à partir des paramètres de l'URL
+	vars := mux.Vars(r)
+	userID := vars["id"]
+
+	print("userID")
+	print(userID)
+	if userID == "" {
+		http.Error(w, "missing userID parameter", http.StatusBadRequest)
+		return
+	}
+
+	queriesService := queries.NewQueriesService(s.dbService)
+	annonces, err := queriesService.GetUserAnnonces(userID)
+	if err != nil {
+		http.Error(w, "error getting user's annonces", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(annonces)
+}
+
 // GetAnnonceByIDHandler godoc
 // @Summary Get an annonces by ID
 // @Description Retrieve an annonce from the database by its ID
@@ -787,8 +822,9 @@ func (s *Server) DeleteAnnonceHandler(w http.ResponseWriter, r *http.Request) {
 // @Param Description formData string false "Description"
 // @Param Reserved formData string true "Reserved" enums(true, false)
 // @Param AnnonceID formData string true "Annonce ID"
+// @Param UserID formData string true "User ID"
 // @Param uploaded_file formData file true "Image"
-// @Success 201 {object} models.Cats "cat created	successfully"
+// @Success 201 {object} models.Cats "cat created successfully"
 // @Failure 400 {string} string "all fields are required"
 // @Failure 500 {string} string "error creating cat"
 // @Router /cats [post]
@@ -814,13 +850,9 @@ func (s *Server) CatCreationHandler(w http.ResponseWriter, r *http.Request) {
 	description := r.FormValue("Description")
 	ReservedStr := r.FormValue("Reserved")
 	annonceID := r.FormValue("AnnonceID")
+	userID := r.FormValue("UserID")
 
-	if name == "" {
-		http.Error(w, "all fields are required", http.StatusBadRequest)
-		return
-	}
-
-	if sexe == "" {
+	if name == "" || birthDateStr == "" || sexe == "" || color == "" || behavior == "" || sterilizedStr == "" || race == "" || ReservedStr == "" || annonceID == "" || userID == "" {
 		http.Error(w, "all fields are required", http.StatusBadRequest)
 		return
 	}
@@ -830,7 +862,7 @@ func (s *Server) CatCreationHandler(w http.ResponseWriter, r *http.Request) {
 	if birthDateStr != "" {
 		parsedBirthDate, err := time.Parse(layout, birthDateStr)
 		if err != nil {
-			http.Error(w, "invalid birthDate format", http.StatusBadRequest)
+			http.Error(w, "invalid BirthDate format", http.StatusBadRequest)
 			return
 		}
 		birthDate = &parsedBirthDate
@@ -839,7 +871,7 @@ func (s *Server) CatCreationHandler(w http.ResponseWriter, r *http.Request) {
 	if lastVaccineStr != "" {
 		parsedLastVaccine, err := time.Parse(layout, lastVaccineStr)
 		if err != nil {
-			http.Error(w, "invalid lastVaccine format", http.StatusBadRequest)
+			http.Error(w, "invalid LastVaccine format", http.StatusBadRequest)
 			return
 		}
 		lastVaccine = &parsedLastVaccine
@@ -847,13 +879,13 @@ func (s *Server) CatCreationHandler(w http.ResponseWriter, r *http.Request) {
 
 	sterilized, err := strconv.ParseBool(sterilizedStr)
 	if err != nil {
-		http.Error(w, "invalid sterilized format", http.StatusBadRequest)
+		http.Error(w, "invalid Sterilized format", http.StatusBadRequest)
 		return
 	}
 
 	Reserved, err := strconv.ParseBool(ReservedStr)
 	if err != nil {
-		http.Error(w, "invalid reserved format", http.StatusBadRequest)
+		http.Error(w, "invalid Reserved format", http.StatusBadRequest)
 		return
 	}
 
@@ -909,6 +941,7 @@ func (s *Server) CatCreationHandler(w http.ResponseWriter, r *http.Request) {
 		Description:     &description,
 		Reserved:        Reserved,
 		AnnonceID:       annonceID,
+		UserID:          userID,
 	}
 
 	_, err = queriesService.CreateCat(cat)
@@ -918,6 +951,7 @@ func (s *Server) CatCreationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	err = json.NewEncoder(w).Encode(cat)
 	if err != nil {
 		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
