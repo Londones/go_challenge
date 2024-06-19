@@ -79,7 +79,7 @@ func (s *DatabaseService) UpdateCat(cat *models.Cats) error {
 	var existingCat models.Cats
 	if err := db.Where("id = ?", cat.ID).First(&existingCat).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("cat with ID %s not found", cat.ID)
+			return fmt.Errorf("cat with ID %d not found", cat.ID)
 		}
 		return err
 	}
