@@ -559,6 +559,13 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "UserID",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
                         "type": "file",
                         "description": "Image",
                         "name": "uploaded_file",
@@ -568,7 +575,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "cat created\tsuccessfully",
+                        "description": "cat created successfully",
                         "schema": {
                             "$ref": "#/definitions/models.Cats"
                         }
@@ -1044,6 +1051,50 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/{id}/annonces": {
+            "get": {
+                "description": "Retrieve all annonces for a specific user from the database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "annonces"
+                ],
+                "summary": "Get user's annonces",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of user's annonces",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Annonce"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - missing userID parameter",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1131,6 +1182,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "updatedAt": {
+                    "type": "string"
+                },
+                "userID": {
                     "type": "string"
                 }
             }

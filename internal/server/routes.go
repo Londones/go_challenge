@@ -56,6 +56,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 		//** User routes
 		r.Post("/profile/picture", s.ModifyProfilePictureHandler)
+		r.Get("/users/{id}/annonces", s.GetUserAnnoncesHandler)
 
 		//** Auth routes
 		r.Get("/logout/{provider}", s.logoutProvider)

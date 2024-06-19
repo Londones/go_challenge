@@ -69,3 +69,12 @@ func (s *DatabaseService) GetAllAnnonces() ([]models.Annonce, error) {
 	}
 	return annonces, nil
 }
+
+func (s *DatabaseService) GetUserAnnonces(userID string) ([]models.Annonce, error) {
+	db := s.s.DB()
+	var annonces []models.Annonce
+	if err := db.Where("user_id = ?", userID).Find(&annonces).Error; err != nil {
+		return nil, err
+	}
+	return annonces, nil
+}
