@@ -14,6 +14,7 @@ require (
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.3
 	github.com/uploadcare/uploadcare-go v1.2.5
+	gorm.io/gorm v1.25.10
 )
 
 require (
@@ -29,7 +30,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe // indirect
 	golang.org/x/tools v0.21.0 // indirect
-	gorm.io/gorm v1.25.10 // indirect
 
 )
 
