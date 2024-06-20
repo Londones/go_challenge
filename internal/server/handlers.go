@@ -24,7 +24,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	"github.com/markbates/goth/gothic"
 	"gorm.io/gorm"
 )
@@ -524,24 +523,34 @@ func (s *Server) GetAllAnnoncesHandler(w http.ResponseWriter, r *http.Request) {
 // @Description Retrieve all annonces for a specific user from the database
 // @Tags annonces
 // @Produce json
-// @Param id path string true "User ID"
+// @Param id query string true "User ID"
 // @Success 200 {array} models.Annonce "List of user's annonces"
 // @Failure 400 {string} string "Bad request - missing userID parameter"
 // @Failure 500 {string} string "Internal server error"
-// @Router /users/{id}/annonces [get]
+// @Router /users/annonces/{id} [get]
 func (s *Server) GetUserAnnoncesHandler(w http.ResponseWriter, r *http.Request) {
-	// Récupère l'ID de l'utilisateur à partir des paramètres de l'URL
-	vars := mux.Vars(r)
-	userID := vars["id"]
+	queriesService := queries.NewQueriesService(s.dbService)
 
-	print("userID")
-	print(userID)
+	params := r.URL.Query()
+	var userID string
+
+	_, claims, err := jwtauth.FromContext(r.Context())
+	if err != nil {
+		http.Error(w, "error getting claims", http.StatusInternalServerError)
+		return
+	}
+
+	if id := params.Get("id"); id != "" {
+		userID = id
+	} else if claims["id"] != nil {
+		userID = claims["id"].(string)
+	}
+
 	if userID == "" {
 		http.Error(w, "missing userID parameter", http.StatusBadRequest)
 		return
 	}
 
-	queriesService := queries.NewQueriesService(s.dbService)
 	annonces, err := queriesService.GetUserAnnonces(userID)
 	if err != nil {
 		http.Error(w, "error getting user's annonces", http.StatusInternalServerError)
@@ -549,8 +558,11 @@ func (s *Server) GetUserAnnoncesHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(annonces)
+	err = json.NewEncoder(w).Encode(annonces)
+	if err != nil {
+		http.Error(w, "error encoding annonces to JSON", http.StatusInternalServerError)
+		return
+	}
 }
 
 // GetAnnonceByIDHandler godoc

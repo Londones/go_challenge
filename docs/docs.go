@@ -1052,7 +1052,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/{id}/annonces": {
+        "/users/annonces/{id}": {
             "get": {
                 "description": "Retrieve all annonces for a specific user from the database",
                 "produces": [
@@ -1067,7 +1067,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "User ID",
                         "name": "id",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],
