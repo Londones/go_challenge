@@ -844,12 +844,12 @@ paths:
       summary: Register a new user
       tags:
       - users
-  /users/{id}/annonces:
+  /users/annonces/{id}:
     get:
       description: Retrieve all annonces for a specific user from the database
       parameters:
       - description: User ID
-        in: path
+        in: query
         name: id
         required: true
         type: string
