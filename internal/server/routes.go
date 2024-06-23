@@ -40,14 +40,14 @@ func (s *Server) RegisterRoutes() http.Handler {
 			r.Use(UserOnly)
 		})
 
-		//**	Annonces routes
+		//** Annonces routes
 		r.Get("/annonces", s.GetAllAnnoncesHandler)
 		r.Get("/annonces/{id}", s.GetAnnonceByIDHandler)
 		r.Post("/annonces", s.AnnonceCreationHandler)
 		r.Put("/annonces/{id}", s.ModifyDescriptionAnnonceHandler)
 		r.Delete("/annonces/{id}", s.DeleteAnnonceHandler)
 
-		//**	Cats routes
+		//** Cats routes
 		r.Get("/cats", s.GetAllCatsHandler)
 		r.Get("/cats/{id}", s.GetCatByIDHandler)
 		r.Put("/cats/{id}", s.UpdateCatHandler)
@@ -56,6 +56,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 		//** User routes
 		r.Post("/profile/picture", s.ModifyProfilePictureHandler)
+		r.Get("/users", s.GetAllUsersHandler)
+		r.Get("/users/{id}", s.GetUserByIDHandler)
+		r.Get("/users/current", s.GetCurrentUserHandler)
+		r.Put("/users/{id}", s.UpdateUserHandler)
+		r.Post("/users", s.CreateUserHandler)
+		r.Delete("/users/{id}", s.DeleteUserHandler)
 
 		//** Auth routes
 		r.Get("/logout/{provider}", s.logoutProvider)

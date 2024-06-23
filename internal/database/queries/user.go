@@ -49,3 +49,17 @@ func (s *DatabaseService) UpdateUser(user *models.User) error {
 	db := s.s.DB()
 	return db.Save(user).Error
 }
+
+func (s *DatabaseService) DeleteUser(id string) error {
+	db := s.s.DB()
+	return db.Where("id = ?", id).Delete(&models.User{}).Error
+}
+
+func (s *DatabaseService) GetAllUsers() ([]models.User, error) {
+	db := s.s.DB()
+	var users []models.User
+	if err := db.Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
