@@ -5,7 +5,7 @@ import "github.com/jinzhu/gorm"
 type RoleName string
 
 const (
-	Admin    RoleName = "ADMIN"
+	AdminRole RoleName = "ADMIN"
 	UserRole RoleName = "USER"
 	AssoRole RoleName = "ASSO"
 )
