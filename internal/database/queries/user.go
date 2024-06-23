@@ -42,10 +42,10 @@ func (s *DatabaseService) CreateUser(user *models.User, role *models.Roles) erro
     return nil
 }
 
-func (s *DatabaseService) GetUserFavorites(userID string) ([]models.Favorite, error) {
+func (s *DatabaseService) GetUserFavorites(UserID string) ([]models.Favorite, error) {
 	db := s.s.DB()
 	var favorites []models.Favorite
-	if err := db.Where("userID = ?", userID).Find(&favorites).Error; err != nil {
+	if err := db.Where("UserID = ?", UserID).Find(&favorites).Error; err != nil {
 		return nil, err
 	}
 	return favorites, nil
