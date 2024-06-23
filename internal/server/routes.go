@@ -21,6 +21,9 @@ import (
 func (s *Server) RegisterRoutes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
+	hub := handlers.NewHub()
+
+	go hub.Run()
 
 	r.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 
@@ -73,6 +76,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 		//** Auth routes
 		r.Get("/logout/{provider}", authHandler.LogoutProvider)
 		r.Get("/logout", authHandler.BasicLogout)
+
+		//** Chat (websocket) route
+		r.Get("/ws", hub.ServeWS)
 	})
 
 	// Public routes
