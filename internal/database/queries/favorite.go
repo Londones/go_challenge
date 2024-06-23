@@ -31,7 +31,7 @@ func (s *DatabaseService) FindFavoriteByID(id string) (*models.Favorite, error) 
 func (s *DatabaseService) FindFavoritesByUserID(userID string) ([]models.Favorite, error) {
 	db := s.s.DB()
 	var favorites []models.Favorite
-	if err := db.Where("userID = ?", userID).Find(&favorites).Error; err != nil {
+	if err := db.Where("user_id = ?", userID).Find(&favorites).Error; err != nil {
 		return nil, err
 	}
 	return favorites, nil
@@ -40,7 +40,7 @@ func (s *DatabaseService) FindFavoritesByUserID(userID string) ([]models.Favorit
 func (s *DatabaseService) FindFavoritesByAnnonceID(annonceID string) ([]models.Favorite, error) {
 	db := s.s.DB()
 	var favorites []models.Favorite
-	if err := db.Where("annonceID = ?", annonceID).Find(&favorites).Error; err != nil {
+	if err := db.Where("annonce_id = ?", annonceID).Find(&favorites).Error; err != nil {
 		return nil, err
 	}
 	return favorites, nil

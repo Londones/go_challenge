@@ -7,11 +7,10 @@ import (
 	"os"
 
 	"go-challenge/internal/auth"
-
-	_ "go-challenge/docs"
-
-	_ "go-challenge/docs"
+	"go-challenge/internal/handlers"
 	"go-challenge/internal/utils"
+
+	_ "go-challenge/docs"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -25,6 +24,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	r.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 
+	authHandler := handlers.NewAuthHandler(s.dbService)
+	userHandler := handlers.NewUserHandler(s.dbService, s.uploadcareClient)
+	annonceHandler := handlers.NewAnnonceHandler(s.dbService, s.dbService, s.dbService)
+	catHandler := handlers.NewCatHandler(s.dbService, s.uploadcareClient)
+	favoriteHandler := handlers.NewFavoriteHandler(s.dbService, s.dbService)
+
 	r.Group(func(r chi.Router) {
 		// Apply JWT middleware to all routes within this group
 		r.Use(jwtauth.Verifier(auth.TokenAuth))
@@ -33,46 +38,48 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Group(func(r chi.Router) {
 			// Protected routes for admin users
 			r.Use(AdminOnly)
+			// Admin specific routes
 		})
 
 		r.Group(func(r chi.Router) {
 			// Protected routes for personal user data
 			r.Use(UserOnly)
+			// User specific routes
 		})
 
 		//**	Annonces routes
-		r.Get("/annonces", s.GetAllAnnoncesHandler)
-		r.Get("/annonces/{id}", s.GetAnnonceByIDHandler)
-		r.Post("/annonces", s.AnnonceCreationHandler)
-		r.Put("/annonces/{id}", s.ModifyDescriptionAnnonceHandler)
-		r.Delete("/annonces/{id}", s.DeleteAnnonceHandler)
-		r.Get("/annonces/cats/{catID}", s.FetchAnnonceByCatIDHandler)
+		r.Get("/annonces", annonceHandler.GetAllAnnoncesHandler)
+		r.Get("/annonces/{id}", annonceHandler.GetAnnonceByIDHandler)
+		r.Post("/annonces", annonceHandler.AnnonceCreationHandler)
+		r.Put("/annonces/{id}", annonceHandler.ModifyDescriptionAnnonceHandler)
+		r.Delete("/annonces/{id}", annonceHandler.DeleteAnnonceHandler)
+		r.Get("/annonces/cats/{catID}", annonceHandler.FetchAnnonceByCatIDHandler)
 
 		//**	Cats routes
-		r.Get("/cats", s.GetAllCatsHandler)
-		r.Get("/cats/{id}", s.GetCatByIDHandler)
-		r.Put("/cats/{id}", s.UpdateCatHandler)
-		r.Post("/cats", s.CatCreationHandler)
-		r.Delete("/cats/{id}", s.DeleteCatHandler)
+		r.Get("/cats", catHandler.GetAllCatsHandler)
+		r.Get("/cats/{id}", catHandler.GetCatByIDHandler)
+		r.Put("/cats/{id}", catHandler.UpdateCatHandler)
+		r.Post("/cats", catHandler.CatCreationHandler)
+		r.Delete("/cats/{id}", catHandler.DeleteCatHandler)
 
 		//** User routes
-		r.Post("/profile/picture", s.ModifyProfilePictureHandler)
-		r.Get("/users/annonces/{id}", s.GetUserAnnoncesHandler)
-		r.Get("/users/favorites/{userID}", s.GetFavoritesByUserHandler)
+		r.Post("/profile/picture", userHandler.ModifyProfilePictureHandler)
+		r.Get("/users/annonces/{id}", annonceHandler.GetUserAnnoncesHandler)
 
 		//** Favorite routes
-		r.Post("/favorites", s.FavoriteCreationHandler)
+		r.Post("/favorites", favoriteHandler.FavoriteCreationHandler)
+		r.Get("/favorites/users/{userID}", favoriteHandler.GetFavoritesByUserHandler)
 
 		//** Auth routes
-		r.Get("/logout/{provider}", s.logoutProvider)
-		r.Get("/logout", s.basicLogout)
+		r.Get("/logout/{provider}", authHandler.LogoutProvider)
+		r.Get("/logout", authHandler.BasicLogout)
 	})
 
 	// Public routes
-	r.Get("/auth/{provider}/callback", s.getAuthCallbackFunction)
-	r.Get("/auth/{provider}", s.beginAuthProviderCallback)
-	r.Post("/login", s.LoginHandler)
-	r.Post("/register", s.RegisterHandler)
+	r.Get("/auth/{provider}/callback", authHandler.GetAuthCallbackFunction)
+	r.Get("/auth/{provider}", authHandler.BeginAuthProviderCallback)
+	r.Post("/login", authHandler.LoginHandler)
+	r.Post("/register", userHandler.RegisterHandler)
 	r.Get("/", s.HelloWorldHandler)
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"),

@@ -10,23 +10,22 @@ import (
 	"github.com/rs/cors"
 )
 
-//    @title            GO-challenge-PurrfectMatch
-//    @version        1.0
-//    @description    Swagger de PurrfectMatch
-//    @termsOfService    http://swagger.io/terms/
+// @title           GO-challenge-PurrfectMatch
+// @version         1.0
+// @description     Swagger de PurrfectMatch
+// @termsOfService  http://swagger.io/terms/
 
-//    @contact.name    API Support
-//    @contact.url    http://www.swagger.io/support
-//    @contact.email    support@swagger.io
+// @contact.name    API Support
+// @contact.url     http://www.swagger.io/support
+// @contact.email   support@swagger.io
 
-//    @license.name    Apache 2.0
-//    @license.url    http://www.apache.org/licenses/LICENSE-2.0.html
+// @license.name    Apache 2.0
+// @license.url     http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host        localhost:8080
-// @BasePath    /
+// @host            localhost:8080
+// @BasePath        /
 
-// Pour lancer le swagger : swag init --parseDependency -d ./internal/server -g ../../cmd/api/main.go
-// puis supprimer les lignes
+// Pour lancer le swagger : swag init --parseDependency -d internal/handlers -g ../../cmd/api/main.go
 func main() {
 	auth.NewAuth()
 	server, err := server.NewServer()
