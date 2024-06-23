@@ -1,0 +1,29 @@
+name: Merge dev into master
+
+on:
+    schedule:
+        - cron: "0 17 * * 4" # Run this workflow every Thursday at 5 PM
+
+jobs:
+    test-and-merge:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # this is required to fetch all branches
+
+            - name: Setup Go environment
+              uses: actions/setup-go@v5.0.0
+
+            - name: Get dependencies
+              run: go get -v -t -d ./...
+
+            - name: Run tests
+              run: go test -v ./...
+
+            - name: Merge dev into master
+              run: |
+                  git checkout master
+                  git merge --no-ff dev
+                  git push
