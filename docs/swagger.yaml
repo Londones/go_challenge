@@ -60,6 +60,21 @@ definitions:
       userID:
         type: string
     type: object
+  models.Favorite:
+    properties:
+      annonceID:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
   models.Rating:
     properties:
       annonceID:
@@ -316,6 +331,37 @@ paths:
       summary: Modify annonces description
       tags:
       - annonces
+  /annonces/cat/{catID}:
+    get:
+      description: Retrieve an annonce from the database by its Cat ID
+      parameters:
+      - description: Cat ID of the annonce to retrieve
+        in: path
+        name: catID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Annonce details
+          schema:
+            $ref: '#/definitions/models.Annonce'
+        "400":
+          description: Invalid Cat ID format
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get an annonce by Cat ID
+      tags:
+      - annonces
   /association:
     post:
       consumes:
@@ -570,7 +616,7 @@ paths:
       description: Retrieve a cat by its ID
       parameters:
       - description: Cat ID
-        in: query
+        in: path
         name: id
         required: true
         type: string
@@ -696,6 +742,68 @@ paths:
       summary: Update cat
       tags:
       - cats
+  /favorites:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new favorite with the provided details
+      parameters:
+      - description: ID of the annonce
+        in: formData
+        name: annonceID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: favorite created successfully
+          schema:
+            type: string
+        "400":
+          description: Missing or invalid fields in the request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create favorites
+      tags:
+      - favorites
+  /favorites/{userID}:
+    get:
+      description: Get all favorites of the user
+      parameters:
+      - description: ID of the user
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of user favorites
+          schema:
+            items:
+              $ref: '#/definitions/models.Favorite'
+            type: array
+        "400":
+          description: Invalid user ID
+          schema:
+            type: string
+        "404":
+          description: Favorites not found
+          schema:
+            type: string
+        "500":
+          description: error retrieving favorites
+          schema:
+            type: string
+      summary: Get user favorites
+      tags:
+      - favorites
   /login:
     post:
       consumes:

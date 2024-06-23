@@ -46,6 +46,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/annonces", s.AnnonceCreationHandler)
 		r.Put("/annonces/{id}", s.ModifyDescriptionAnnonceHandler)
 		r.Delete("/annonces/{id}", s.DeleteAnnonceHandler)
+		r.Get("/annonces/cats/{catID}", s.FetchAnnonceByCatIDHandler)
 
 		//**	Cats routes
 		r.Get("/cats", s.GetAllCatsHandler)
@@ -57,6 +58,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 		//** User routes
 		r.Post("/profile/picture", s.ModifyProfilePictureHandler)
 		r.Get("/users/annonces/{id}", s.GetUserAnnoncesHandler)
+		r.Get("/users/favorites/{userID}", s.GetFavoritesByUserHandler)
+
+		//** Favorite routes
+		r.Post("/favorites", s.FavoriteCreationHandler)
 
 		//** Auth routes
 		r.Get("/logout/{provider}", s.logoutProvider)
@@ -70,7 +75,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Post("/register", s.RegisterHandler)
 	r.Get("/", s.HelloWorldHandler)
 	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"), //The url pointing to API definition
+		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"),
 	))
 
 	return r

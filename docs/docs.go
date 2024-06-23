@@ -109,6 +109,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/annonces/cat/{catID}": {
+            "get": {
+                "description": "Retrieve an annonce from the database by its Cat ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "annonces"
+                ],
+                "summary": "Get an annonce by Cat ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cat ID of the annonce to retrieve",
+                        "name": "catID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Annonce details",
+                        "schema": {
+                            "$ref": "#/definitions/models.Annonce"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Cat ID format",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Annonce not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/annonces/{id}": {
             "get": {
                 "description": "Retrieve an annonce from the database by its ID",
@@ -610,7 +657,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Cat ID",
                         "name": "id",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -823,6 +870,100 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "error deleting cat",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/favorites": {
+            "post": {
+                "description": "Create a new favorite with the provided details",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "favorites"
+                ],
+                "summary": "Create favorites",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the annonce",
+                        "name": "annonceID",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "favorite created successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid fields in the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/favorites/{userID}": {
+            "get": {
+                "description": "Get all favorites of the user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "favorites"
+                ],
+                "summary": "Get user favorites",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the user",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of user favorites",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Favorite"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Favorites not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error retrieving favorites",
                         "schema": {
                             "type": "string"
                         }
@@ -1180,6 +1321,29 @@ const docTemplate = `{
                 },
                 "sterilized": {
                     "type": "boolean"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Favorite": {
+            "type": "object",
+            "properties": {
+                "annonceID": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "updatedAt": {
                     "type": "string"
