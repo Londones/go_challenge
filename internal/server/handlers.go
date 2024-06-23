@@ -813,6 +813,41 @@ func (s *Server) DeleteAnnonceHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// FetchAnnonceByCatIDHandler godoc
+// @Summary Get an annonce by Cat ID
+// @Description Retrieve an annonce from the database by its Cat ID
+// @Tags annonces
+// @Produce json
+// @Param catID path string true "Cat ID of the annonce to retrieve"
+// @Success 200 {object} models.Annonce "Annonce details"
+// @Failure 400 {string} string "Invalid Cat ID format"
+// @Failure 404 {string} string "Annonce not found"
+// @Failure 500 {string} string "Internal server error"
+// @Router /annonces/cat/{catID} [get]
+func (s *Server) FetchAnnonceByCatIDHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+
+	catID := chi.URLParam(r, "catID")
+	if catID == "" {
+		http.Error(w, "Cat ID is required", http.StatusBadRequest)
+		return
+	}
+
+	annonce, err := queriesService.FindAnnonceByCatID(catID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Annonce not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error retrieving annonce", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(annonce)
+}
+
 //**ANNONCES
 
 // **CHATS
@@ -1119,7 +1154,7 @@ func (s *Server) GetAllCatsHandler(w http.ResponseWriter, r *http.Request) {
 // @Summary Get cat by ID
 // @Description Retrieve a cat by its ID
 // @Tags cats
-// @Param id query string true "Cat ID"
+// @Param id path string true "Cat ID"
 // @Produce  json
 // @Success 200 {object} models.Cats "Found cat"
 // @Failure 400 {string} string "cat ID is required"
@@ -1128,11 +1163,10 @@ func (s *Server) GetAllCatsHandler(w http.ResponseWriter, r *http.Request) {
 // @Router /cats/{id} [get]
 func (s *Server) GetCatByIDHandler(w http.ResponseWriter, r *http.Request) {
 	queriesService := queries.NewQueriesService(s.dbService)
-	params := r.URL.Query()
-	id := params.Get("id")
 
+	id := chi.URLParam(r, "id")
 	if id == "" {
-		http.Error(w, "cat ID is required", http.StatusBadRequest)
+		http.Error(w, "ID of the cat is required", http.StatusBadRequest)
 		return
 	}
 
@@ -1147,10 +1181,8 @@ func (s *Server) GetCatByIDHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(cat)
-	if err != nil {
+	if err := json.NewEncoder(w).Encode(cat); err != nil {
 		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
-		return
 	}
 }
 
@@ -1188,3 +1220,129 @@ func (s *Server) DeleteCatHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // **CHATS
+
+// **favoris
+// FavoriteCreationHandler godoc
+// @Summary Create favorites
+// @Description Create a new favorite with the provided details
+// @Tags favorites
+// @Accept  x-www-form-urlencoded
+// @Produce  json
+// @Param annonceID formData string true "ID of the annonce"
+// @Success 201 {string} string "favorite created successfully"
+// @Failure 400 {string} string "Missing or invalid fields in the request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /favorites [post]
+func (s *Server) FavoriteCreationHandler(w http.ResponseWriter, r *http.Request) {
+	utils.Logger("debug", "Accès route", "FavoriteCreation", "")
+
+	contentType := r.Header.Get("Content-Type")
+	var annonceID string
+
+	// Vérifier si le type de contenu est JSON
+	if strings.Contains(contentType, "application/json") {
+		var data struct {
+			AnnonceID string `json:"annonceID"`
+		}
+		err := json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+		annonceID = data.AnnonceID
+	} else {
+		r.ParseForm()
+		annonceID = r.FormValue("annonceID")
+	}
+
+	if annonceID == "" {
+		http.Error(w, "annonceID is required", http.StatusBadRequest)
+		return
+	}
+
+	_, claims, err := jwtauth.FromContext(r.Context())
+	if err != nil {
+		http.Error(w, "error getting claims", http.StatusInternalServerError)
+		return
+	}
+	userID := claims["id"].(string)
+
+	queriesService := queries.NewQueriesService(s.dbService)
+	user, err := queriesService.FindUserByID(userID)
+	if err != nil {
+		http.Error(w, "error finding user", http.StatusInternalServerError)
+		return
+	}
+
+	// Just check if the annonce exists without using the returned object
+	_, err = queriesService.FindAnnonceByID(annonceID)
+	if err != nil {
+		http.Error(w, "error finding annonce", http.StatusInternalServerError)
+		return
+	}
+
+	favorite := &models.Favorite{
+		UserID:    user.ID,
+		AnnonceID: annonceID,
+	}
+
+	err = queriesService.CreateFavorite(favorite)
+	if err != nil {
+		http.Error(w, "error creating favorite", http.StatusInternalServerError)
+		return
+	}
+
+	response := struct {
+		Success  string           `json:"success"`
+		Favorite *models.Favorite `json:"favorite"`
+	}{
+		Success:  "true",
+		Favorite: favorite,
+	}
+
+	// Return the response as JSON
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(response)
+}
+
+// GetFavoritesByUserHandler godoc
+// @Summary Get user favorites
+// @Description Get all favorites of the user
+// @Tags favorites
+// @Produce json
+// @Param userID path string true "ID of the user"
+// @Success 200 {array} models.Favorite "List of user favorites"
+// @Failure 400 {string} string "Invalid user ID"
+// @Failure 404 {string} string "Favorites not found"
+// @Failure 500 {string} string "error retrieving favorites"
+// @Router /favorites/{userID} [get]
+func (s *Server) GetFavoritesByUserHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+	params := r.URL.Query()
+	userID := params.Get("userID")
+
+	if userID == "" {
+		http.Error(w, "user ID is required", http.StatusBadRequest)
+		return
+	}
+
+	favorites, err := queriesService.FindFavoritesByUserID(userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, fmt.Sprintf("favorites for user with ID %s not found", userID), http.StatusNotFound)
+			return
+		}
+		http.Error(w, "error retrieving favorites", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(favorites)
+	if err != nil {
+		http.Error(w, "error encoding favorites to JSON", http.StatusInternalServerError)
+		return
+	}
+}
+
+//**favoris

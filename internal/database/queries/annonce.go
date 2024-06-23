@@ -78,3 +78,13 @@ func (s *DatabaseService) GetUserAnnonces(userID string) ([]models.Annonce, erro
 	}
 	return annonces, nil
 }
+
+// get l'annonce d'un chat par son id
+func (s *DatabaseService) FindAnnonceByCatID(catID string) (*models.Annonce, error) {
+	db := s.s.DB()
+	var annonce models.Annonce
+	if err := db.Where("cat_id = ?", catID).First(&annonce).Error; err != nil {
+		return nil, err
+	}
+	return &annonce, nil
+}
