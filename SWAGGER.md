@@ -18,7 +18,7 @@ Swagger version : v1.16.3
 4. Après avoir mis les annotations dans les fichiers et dans le main.go il faut
    initialiser le swagger à partir de la racine du projet avec la commande:
 ```shell
-swag init --parseDependency -d ./internal/server/ -g ../../cmd/api/main.go
+swag init --parseDependency -d ./internal/handlers/ -g ../../cmd/api/main.go
 ```
 
 ### Explication de la commande:
