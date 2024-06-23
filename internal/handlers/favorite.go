@@ -91,6 +91,24 @@ func (h *FavoriteHandler) FavoriteCreationHandler(w http.ResponseWriter, r *http
 		return
 	}
 
+	authorID, err := h.userQueries.GetUserIDByAnnonceID(annonceID)
+	if err != nil {
+		http.Error(w, "error getting author ID", http.StatusInternalServerError)
+		return
+	}
+
+	chat := &models.Chat{
+		User1ID:   authorID,
+		User2ID:   userID,
+		AnnonceID: annonceID,
+	}
+
+	_, err = h.favoriteQueries.CreateChat(chat)
+	if err != nil {
+		http.Error(w, "error creating chat", http.StatusInternalServerError)
+		return
+	}
+
 	response := struct {
 		Success  string           `json:"success"`
 		Favorite *models.Favorite `json:"favorite"`
