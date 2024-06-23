@@ -55,7 +55,12 @@ func (s *Server) getAuthCallbackFunction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	fmt.Println(user)
+	userRole, err := queriesService.GetRoleByName(models.UserRole)
+    if err != nil {
+        http.Error(w, "error fetching user role", http.StatusInternalServerError)
+        return
+    }
+
 	// check if user with this google id exists
 	existingUser, err := queriesService.FindUserByGoogleID(user.UserID)
 	if err != nil {
@@ -68,10 +73,10 @@ func (s *Server) getAuthCallbackFunction(w http.ResponseWriter, r *http.Request)
 				Email:    user.Email,
 				Name:     user.Name,
 				GoogleID: user.UserID,
-				Role:     models.Roles{Name: "user"},
+				Roles:    []models.Roles{*userRole},
 			}
 
-			err := queriesService.CreateUser(newUser)
+			err := queriesService.CreateUser(newUser, userRole)
 			if err != nil {
 				http.Error(w, "error creating user", http.StatusInternalServerError)
 				return
@@ -82,7 +87,7 @@ func (s *Server) getAuthCallbackFunction(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	token := auth.MakeToken(existingUser.ID, string(existingUser.Role.Name))
+	token := auth.MakeToken(existingUser.ID, string(existingUser.Email))
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
@@ -307,6 +312,12 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userRole, err := queriesService.GetRoleByName(models.UserRole)
+	if err != nil {
+		http.Error(w, "error fetching user role", http.StatusInternalServerError)
+		return
+	}
+
 	user := &models.User{
 		ID:            uuid.New().String(),
 		Email:         email,
@@ -315,11 +326,10 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		AddressRue:    addressRue,
 		Cp:            cp,
 		Ville:         ville,
-		Role:          models.Roles{Name: "user"},
 		ProfilePicURL: "default",
 	}
 
-	err := queriesService.CreateUser(user)
+	err = queriesService.CreateUser(user, userRole)
 	if err != nil {
 		http.Error(w, "error creating user", http.StatusInternalServerError)
 		return
@@ -1249,6 +1259,12 @@ func (s *Server) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userRole, err := queriesService.GetRoleByName(models.UserRole)
+    if err != nil {
+        http.Error(w, "error fetching user role", http.StatusInternalServerError)
+        return
+    }
+
 	user := &models.User{
 		ID:            uuid.New().String(),
 		Email:         email,
@@ -1257,11 +1273,11 @@ func (s *Server) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		AddressRue:    addressRue,
 		Cp:            cp,
 		Ville:         ville,
-		Role:          models.Roles{Name: "user"},
+		Roles:         []models.Roles{*userRole},
 		ProfilePicURL: "default",
 	}
 
-	err := queriesService.CreateUser(user)
+	err = queriesService.CreateUser(user, userRole)
 	if err != nil {
 		http.Error(w, "error creating user", http.StatusInternalServerError)
 		return
