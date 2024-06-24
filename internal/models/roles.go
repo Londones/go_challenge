@@ -5,8 +5,9 @@ import "github.com/jinzhu/gorm"
 type RoleName string
 
 const (
-	Admin    RoleName = "admin"
-	UserRole RoleName = "user"
+	AdminRole RoleName = "ADMIN"
+	UserRole RoleName = "USER"
+	AssoRole RoleName = "ASSO"
 )
 
 type Roles struct {
