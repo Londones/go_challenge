@@ -15,6 +15,7 @@ import (
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/google/uuid"
 	"github.com/uploadcare/uploadcare-go/ucare"
@@ -104,6 +105,12 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userRole, err := h.userQueries.GetRoleByName(models.UserRole)
+	if err != nil {
+		http.Error(w, "error fetching user role", http.StatusInternalServerError)
+		return
+	}
+
 	user := &models.User{
 		ID:            uuid.New().String(),
 		Email:         email,
@@ -112,11 +119,10 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		AddressRue:    addressRue,
 		Cp:            cp,
 		Ville:         ville,
-		Role:          models.Roles{Name: "user"},
 		ProfilePicURL: "default",
 	}
 
-	err := h.userQueries.CreateUser(user)
+	err = h.userQueries.CreateUser(user, userRole)
 	if err != nil {
 		http.Error(w, "error creating user", http.StatusInternalServerError)
 		return
@@ -211,4 +217,266 @@ func (h *UserHandler) ModifyProfilePictureHandler(w http.ResponseWriter, r *http
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Profile picture updated successfully"))
+}
+
+
+// @Summary Get all users
+// @Description Retrieve a list of all users
+// @ID get-all-users
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} User "List of users"
+// @Failure 500 {object} Error "Error fetching users"
+// @Router /users [get]
+func (h *UserHandler) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+	users, err := h.userQueries.GetAllUsers()
+	if err != nil {
+		http.Error(w, "error fetching users", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(users)
+	if err != nil {
+		http.Error(w, "error encoding users to JSON", http.StatusInternalServerError)
+		return
+	}
+}
+
+// @Summary Update user
+// @Description Update the details of an existing user
+// @ID update-user
+// @Accept  json
+// @Produce  json
+// @Param id path string true "ID of the user to update"
+// @Param email formData string false "Email of the user"
+// @Param name formData string false "Name of the user"
+// @Param addressRue formData string false "Address of the user"
+// @Param cp formData string false "Postal code of the user"
+// @Param ville formData string false "City of the user"
+// @Security ApiKeyAuth
+// @Success 200 {object} User "User updated successfully"
+// @Failure 400 {object} Error "Missing or invalid fields in the request"
+// @Failure 403 {object} Error "User is not authorized to update this user"
+// @Failure 404 {object} Error "User not found"
+// @Failure 500 {object} Error "Internal server error"
+// @Router /users/{id} [put]
+func (h *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing form: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+	name := r.FormValue("name")
+	addressRue := r.FormValue("addressRue")
+	cp := r.FormValue("cp")
+	ville := r.FormValue("ville")
+
+	if email == "" || password == "" {
+		http.Error(w, "email and password are required", http.StatusBadRequest)
+		return
+	}
+
+	hashedPassword, passwordError := auth.HashPassword(password)
+	if passwordError != nil {
+		http.Error(w, "error hashing password", http.StatusInternalServerError)
+		return
+	}
+
+	userRole, err := h.userQueries.GetRoleByName(models.UserRole)
+    if err != nil {
+        http.Error(w, "error fetching user role", http.StatusInternalServerError)
+        return
+    }
+
+	user := &models.User{
+		ID:            uuid.New().String(),
+		Email:         email,
+		Password:      hashedPassword,
+		Name:          name,
+		AddressRue:    addressRue,
+		Cp:            cp,
+		Ville:         ville,
+		Roles:         []models.Roles{*userRole},
+		ProfilePicURL: "default",
+	}
+
+	err = h.userQueries.CreateUser(user, userRole)
+	if err != nil {
+		http.Error(w, "error creating user", http.StatusInternalServerError)
+		return
+	}
+
+	token := auth.MakeToken(user.ID, "user")
+
+	http.SetCookie(w, &http.Cookie{
+		HttpOnly: true,
+		Expires:  time.Now().Add(24 * time.Hour),
+		Name:     "jwt",
+		Value:    token,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	w.Header().Set("Content-Type", "application/json")
+	response := fmt.Sprintf(`{"success": true, "token": "%s"}`, token)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(response))
+}
+
+// @Summary Update user
+// @Description Update the details of an existing user
+// @ID update-user
+// @Accept  json
+// @Produce  json
+// @Param id path string true "ID of the user to update"
+// @Param email formData string false "Email of the user"
+// @Param name formData string false "Name of the user"
+// @Param addressRue formData string false "Address of the user"
+// @Param cp formData string false "Postal code of the user"
+// @Param ville formData string false "City of the user"
+// @Security ApiKeyAuth
+// @Success 200 {object} User "User updated successfully"
+// @Failure 400 {object} Error "Missing or invalid fields in the request"
+// @Failure 403 {object} Error "User is not authorized to update this user"
+// @Failure 404 {object} Error "User not found"
+// @Failure 500 {object} Error "Internal server error"
+// @Router /users/{id} [put]
+func (h *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing form: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	userID := chi.URLParam(r, "id")
+	if userID == "" {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.userQueries.FindUserByID(userID)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	if email := r.FormValue("email"); email != "" {
+		user.Email = email
+	}
+	if name := r.FormValue("name"); name != "" {
+		user.Name = name
+	}
+	if addressRue := r.FormValue("addressRue"); addressRue != "" {
+		user.AddressRue = addressRue
+	}
+	if cp := r.FormValue("cp"); cp != "" {
+		user.Cp = cp
+	}
+	if ville := r.FormValue("ville"); ville != "" {
+		user.Ville = ville
+	}
+
+	err = h.userQueries.UpdateUser(user)
+	if err != nil {
+		http.Error(w, "Error updating user", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		http.Error(w, "Error encoding user to JSON", http.StatusInternalServerError)
+	}
+}
+
+// @Summary Delete user
+// @Description Delete an existing user
+// @ID delete-user
+// @Accept  json
+// @Produce  json
+// @Param id path string true "ID of the user to delete"
+// @Security ApiKeyAuth
+// @Success 204 "No Content"
+// @Failure 400 {object} Error "User ID is required"
+// @Failure 500 {object} Error "Error deleting user"
+// @Router /users/{id} [delete]
+func (h *UserHandler) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
+	userID := chi.URLParam(r, "id")
+	if userID == "" {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	err := h.userQueries.DeleteUser(userID)
+	if err != nil {
+		http.Error(w, "Error deleting user", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetCurrentUserHandler godoc
+// @Summary Get current user
+// @Description Retrieve the details of the currently authenticated user
+// @Tags users
+// @Produce  json
+// @Security ApiKeyAuth
+// @Success 200 {object} User "User details"
+// @Failure 500 {string} string "error getting claims"
+// @Failure 500 {string} string "error finding user"
+// @Router /users/current [get]
+func (h *UserHandler) GetCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
+	_, claims, err := jwtauth.FromContext(r.Context())
+	if err != nil {
+		http.Error(w, "error getting claims", http.StatusInternalServerError)
+		return
+	}
+
+	userID := claims["id"].(string)
+	user, err := h.userQueries.FindUserByID(userID)
+	if err != nil {
+		http.Error(w, "error finding user", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
+}
+
+
+// GetUserByIDHandler godoc
+// @Summary Get user by ID
+// @Description Retrieve the details of a user by their ID
+// @Tags users
+// @Produce  json
+// @Param id path string true "User ID"
+// @Security ApiKeyAuth
+// @Success 200 {object} User "User details"
+// @Failure 400 {string} string "User ID is required"
+// @Failure 404 {string} string "User not found"
+// @Failure 500 {string} string "Error finding user"
+// @Router /users/{id} [get]
+func (h *UserHandler) GetUserByIDHandler(w http.ResponseWriter, r *http.Request) {
+	userID := chi.URLParam(r, "id")
+	if userID == "" {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.userQueries.FindUserByID(userID)
+	if err != nil {
+		http.Error(w, "Error finding user", http.StatusInternalServerError)
+		return
+	}
+
+	if user == nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
 }
