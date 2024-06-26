@@ -1147,6 +1147,17 @@ func (s *Server) DeleteCatHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// FindCatsByFilterHandler godoc
+// @Summary Get cats by filters
+// @Description Retrieve cats using their sex, age or race
+// @Tags cats
+// @Param raceId query int true "RaceID" age query int true "Age" sexe query bool true "Sexe"
+// @Produce  json
+// @Success 200 {object} []models.Cats "Found cats"
+// @Failure 400 {string} string "An error has occured"
+// @Failure 404 {string} string "No cats were found"
+// @Failure 500 {string} string "error fetching cats"
+// @Router /cats/{race}/{age}/{sexe} [get]
 func (s *Server) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Request) {
 
 }
