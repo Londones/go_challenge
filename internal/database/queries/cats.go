@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"go-challenge/internal/models"
-	"strconv"
 	"time"
 
 	"gorm.io/gorm"
@@ -93,45 +92,14 @@ func (s *DatabaseService) UpdateCat(cat *models.Cats) error {
 	return nil
 }
 
-func (s *DatabaseService) GetCatByFilters(filters map[string]string) ([]models.Cats, error) {
+func (s *DatabaseService) GetCatByFilters(raceId int, age int, sex bool) ([]models.Cats, error) {
 	var cats []models.Cats
-	var race int
-	var sex bool
-	var age int
-	var err error
 	var birthDate time.Time
 	db := s.s.DB()
 
-	if filters["age"] != "" {
-		_, err = strconv.Atoi(filters["age"])
+	birthDate = time.Now().AddDate(-age, 0, 0)
 
-		birthDate = time.Now().AddDate(4, 0, 0)
-
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if filters == nil {
-		var res, err = s.GetAllCats()
-		return res, err
-	}
-
-	if filters["race"] != "" {
-		race, err = strconv.Atoi(filters["race"])
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if filters["sexe"] != "" {
-		sex, err = strconv.ParseBool(filters["sexe"])
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if err := db.Where("Sexe = ?", &sex).Where("RaceID = ?", &race).Where("BirthDate <= ?", &birthDate).Find(&cats).Error; err != nil {
+	if err := db.Where("Sexe = ?", &sex).Where("RaceID = ?", &raceId).Where("BirthDate <= ?", &birthDate).Find(&cats).Error; err != nil {
 		return nil, err
 	}
 

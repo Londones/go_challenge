@@ -10,7 +10,6 @@ import (
 
 	_ "go-challenge/docs"
 
-	_ "go-challenge/docs"
 	"go-challenge/internal/utils"
 
 	"github.com/go-chi/chi/v5"
@@ -68,6 +67,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Post("/login", s.LoginHandler)
 	r.Post("/register", s.RegisterHandler)
 	r.Get("/", s.HelloWorldHandler)
+	r.Get("/cats/", s.FindCatsByFilterHandler)
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"), //The url pointing to API definition
 	))
