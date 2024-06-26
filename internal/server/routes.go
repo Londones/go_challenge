@@ -54,11 +54,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Delete("/cats/{id}", s.DeleteCatHandler)
 
 		//** Race routes
-		r.Get("/races", s.GetAllRaceHandler)
-		r.Get("/races/{id}", s.GetRaceByIDHandler)
-		r.Put("/races/{id}", s.UpdateRaceHandler)
-		r.Post("/races", s.RaceCreationHandler)
-		r.Delete("/races/{id}", s.DeleteRaceHandler)
+		//r.Get("/races", s.GetAllRaceHandler)
+		//r.Get("/races/{id}", s.GetRaceByIDHandler)
+		//r.Put("/races/{id}", s.UpdateRaceHandler)
+		//r.Post("/races", s.RaceCreationHandler)
+		//r.Delete("/races/{id}", s.DeleteRaceHandler)
 
 		//** User routes
 		r.Post("/profile/picture", s.ModifyProfilePictureHandler)
@@ -74,10 +74,17 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Post("/login", s.LoginHandler)
 	r.Post("/register", s.RegisterHandler)
 	r.Get("/", s.HelloWorldHandler)
-	r.Get("/cats/", s.FindCatsByFilterHandler)
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"), //The url pointing to API definition
 	))
+
+	// TESTING AREA
+	r.Get("/cats/", s.FindCatsByFilterHandler)
+	r.Get("/races", s.GetAllRaceHandler)
+	r.Get("/races/{id}", s.GetRaceByIDHandler)
+	r.Put("/races/{id}", s.UpdateRaceHandler)
+	r.Post("/race", s.RaceCreationHandler)
+	r.Delete("/race/{id}", s.DeleteRaceHandler)
 
 	return r
 }

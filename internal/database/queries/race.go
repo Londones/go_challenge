@@ -16,7 +16,7 @@ func (s *DatabaseService) CreateRace(race *models.Races) (id uint, err error) {
 	return race.ID, nil
 }
 
-func (s *DatabaseService) DeleteRace(id uint) error {
+func (s *DatabaseService) DeleteRace(id string) error {
 	db := s.s.DB()
 
 	var race models.Races
