@@ -99,7 +99,7 @@ func (s *DatabaseService) GetCatByFilters(raceId int, age int, sex bool) ([]mode
 
 	birthDate = time.Now().AddDate(-age, 0, 0)
 
-	if err := db.Where("Sexe = ?", &sex).Where("RaceID = ?", &raceId).Where("BirthDate <= ?", &birthDate).Find(&cats).Error; err != nil {
+	if err := db.Where("Sexe = ?", &sex).Where("race_id = ?", &raceId).Where("birth_date <= ?", &birthDate).Find(&cats).Error; err != nil {
 		return nil, err
 	}
 

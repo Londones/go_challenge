@@ -118,6 +118,7 @@ func migrateAllModels(db *gorm.DB) error {
 		&models.Annonce{},
 		&models.Association{},
 		&models.Cats{},
+		&models.Races{},
 		&models.Favorite{},
 		&models.Rating{},
 		&models.Roles{},

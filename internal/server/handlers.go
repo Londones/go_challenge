@@ -1188,3 +1188,11 @@ func (s *Server) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // **CHATS
+
+// ** RACE
+// FIXME A finir.
+func (s *Server) GetAllRaceHandler(w http.ResponseWriter, r *http.Request)   {}
+func (s *Server) GetRaceByIDHandler(w http.ResponseWriter, r *http.Request)  {}
+func (s *Server) UpdateRaceHandler(w http.ResponseWriter, r *http.Request)   {}
+func (s *Server) RaceCreationHandler(w http.ResponseWriter, r *http.Request) {}
+func (s *Server) DeleteRaceHandler(w http.ResponseWriter, r *http.Request)   {}
