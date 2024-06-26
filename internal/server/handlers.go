@@ -1162,9 +1162,8 @@ func (s *Server) DeleteCatHandler(w http.ResponseWriter, r *http.Request) {
 // @Router /cats/ [get]
 func (s *Server) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Request) {
 	queriesService := queries.NewQueriesService(s.dbService)
-	fmt.Println('s')
-	fmt.Println(queriesService)
 	params := r.URL.Query()
+
 	raceId, _ := strconv.Atoi(params.Get("race"))
 	sexe, _ := strconv.ParseBool(params.Get("sexe"))
 	age, _ := strconv.Atoi(params.Get("age"))
@@ -1191,8 +1190,117 @@ func (s *Server) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Request)
 
 // ** RACE
 // FIXME A finir.
-func (s *Server) GetAllRaceHandler(w http.ResponseWriter, r *http.Request)   {}
-func (s *Server) GetRaceByIDHandler(w http.ResponseWriter, r *http.Request)  {}
-func (s *Server) UpdateRaceHandler(w http.ResponseWriter, r *http.Request)   {}
-func (s *Server) RaceCreationHandler(w http.ResponseWriter, r *http.Request) {}
-func (s *Server) DeleteRaceHandler(w http.ResponseWriter, r *http.Request)   {}
+
+// GetAllRaceHandler godoc
+// @Summary Get all races
+// @Description Retrieve a list of all race
+// @Tags race
+// @Produce  json
+// @Success 200 {array} models.Races "List of race"
+// @Failure 500 {string} string "error fetching races"
+// @Router /races [get]
+func (s *Server) GetAllRaceHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+
+	races, err := queriesService.GetAllRace()
+	if err != nil {
+		http.Error(w, "error fetching races", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(races)
+	if err != nil {
+		http.Error(w, "error encoding races to JSON", http.StatusInternalServerError)
+		return
+	}
+}
+func (s *Server) GetRaceByIDHandler(w http.ResponseWriter, r *http.Request) {
+	//queriesService := queries.NewQueriesService(s.dbService)
+	//params := r.URL.Query()
+}
+func (s *Server) UpdateRaceHandler(w http.ResponseWriter, r *http.Request) {
+	//queriesService := queries.NewQueriesService(s.dbService)
+	//params := r.URL.Query()
+}
+
+// RaceCreationHandler godoc
+// @Summary Create a new Race
+// @Description Create a new Race from a Form
+// @Tags race
+// @Accept  x-www-form-urlencoded
+// @Produce  json
+// @Param name formData string true "Name"
+// @Success 201 {object} models.Races "Race created	successfully"
+// @Failure 400 {string} string "all fields are required"
+// @Failure 500 {string} string "error creating race"
+// @Router /race [post]
+func (s *Server) RaceCreationHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	name := r.FormValue("name")
+
+	if name == "" {
+		http.Error(w, "all fields are required", http.StatusBadRequest)
+		return
+	}
+
+	race := &models.Races{
+		RaceName: name,
+	}
+
+	_, err = queriesService.CreateRace(race)
+	if err != nil {
+		http.Error(w, "error creating race", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(race)
+	if err != nil {
+		http.Error(w, "error encoding race to JSON", http.StatusInternalServerError)
+		return
+	}
+}
+
+// DeleteRaceHandler godoc
+// @Summary Delete a race
+// @Description Delete a race using its ID
+// @Tags race
+// @Param id query string true "ID"
+// @Success 204 "No Content"
+// @Failure 400 {string} string "race ID is required"
+// @Failure 404 {string} string "race not found"
+// @Failure 500 {string} string "error deleting race"
+// @Router /race/{id} [delete]
+func (s *Server) DeleteRaceHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+	params := r.URL.Query()
+
+	id := params.Get("id")
+
+	if id == "" {
+		http.Error(w, "race ID is required", http.StatusBadRequest)
+		return
+	}
+
+	err := queriesService.DeleteRace(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, fmt.Sprintf("race with ID %s not found", id), http.StatusNotFound)
+			return
+		}
+		http.Error(w, "error deleting race", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// ** RACE
