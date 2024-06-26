@@ -911,7 +911,7 @@ func (s *Server) CatCreationHandler(w http.ResponseWriter, r *http.Request) {
 		Behavior:        behavior,
 		Sterilized:      sterilized,
 		PicturesURL:     fileURLs,
-		Race:            race,
+		RaceID:          race,
 		Description:     &description,
 		Reserved:        Reserved,
 		AnnonceID:       annonceID,
@@ -1021,7 +1021,7 @@ func (s *Server) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
 		cat.Sterilized = sterilized
 	}
 	if race := r.FormValue("Race"); race != "" {
-		cat.Race = race
+		cat.RaceID = race
 	}
 	if description := r.FormValue("Description"); description != "" {
 		cat.Description = &description
@@ -1151,15 +1151,40 @@ func (s *Server) DeleteCatHandler(w http.ResponseWriter, r *http.Request) {
 // @Summary Get cats by filters
 // @Description Retrieve cats using their sex, age or race
 // @Tags cats
-// @Param raceId query int true "RaceID" age query int true "Age" sexe query bool true "Sexe"
+// @Param raceId query int false "RaceID"
+// @Param age query int false "Age"
+// @Param sexe query boolean false "Sexe"
 // @Produce  json
 // @Success 200 {object} []models.Cats "Found cats"
 // @Failure 400 {string} string "An error has occured"
 // @Failure 404 {string} string "No cats were found"
 // @Failure 500 {string} string "error fetching cats"
-// @Router /cats/{race}/{age}/{sexe} [get]
+// @Router /cats/ [get]
 func (s *Server) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Request) {
+	queriesService := queries.NewQueriesService(s.dbService)
+	fmt.Println('s')
+	fmt.Println(queriesService)
+	params := r.URL.Query()
+	raceId, _ := strconv.Atoi(params.Get("race"))
+	sexe, _ := strconv.ParseBool(params.Get("sexe"))
+	age, _ := strconv.Atoi(params.Get("age"))
 
+	cats, err := queriesService.GetCatByFilters(raceId, age, sexe)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, fmt.Sprintf("Error in parameters"), http.StatusNotFound)
+			return
+		}
+		http.Error(w, "error fetching cat", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(cats)
+	if err != nil {
+		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
+		return
+	}
 }
 
 // **CHATS
