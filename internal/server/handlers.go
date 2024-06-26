@@ -1147,4 +1147,8 @@ func (s *Server) DeleteCatHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (s *Server) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Request) {
+
+}
+
 // **CHATS
