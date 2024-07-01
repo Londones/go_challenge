@@ -47,11 +47,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Delete("/annonces/{id}", s.DeleteAnnonceHandler)
 
 		//**	Cats routes
-		r.Get("/cats", s.GetAllCatsHandler)
-		r.Get("/cats/{id}", s.GetCatByIDHandler)
-		r.Put("/cats/{id}", s.UpdateCatHandler)
-		r.Post("/cats", s.CatCreationHandler)
-		r.Delete("/cats/{id}", s.DeleteCatHandler)
+		//r.Get("/cats", s.GetAllCatsHandler)
+		//r.Get("/cats/{id}", s.GetCatByIDHandler)
+		//r.Put("/cats/{id}", s.UpdateCatHandler)
+		//r.Post("/cats", s.CatCreationHandler)
+		//r.Delete("/cats/{id}", s.DeleteCatHandler)
 
 		//** Race routes
 		//r.Get("/races", s.GetAllRaceHandler)
@@ -79,6 +79,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 	))
 
 	// TESTING AREA
+	r.Get("/cats", s.GetAllCatsHandler)
+	r.Get("/cats/{id}", s.GetCatByIDHandler)
+	r.Put("/cats/{id}", s.UpdateCatHandler)
+	r.Post("/cats", s.CatCreationHandler)
+	r.Delete("/cats/{id}", s.DeleteCatHandler)
 	r.Get("/cats/", s.FindCatsByFilterHandler)
 	r.Get("/races", s.GetAllRaceHandler)
 	r.Get("/races/{id}", s.GetRaceByIDHandler)
