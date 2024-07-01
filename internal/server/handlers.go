@@ -1164,7 +1164,7 @@ func (s *Server) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Request)
 	queriesService := queries.NewQueriesService(s.dbService)
 	params := r.URL.Query()
 
-	raceId, _ := strconv.Atoi(params.Get("race"))
+	raceId, _ := strconv.Atoi(params.Get("raceId"))
 	sexe, _ := strconv.ParseBool(params.Get("sexe"))
 	age, _ := strconv.Atoi(params.Get("age"))
 
