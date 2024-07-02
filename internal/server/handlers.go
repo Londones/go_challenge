@@ -1151,9 +1151,9 @@ func (s *Server) DeleteCatHandler(w http.ResponseWriter, r *http.Request) {
 // @Summary Get cats by filters
 // @Description Retrieve cats using their sex, age or race
 // @Tags cats
-// @Param raceId query int false "RaceID"
+// @Param raceId query string false "RaceID"
 // @Param age query int false "Age"
-// @Param sexe query boolean false "Sexe"
+// @Param sexe query string false "Sexe"
 // @Produce  json
 // @Success 200 {object} []models.Cats "Found cats"
 // @Failure 400 {string} string "An error has occured"
@@ -1164,8 +1164,8 @@ func (s *Server) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Request)
 	queriesService := queries.NewQueriesService(s.dbService)
 	params := r.URL.Query()
 
-	raceId, _ := strconv.Atoi(params.Get("raceId"))
-	sexe, _ := strconv.ParseBool(params.Get("sexe"))
+	raceId := params.Get("raceId")
+	sexe := params.Get("sexe")
 	age, _ := strconv.Atoi(params.Get("age"))
 
 	cats, err := queriesService.GetCatByFilters(raceId, age, sexe)

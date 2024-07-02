@@ -91,7 +91,7 @@ func (s *DatabaseService) UpdateCat(cat *models.Cats) error {
 	return nil
 }
 
-func (s *DatabaseService) GetCatByFilters(raceId int, age int, sex bool) ([]models.Cats, error) {
+func (s *DatabaseService) GetCatByFilters(raceId string, age int, sex string) ([]models.Cats, error) {
 	var cats []models.Cats
 	var birthDate time.Time
 	db := s.s.DB()
