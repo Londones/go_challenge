@@ -33,6 +33,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 			// Protected routes for admin users
 			r.Use(AdminOnly)
 		})
+		//** Race routes for admin
+		r.Put("/race/{id}", s.UpdateRaceHandler)
+		r.Post("/race", s.RaceCreationHandler)
+		r.Delete("/race/{id}", s.DeleteRaceHandler)
 
 		r.Group(func(r chi.Router) {
 			// Protected routes for personal user data
@@ -47,18 +51,16 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Delete("/annonces/{id}", s.DeleteAnnonceHandler)
 
 		//**	Cats routes
-		//r.Get("/cats", s.GetAllCatsHandler)
-		//r.Get("/cats/{id}", s.GetCatByIDHandler)
-		//r.Put("/cats/{id}", s.UpdateCatHandler)
-		//r.Post("/cats", s.CatCreationHandler)
-		//r.Delete("/cats/{id}", s.DeleteCatHandler)
+		r.Get("/cats", s.GetAllCatsHandler)
+		r.Get("/cats/{id}", s.GetCatByIDHandler)
+		r.Put("/cats/{id}", s.UpdateCatHandler)
+		r.Post("/cats", s.CatCreationHandler)
+		r.Delete("/cats/{id}", s.DeleteCatHandler)
+		r.Get("/cats/", s.FindCatsByFilterHandler)
 
 		//** Race routes
-		//r.Get("/races", s.GetAllRaceHandler)
-		//r.Get("/races/{id}", s.GetRaceByIDHandler)
-		//r.Put("/races/{id}", s.UpdateRaceHandler)
-		//r.Post("/races", s.RaceCreationHandler)
-		//r.Delete("/races/{id}", s.DeleteRaceHandler)
+		r.Get("/races", s.GetAllRaceHandler)
+		r.Get("/race/{id}", s.GetRaceByIDHandler)
 
 		//** User routes
 		r.Post("/profile/picture", s.ModifyProfilePictureHandler)
@@ -77,19 +79,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"), //The url pointing to API definition
 	))
-
-	// TESTING AREA
-	r.Get("/cats", s.GetAllCatsHandler)
-	r.Get("/cats/{id}", s.GetCatByIDHandler)
-	r.Put("/cats/{id}", s.UpdateCatHandler)
-	r.Post("/cats", s.CatCreationHandler)
-	r.Delete("/cats/{id}", s.DeleteCatHandler)
-	r.Get("/cats/", s.FindCatsByFilterHandler)
-	r.Get("/races", s.GetAllRaceHandler)
-	r.Get("/race/{id}", s.GetRaceByIDHandler)
-	r.Put("/race/{id}", s.UpdateRaceHandler)
-	r.Post("/race", s.RaceCreationHandler)
-	r.Delete("/race/{id}", s.DeleteRaceHandler)
 
 	return r
 }
