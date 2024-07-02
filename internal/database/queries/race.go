@@ -70,7 +70,7 @@ func (s *DatabaseService) DeleteRaceById(id string) error {
 	return nil
 }
 
-func (s *DatabaseService) UpdateRace(race *models.Cats) error {
+func (s *DatabaseService) UpdateRace(race models.Races) error {
 	db := s.s.DB()
 
 	var existingRace models.Races

@@ -87,7 +87,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Get("/cats/", s.FindCatsByFilterHandler)
 	r.Get("/races", s.GetAllRaceHandler)
 	r.Get("/race/{id}", s.GetRaceByIDHandler)
-	r.Put("/races/{id}", s.UpdateRaceHandler)
+	r.Put("/race/{id}", s.UpdateRaceHandler)
 	r.Post("/race", s.RaceCreationHandler)
 	r.Delete("/race/{id}", s.DeleteRaceHandler)
 
