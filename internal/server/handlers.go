@@ -1215,9 +1215,40 @@ func (s *Server) GetAllRaceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+// GetRaceByIDHandler godoc
+// @Summary Get a specific race using its id
+// @Description Retrieve one specific race
+// @Tags race
+// @Produce json
+// @Param id path string true "ID of the race to retrieve"
+// @Success 200 {object} models.Races "Race detail"
+// @Failure 400 {string} string "Invalid ID format"
+// @Failure 404 {string} string "Race not found"
+// @Failure 500 {string} string "Internal server error"
+// @Router /race/{id} [get]
 func (s *Server) GetRaceByIDHandler(w http.ResponseWriter, r *http.Request) {
-	//queriesService := queries.NewQueriesService(s.dbService)
-	//params := r.URL.Query()
+	queriesService := queries.NewQueriesService(s.dbService)
+
+	raceID := chi.URLParam(r, "id")
+	if raceID == "" {
+		http.Error(w, "ID of the race is required", http.StatusBadRequest)
+		return
+	}
+
+	race, err := queriesService.FindRaceByID(raceID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Race not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error retrieving race", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(race)
 }
 func (s *Server) UpdateRaceHandler(w http.ResponseWriter, r *http.Request) {
 	//queriesService := queries.NewQueriesService(s.dbService)
