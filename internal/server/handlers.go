@@ -1250,9 +1250,56 @@ func (s *Server) GetRaceByIDHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(race)
 }
+
+// UpdateRaceHandler godoc
+// @Summary Search then update a race using its ID
+// @Description Update a race name
+// @Tags race
+// @Produce json
+// @Accept x-www-form-urlencoded
+// @Param id path string true "ID of the race to update"
+// @Param raceName query string true "New race name"
+// @Security ApiKeyAuth
+// @Success 200 {object} models.Races "Race updated successfully"
+// @Failure 400 {string} string "Missing or invalid fields in the request"
+// @Failure 403 {string} string "User is not authorized to update this race"
+// @Failure 404 {string} string "Race not found"
+// @Failure 500 {string} string "Internal server error"
+// @Router /race/{id} [put]
 func (s *Server) UpdateRaceHandler(w http.ResponseWriter, r *http.Request) {
-	//queriesService := queries.NewQueriesService(s.dbService)
-	//params := r.URL.Query()
+	queriesService := queries.NewQueriesService(s.dbService)
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing form: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	raceID := chi.URLParam(r, "id")
+	if raceID == "" {
+		http.Error(w, "race ID is required", http.StatusBadRequest)
+		return
+	}
+
+	race, err := queriesService.FindRaceByID(raceID)
+	if err != nil {
+		http.Error(w, "race not found", http.StatusNotFound)
+		return
+	}
+
+	if name := r.FormValue("raceName"); name != "" {
+		race.RaceName = name
+	}
+
+	err = queriesService.UpdateRace(race)
+	if err != nil {
+		http.Error(w, "error updating race", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(race); err != nil {
+		http.Error(w, "error encoding race to JSON", http.StatusInternalServerError)
+	}
 }
 
 // RaceCreationHandler godoc
