@@ -44,6 +44,14 @@ func (s *DatabaseService) GetAllRace() ([]models.Races, error) {
 	return races, nil
 }
 
+func (s *DatabaseService) FindRaceByID(id string) (race models.Races, err error) {
+	db := s.s.DB()
+	if err := db.Where("ID = ?", id).First(&race).Error; err != nil {
+		return models.Races{}, err
+	}
+	return race, nil
+}
+
 func (s *DatabaseService) DeleteRaceById(id string) error {
 	db := s.s.DB()
 
