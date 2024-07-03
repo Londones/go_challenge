@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
+	"go-challenge/internal/utils"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
@@ -59,12 +61,14 @@ func NewRooms() *Rooms {
 func (h *RoomHandler) LoadRooms() {
 	rooms, err := h.roomQueries.GetRooms()
 	if err != nil {
+		utils.Logger("error", "Load Rooms:", "Failed to load rooms", fmt.Sprintf("Error: %v", err))
 		log.Printf("Error loading rooms: %v", err)
 		return
 	}
 	for _, room := range rooms {
 		h.Rooms.AddRoom(room)
 	}
+	utils.Logger("info", "Load Rooms:", "Rooms loaded successfully", "")
 }
 
 func (r *Rooms) AddRoom(room *models.Room) {
@@ -90,6 +94,7 @@ func (r *Rooms) AddRoom(room *models.Room) {
 func (h *RoomHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := h.upgrader.Upgrade(w, r, nil)
 	if err != nil {
+		utils.Logger("error", "Handle WebSocket:", "Failed to upgrade connection", fmt.Sprintf("Error: %v", err))
 		http.Error(w, "error upgrading connection", http.StatusInternalServerError)
 		return
 	}
@@ -100,6 +105,7 @@ func (h *RoomHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	roomID, err := strconv.ParseUint(roomIDstring, 10, 64)
 	if err != nil {
+		utils.Logger("error", "Handle WebSocket:", "Failed to parse room ID", fmt.Sprintf("Error: %v", err))
 		http.Error(w, "error parsing room ID", http.StatusBadRequest)
 		return
 	}
@@ -112,12 +118,15 @@ func (h *RoomHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	room, err := h.getOrCreateRoom(uint(roomID))
 	if err != nil {
+		utils.Logger("error", "Handle WebSocket:", "Failed to get or create room", fmt.Sprintf("Error: %v", err))
 		http.Error(w, "room not found", http.StatusNotFound)
 		conn.Close()
 		return
 	}
 
 	room.RegisterClient(client)
+
+	utils.Logger("info", "Handle WebSocket:", "Client connected to room", fmt.Sprintf("Room ID: %v, User ID: %v", roomID, userID))
 
 	go client.writePump()
 	go client.readPump(room, h)
@@ -190,6 +199,7 @@ func (c *Client) readPump(room *Room, h *RoomHandler) {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				utils.Logger("error", "Read Pump:", "Unexpected close error", fmt.Sprintf("Error: %v", err))
 				log.Printf("error: %v", err)
 			}
 			break
@@ -202,6 +212,7 @@ func (c *Client) readPump(room *Room, h *RoomHandler) {
 		}
 
 		room.Broadcast(message)
+		utils.Logger("info", "Read Pump:", "Message broadcasted", fmt.Sprintf("Room ID: %v, User ID: %v", room.roomID, c.userID))
 	}
 }
 
@@ -213,9 +224,11 @@ func (c *Client) writePump() {
 	for message := range c.send {
 		w, err := c.conn.NextWriter(websocket.TextMessage)
 		if err != nil {
+			utils.Logger("error", "Write Pump:", "Failed to get writer", fmt.Sprintf("Error: %v", err))
 			return
 		}
 		w.Write(message)
+		utils.Logger("info", "Write Pump:", "Message sent", fmt.Sprintf("Message: %v", message))
 
 		n := len(c.send)
 		for i := 0; i < n; i++ {
@@ -224,6 +237,7 @@ func (c *Client) writePump() {
 		}
 
 		if err := w.Close(); err != nil {
+			utils.Logger("error", "Write Pump:", "Failed to close writer", fmt.Sprintf("Error: %v", err))
 			return
 		}
 	}
@@ -288,12 +302,14 @@ func (h *RoomHandler) GetUserRooms(w http.ResponseWriter, r *http.Request) {
 func (h *RoomHandler) GetRoomMessages(w http.ResponseWriter, r *http.Request) {
 	roomID := chi.URLParam(r, "roomID")
 	if roomID == "" {
+		utils.Logger("error", "Get Room Messages:", "Room ID is required", "")
 		http.Error(w, "room ID is required", http.StatusBadRequest)
 		return
 	}
 
 	roomIDToInt, err := strconv.ParseUint(roomID, 10, 64)
 	if err != nil {
+		utils.Logger("error", "Get Room Messages:", "Failed to parse room ID", fmt.Sprintf("Error: %v", err))
 		http.Error(w, "error parsing room ID", http.StatusBadRequest)
 		return
 	}
@@ -306,4 +322,5 @@ func (h *RoomHandler) GetRoomMessages(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(messages)
+	utils.Logger("info", "Get Room Messages:", "Messages retrieved successfully", fmt.Sprintf("Room ID: %v", roomID))
 }
