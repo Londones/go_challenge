@@ -12,6 +12,7 @@ import (
 	"go-challenge/internal/auth"
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
+	"go-challenge/internal/utils"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -44,16 +45,18 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 	r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
 
 	user, err := gothic.CompleteUserAuth(w, r)
+	utils.Logger("info", "User", fmt.Sprintf("%+v", user), "")
 	if err != nil {
+		utils.Logger("error", "Complete User Auth:", "Failed to complete user authentication", fmt.Sprintf("Error: %v", err))
 		fmt.Fprintln(w, err)
 		return
 	}
 
 	userRole, err := h.userQueries.GetRoleByName(models.UserRole)
-    if err != nil {
-        http.Error(w, "error fetching user role", http.StatusInternalServerError)
-        return
-    }
+	if err != nil {
+		http.Error(w, "error fetching user role", http.StatusInternalServerError)
+		return
+	}
 
 	// check if user with this google id exists
 	existingUser, err := h.userQueries.FindUserByGoogleID(user.UserID)
