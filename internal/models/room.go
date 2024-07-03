@@ -4,7 +4,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-type Chat struct {
+type Room struct {
 	gorm.Model
 	User1ID   string `gorm:"not null"`
 	User2ID   string `gorm:"not null"`
