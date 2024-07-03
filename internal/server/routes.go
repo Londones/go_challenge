@@ -66,8 +66,13 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Delete("/cats/{id}", catHandler.DeleteCatHandler)
 
 		//** User routes
-		r.Post("/profile/picture", userHandler.ModifyProfilePictureHandler)
 		r.Get("/users/annonces/{id}", annonceHandler.GetUserAnnoncesHandler)
+		r.Get("/users/{id}", userHandler.GetUserByIDHandler)
+		r.Get("/users/current", userHandler.GetCurrentUserHandler)
+		r.Post("/users", userHandler.CreateUserHandler)
+		r.Post("/profile/picture", userHandler.ModifyProfilePictureHandler)
+		r.Put("/users/{id}", userHandler.UpdateUserHandler)
+		r.Delete("/users/{id}", userHandler.DeleteUserHandler)
 
 		//** Favorite routes
 		r.Post("/favorites", favoriteHandler.FavoriteCreationHandler)

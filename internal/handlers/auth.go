@@ -49,7 +49,12 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	fmt.Println(user)
+	userRole, err := h.userQueries.GetRoleByName(models.UserRole)
+    if err != nil {
+        http.Error(w, "error fetching user role", http.StatusInternalServerError)
+        return
+    }
+
 	// check if user with this google id exists
 	existingUser, err := h.userQueries.FindUserByGoogleID(user.UserID)
 	if err != nil {
@@ -62,10 +67,10 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 				Email:    user.Email,
 				Name:     user.Name,
 				GoogleID: user.UserID,
-				Role:     models.Roles{Name: "user"},
+				Roles:    []models.Roles{*userRole},
 			}
 
-			err := h.userQueries.CreateUser(newUser)
+			err := h.userQueries.CreateUser(newUser, userRole)
 			if err != nil {
 				http.Error(w, "error creating user", http.StatusInternalServerError)
 				return
@@ -76,7 +81,7 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	token := auth.MakeToken(existingUser.ID, string(existingUser.Role.Name))
+	token := auth.MakeToken(existingUser.ID, string(existingUser.Email))
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
@@ -193,7 +198,7 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := auth.MakeToken(user.ID, string(user.Role.Name))
+	token := auth.MakeToken(user.ID, string(user.Email))
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
 		Expires:  time.Now().Add(24 * time.Hour),

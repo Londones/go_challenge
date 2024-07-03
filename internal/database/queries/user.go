@@ -31,9 +31,15 @@ func (s *DatabaseService) FindUserByGoogleID(googleID string) (*models.User, err
 	return &user, nil
 }
 
-func (s *DatabaseService) CreateUser(user *models.User) error {
-	db := s.s.DB()
-	return db.Create(user).Error
+func (s *DatabaseService) CreateUser(user *models.User, role *models.Roles) error {
+    db := s.s.DB()
+    if err := db.Create(user).Error; err != nil {
+        return err
+    }
+    if err := db.Model(user).Association("Roles").Append(role).Error; err != nil {
+        return err
+    }
+    return nil
 }
 
 func (s *DatabaseService) GetUserFavorites(UserID string) ([]models.Favorite, error) {
@@ -48,4 +54,27 @@ func (s *DatabaseService) GetUserFavorites(UserID string) ([]models.Favorite, er
 func (s *DatabaseService) UpdateUser(user *models.User) error {
 	db := s.s.DB()
 	return db.Save(user).Error
+}
+
+func (s *DatabaseService) DeleteUser(id string) error {
+	db := s.s.DB()
+	return db.Where("id = ?", id).Delete(&models.User{}).Error
+}
+
+func (s *DatabaseService) GetAllUsers() ([]models.User, error) {
+	db := s.s.DB()
+	var users []models.User
+	if err := db.Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func (s *DatabaseService) GetRoleByName(name models.RoleName) (*models.Roles, error) {
+	db := s.s.DB()
+	var role models.Roles
+	if err := db.Where("name = ?", name).First(&role).Error; err != nil {
+		return nil, err
+	}
+	return &role, nil
 }
