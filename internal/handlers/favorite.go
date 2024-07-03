@@ -97,15 +97,15 @@ func (h *FavoriteHandler) FavoriteCreationHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	chat := &models.Chat{
+	room := &models.Room{
 		User1ID:   authorID,
 		User2ID:   userID,
 		AnnonceID: annonceID,
 	}
 
-	_, err = h.favoriteQueries.CreateChat(chat)
+	_, err = h.favoriteQueries.CreateRoom(room)
 	if err != nil {
-		http.Error(w, "error creating chat", http.StatusInternalServerError)
+		http.Error(w, "error creating room", http.StatusInternalServerError)
 		return
 	}
 

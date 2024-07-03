@@ -21,9 +21,6 @@ import (
 func (s *Server) RegisterRoutes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
-	hub := handlers.NewHub()
-
-	go hub.Run()
 
 	r.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 
@@ -32,6 +29,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 	annonceHandler := handlers.NewAnnonceHandler(s.dbService, s.dbService, s.dbService)
 	catHandler := handlers.NewCatHandler(s.dbService, s.uploadcareClient)
 	favoriteHandler := handlers.NewFavoriteHandler(s.dbService, s.dbService)
+	roomHandler := handlers.NewRoomHandler(s.dbService)
+
+	roomHandler.LoadRooms()
 
 	r.Group(func(r chi.Router) {
 		// Apply JWT middleware to all routes within this group
@@ -77,8 +77,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/logout/{provider}", authHandler.LogoutProvider)
 		r.Get("/logout", authHandler.BasicLogout)
 
-		//** Chat (websocket) route
-		r.Get("/ws", hub.ServeWS)
+		//** Chat routes
+		r.Get("/ws/{roomID}", roomHandler.HandleWebSocket)
+
 	})
 
 	// Public routes
