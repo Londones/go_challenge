@@ -21,7 +21,7 @@ type User struct {
 	Annonce       []Annonce
 	Favorite      []Annonce
 	Rating        []Rating
-	Roles         []Roles   `gorm:"many2many:user_roles;"`
+	Roles         []Roles `gorm:"many2many:user_roles;" json:"roles"`
 	GoogleID      string
 	ProfilePicURL string `gorm:"type:varchar(500)"`
 }

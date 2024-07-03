@@ -435,6 +435,7 @@ func (h *UserHandler) GetCurrentUserHandler(w http.ResponseWriter, r *http.Reque
 
 	userID := claims["id"].(string)
 	user, err := h.userQueries.FindUserByID(userID)
+	fmt.Println(user)
 	if err != nil {
 		http.Error(w, "error finding user", http.StatusInternalServerError)
 		return
