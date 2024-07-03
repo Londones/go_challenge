@@ -125,10 +125,28 @@ func migrateAllModels(db *gorm.DB) error {
 	).Error
 	if err != nil {
 		fmt.Printf("AutoMigrate error: %v\n", err)
-	} else {
-		fmt.Println("Migrated models successfully")
+		return err
 	}
-	return err
+
+	// Insert roles
+	roles := []models.Roles{
+		{Name: models.AdminRole},
+		{Name: models.UserRole},
+		{Name: models.AssoRole},
+	}
+
+	for _, role := range roles {
+		var existingRole models.Roles
+		if db.Where("name = ?", role.Name).First(&existingRole).RecordNotFound() {
+			if err := db.Create(&role).Error; err != nil {
+				fmt.Printf("Error creating role: %v\n", err)
+				return err
+			}
+		}
+	}
+
+	fmt.Println("Migrated models and inserted roles successfully")
+	return nil
 }
 
 func (s *Service) DB() *gorm.DB {
