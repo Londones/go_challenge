@@ -21,7 +21,7 @@ import (
 
 func (s *Server) RegisterRoutes() http.Handler {
 	r := chi.NewRouter()
-	
+
 	r.Use(middleware.Logger)
 
 	r.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
@@ -65,6 +65,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Delete("/cats/{id}", catHandler.DeleteCatHandler)
 
 		//** User routes
+		r.Get("/users", userHandler.GetAllUsersHandler)
 		r.Get("/users/annonces/{id}", annonceHandler.GetUserAnnoncesHandler)
 		r.Get("/users/{id}", userHandler.GetUserByIDHandler)
 		r.Get("/users/current", userHandler.GetCurrentUserHandler)
