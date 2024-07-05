@@ -22,4 +22,5 @@ type Cats struct {
 	Reserved        bool
 	AnnonceID       string         `gorm:"type:varchar(100)"`
 	PicturesURL     pq.StringArray `gorm:"type:varchar(500)[]"`
+	UserID          string         `gorm:"type:varchar(100)"`
 }
