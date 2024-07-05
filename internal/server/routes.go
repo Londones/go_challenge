@@ -31,6 +31,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	annonceHandler := handlers.NewAnnonceHandler(s.dbService, s.dbService, s.dbService)
 	catHandler := handlers.NewCatHandler(s.dbService, s.uploadcareClient)
 	favoriteHandler := handlers.NewFavoriteHandler(s.dbService, s.dbService)
+	raceHandler := handlers.NewRaceHandler(s.dbService, s.uploadcareClient)
 
 	r.Group(func(r chi.Router) {
 		// Apply JWT middleware to all routes within this group
@@ -43,9 +44,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 			// Admin specific routes
 		})
 		//** Race routes for admin
-		r.Put("/race/{id}", s.UpdateRaceHandler)
-		r.Post("/race", s.RaceCreationHandler)
-		r.Delete("/race/{id}", s.DeleteRaceHandler)
+		r.Put("/race/{id}", raceHandler.UpdateRaceHandler)
+		r.Post("/race", raceHandler.RaceCreationHandler)
+		r.Delete("/race/{id}", raceHandler.DeleteRaceHandler)
 
 		r.Group(func(r chi.Router) {
 			// Protected routes for personal user data
@@ -70,8 +71,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/cats/", catHandler.FindCatsByFilterHandler)
 
 		//** Race routes
-		r.Get("/races", s.GetAllRaceHandler)
-		r.Get("/race/{id}", s.GetRaceByIDHandler)
+		r.Get("/races", raceHandler.GetAllRaceHandler)
+		r.Get("/race/{id}", raceHandler.GetRaceByIDHandler)
 
 		//** User routes
 		r.Get("/users", userHandler.GetAllUsersHandler)
