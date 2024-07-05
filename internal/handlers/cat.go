@@ -156,7 +156,7 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 		Behavior:        behavior,
 		Sterilized:      sterilized,
 		PicturesURL:     fileURLs,
-		Race:            race,
+		RaceID:          race,
 		Description:     &description,
 		Reserved:        Reserved,
 		AnnonceID:       annonceID,
@@ -261,7 +261,7 @@ func (h *CatHandler) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
 		cat.Sterilized = sterilized
 	}
 	if race := r.FormValue("Race"); race != "" {
-		cat.Race = race
+		cat.RaceID = race
 	}
 	if description := r.FormValue("Description"); description != "" {
 		cat.Description = &description
@@ -377,4 +377,30 @@ func (h *CatHandler) DeleteCatHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *CatHandler) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Request) {
+
+	params := r.URL.Query()
+
+	raceId := params.Get("raceId")
+	sexe := params.Get("sexe")
+	age, _ := strconv.Atoi(params.Get("age"))
+
+	cats, err := h.catQueries.GetCatByFilters(raceId, age, sexe)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, fmt.Sprintf("Error in parameters"), http.StatusNotFound)
+			return
+		}
+		http.Error(w, "error fetching cat", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(cats)
+	if err != nil {
+		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
+		return
+	}
 }
