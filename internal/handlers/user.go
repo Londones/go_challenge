@@ -219,7 +219,6 @@ func (h *UserHandler) ModifyProfilePictureHandler(w http.ResponseWriter, r *http
 	w.Write([]byte("Profile picture updated successfully"))
 }
 
-
 // @Summary Get all users
 // @Description Retrieve a list of all users
 // @ID get-all-users
@@ -286,10 +285,10 @@ func (h *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	userRole, err := h.userQueries.GetRoleByName(models.UserRole)
-    if err != nil {
-        http.Error(w, "error fetching user role", http.StatusInternalServerError)
-        return
-    }
+	if err != nil {
+		http.Error(w, "error fetching user role", http.StatusInternalServerError)
+		return
+	}
 
 	user := &models.User{
 		ID:            uuid.New().String(),
@@ -444,7 +443,6 @@ func (h *UserHandler) GetCurrentUserHandler(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
 }
-
 
 // GetUserByIDHandler godoc
 // @Summary Get user by ID
