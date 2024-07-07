@@ -96,17 +96,11 @@ func (s *DatabaseService) GetCatByFilters(raceId string, age int, sex string) ([
 	var birthDate time.Time
 	db := s.s.DB()
 
-	fmt.Println(sex)
-
 	birthDate = time.Now().AddDate(-age, 0, 0)
 
 	if err := db.Where("sexe = ?", sex).Or("race_id = ?", raceId).Or("birth_date >= ?", birthDate).Find(&cats).Error; err != nil {
 		return nil, err
 	}
-
-	//if err := db.Where("race_id = ?", raceId).Find(&cats).Error; err != nil {
-	//	return nil, err
-	//}
 
 	return cats, nil
 }

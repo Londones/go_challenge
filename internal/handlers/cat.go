@@ -393,10 +393,8 @@ func (h *CatHandler) DeleteCatHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {string} string "error fetching cats"
 // @Router /cats/ [get]
 func (h *CatHandler) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Request) {
-
-	params := r.URL.Query()
-
 	var data []models.Cats
+	params := r.URL.Query()
 
 	raceId := params.Get("raceId")
 	sexe := params.Get("sexe")
@@ -412,22 +410,23 @@ func (h *CatHandler) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// Ajouter une fonction qui regarde dans les chats qui sont remontés et qui check si ils ont des annonces. Avec cats
-	// h.annonceQueries.FindAnnonceByCatID(catID)
-
 	for _, cat := range cats {
-		//err := AnnonceHandler{annonceQueries: queries.NewQueriesService().FindAnnonceByCatID(cat.ID)}
-
-		service := queries.DatabaseService{}
-		_, err := service.FindAnnonceByCatID(fmt.Sprintf("%d", cat.ID))
-
-		if err == nil {
-			data = append(data, cat)
+		_, fail := h.catQueries.FindAnnonceByCatID(fmt.Sprintf("%d", cat.ID))
+		if fail != nil {
+			continue
 		}
+
+		data = append(data, cat)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(data)
+
+	if len(data) == 0 {
+		http.Error(w, "No cats were found with using the filters.", http.StatusNotFound)
+		return
+	}
+
 	if err != nil {
 		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
 		return
