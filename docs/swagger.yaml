@@ -78,28 +78,32 @@ definitions:
   models.Rating:
     properties:
       annonceID:
-        type: integer
+        type: string
+      comment:
+        type: string
       createdAt:
         type: string
       deletedAt:
         type: string
       id:
-        type: integer
+        type: string
       mark:
         type: integer
       updatedAt:
         type: string
       userID:
-        type: string
+        type: integer
     type: object
   models.RoleName:
     enum:
-    - admin
-    - user
+    - ADMIN
+    - USER
+    - ASSO
     type: string
     x-enum-varnames:
-    - Admin
+    - AdminRole
     - UserRole
+    - AssoRole
   models.Roles:
     properties:
       createdAt:
@@ -117,10 +121,6 @@ definitions:
     properties:
       addressRue:
         type: string
-      annonce:
-        items:
-          $ref: '#/definitions/models.Annonce'
-        type: array
       associationID:
         type: integer
       cp:
@@ -131,10 +131,6 @@ definitions:
         type: string
       email:
         type: string
-      favorite:
-        items:
-          $ref: '#/definitions/models.Annonce'
-        type: array
       googleID:
         type: string
       id:
@@ -145,12 +141,10 @@ definitions:
         type: string
       profilePicURL:
         type: string
-      rating:
+      roles:
         items:
-          $ref: '#/definitions/models.Rating'
+          $ref: '#/definitions/models.Roles'
         type: array
-      role:
-        $ref: '#/definitions/models.Roles'
       updatedAt:
         type: string
       ville:
@@ -795,6 +789,136 @@ paths:
       summary: Modify profile picture
       tags:
       - users
+  /ratings:
+    get:
+      description: Retrieve all ratings from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of all ratings
+          schema:
+            items:
+              $ref: '#/definitions/models.Rating'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Fetch all ratings
+      tags:
+      - ratings
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new rating with the provided details
+      parameters:
+      - description: Rating mark
+        in: formData
+        name: mark
+        required: true
+        type: integer
+      - description: Comment about the rating
+        in: formData
+        name: comment
+        type: string
+      - description: Annonce ID
+        in: formData
+        name: annonceID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Rating created successfully
+          schema:
+            $ref: '#/definitions/models.Rating'
+        "400":
+          description: Missing or invalid fields in the request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create rating
+      tags:
+      - ratings
+  /ratings/{id}:
+    delete:
+      description: Delete an existing rating
+      parameters:
+      - description: ID of the rating to delete
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Rating deleted successfully
+          schema:
+            type: string
+        "403":
+          description: User is not authorized to delete this rating
+          schema:
+            type: string
+        "404":
+          description: Rating not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Delete rating
+      tags:
+      - ratings
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Update the details of an existing rating
+      parameters:
+      - description: ID of the rating to update
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated mark
+        in: formData
+        name: mark
+        required: true
+        type: integer
+      - description: Updated comment
+        in: formData
+        name: comment
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rating updated successfully
+          schema:
+            $ref: '#/definitions/models.Rating'
+        "400":
+          description: Missing or invalid fields in the request
+          schema:
+            type: string
+        "403":
+          description: User is not authorized to modify this rating
+          schema:
+            type: string
+        "404":
+          description: Rating not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Update rating
+      tags:
+      - ratings
   /register:
     post:
       consumes:
@@ -846,6 +970,140 @@ paths:
       summary: Register a new user
       tags:
       - users
+  /users:
+    get:
+      description: Retrieve a list of all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of users
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "500":
+          description: Error fetching users
+          schema:
+            type: string
+      summary: Get all users
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      description: Delete an existing user
+      parameters:
+      - description: ID of the user to delete
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: User ID is required
+          schema:
+            type: string
+        "500":
+          description: Error deleting user
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Delete user
+      tags:
+      - users
+    get:
+      description: Retrieve the details of a user by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: User ID is required
+          schema:
+            type: string
+        "404":
+          description: User not found
+          schema:
+            type: string
+        "500":
+          description: Error finding user
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get user by ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update the details of an existing user
+      parameters:
+      - description: ID of the user to update
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Email of the user
+        in: formData
+        name: email
+        type: string
+      - description: Name of the user
+        in: formData
+        name: name
+        type: string
+      - description: Address of the user
+        in: formData
+        name: addressRue
+        type: string
+      - description: Postal code of the user
+        in: formData
+        name: cp
+        type: string
+      - description: City of the user
+        in: formData
+        name: ville
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User updated successfully
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Missing or invalid fields in the request
+          schema:
+            type: string
+        "403":
+          description: User is not authorized to update this user
+          schema:
+            type: string
+        "404":
+          description: User not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Update user
+      tags:
+      - users
   /users/annonces/{id}:
     get:
       description: Retrieve all annonces for a specific user from the database
@@ -875,4 +1133,23 @@ paths:
       summary: Get user's annonces
       tags:
       - annonces
+  /users/current:
+    get:
+      description: Retrieve the details of the currently authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            $ref: '#/definitions/models.User'
+        "500":
+          description: error finding user
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get current user
+      tags:
+      - users
 swagger: "2.0"
