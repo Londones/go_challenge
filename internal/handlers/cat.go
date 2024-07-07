@@ -393,7 +393,7 @@ func (h *CatHandler) DeleteCatHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {string} string "error fetching cats"
 // @Router /cats/ [get]
 func (h *CatHandler) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Request) {
-	var data []models.Cats
+	var data []*models.Annonce
 	params := r.URL.Query()
 
 	raceId := params.Get("raceId")
@@ -411,12 +411,12 @@ func (h *CatHandler) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	for _, cat := range cats {
-		_, fail := h.catQueries.FindAnnonceByCatID(fmt.Sprintf("%d", cat.ID))
+		annonce, fail := h.catQueries.FindAnnonceByCatID(fmt.Sprintf("%d", cat.ID))
 		if fail != nil {
 			continue
 		}
 
-		data = append(data, cat)
+		data = append(data, annonce)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
