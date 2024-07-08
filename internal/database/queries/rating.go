@@ -8,10 +8,10 @@ import (
 	"gorm.io/gorm"
 )
 
-func (s *DatabaseService) CreateRating(rating *models.Rating) (id string, err error) {
+func (s *DatabaseService) CreateRating(rating *models.Rating) (id uint, err error) {
 	db := s.s.DB()
 	if err := db.Create(rating).Error; err != nil {
-		return "", err
+		return 0, err
 	}
 	return rating.ID, nil
 }

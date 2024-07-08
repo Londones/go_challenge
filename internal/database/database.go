@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"go-challenge/internal/fixtures"
 	"go-challenge/internal/models"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -87,6 +88,17 @@ func New(config *Config) (*Service, error) {
 	err = migrateAllModels(db)
 	if err != nil {
 		fmt.Printf("failed to migrate models: %v", err)
+	}
+
+	// Exécution des fixtures de chats avec un ID utilisateur statique
+	cats, err := fixtures.CreateCatFixtures(db, 10)
+	if err != nil {
+		fmt.Printf("failed to create cat fixtures: %v", err)
+	}
+
+	// Exécution des fixtures d'annonces avec les chats existants
+	if err := fixtures.CreateAnnonceFixtures(db, cats); err != nil {
+		fmt.Printf("failed to create annonce fixtures: %v", err)
 	}
 
 	s := &Service{Db: db}
