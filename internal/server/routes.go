@@ -31,6 +31,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	annonceHandler := handlers.NewAnnonceHandler(s.dbService, s.dbService, s.dbService)
 	catHandler := handlers.NewCatHandler(s.dbService, s.uploadcareClient)
 	favoriteHandler := handlers.NewFavoriteHandler(s.dbService, s.dbService)
+	associationHandler := handlers.NewAssociationHandler(s.dbService, s.uploadcareClient)
 
 	r.Group(func(r chi.Router) {
 		// Apply JWT middleware to all routes within this group
@@ -81,6 +82,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 		//** Auth routes
 		r.Get("/logout/{provider}", authHandler.LogoutProvider)
 		r.Get("/logout", authHandler.BasicLogout)
+
+		//** Association routes
+		r.Post("/associations", associationHandler.CreateAssociationHandler)
 	})
 
 	// Public routes
