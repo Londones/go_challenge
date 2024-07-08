@@ -66,15 +66,15 @@ func (s *DatabaseService) UpdateUser(user *models.User) error {
 }
 
 func (s *DatabaseService) DeleteUser(id string) error {
-    db := s.s.DB()
-    var user models.User
-    if err := db.Where("ID = ?", id).First(&user).Error; err != nil {
-        return err
-    }
-    if err := db.Delete(&user).Error; err != nil {
-        return err
-    }
-    return nil
+	db := s.s.DB()
+	var user models.User
+	if err := db.Where("ID = ?", id).First(&user).Error; err != nil {
+		return err
+	}
+	if err := db.Delete(&user).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *DatabaseService) GetAllUsers() ([]models.User, error) {
