@@ -60,7 +60,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/annonces", annonceHandler.AnnonceCreationHandler)
 		r.Put("/annonces/{id}", annonceHandler.ModifyDescriptionAnnonceHandler)
 		r.Delete("/annonces/{id}", annonceHandler.DeleteAnnonceHandler)
-		//r.Get("/annonces/cats/{catID}", annonceHandler.FetchAnnonceByCatIDHandler)
+		r.Get("/annonces/cats/{catID}", annonceHandler.FetchAnnonceByCatIDHandler)
 
 		//**	Cats routes
 		r.Get("/cats", catHandler.GetAllCatsHandler)
@@ -68,7 +68,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Put("/cats/{id}", catHandler.UpdateCatHandler)
 		r.Post("/cats", catHandler.CatCreationHandler)
 		r.Delete("/cats/{id}", catHandler.DeleteCatHandler)
-		//r.Get("/cats/", catHandler.FindCatsByFilterHandler)
+		r.Get("/cats/", catHandler.FindCatsByFilterHandler)
 
 		//** Race routes
 		r.Get("/races", raceHandler.GetAllRaceHandler)
@@ -94,8 +94,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 	})
 
 	// Public routes
-	r.Get("/annonces/cats/{catID}", annonceHandler.FetchAnnonceByCatIDHandler)
-	r.Get("/cats/", catHandler.FindCatsByFilterHandler)
 	r.Get("/auth/{provider}/callback", authHandler.GetAuthCallbackFunction)
 	r.Get("/auth/{provider}", authHandler.BeginAuthProviderCallback)
 	r.Post("/login", authHandler.LoginHandler)
