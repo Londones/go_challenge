@@ -83,6 +83,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/logout", authHandler.BasicLogout)
 
 		//** Chat routes
+		r.Get("/rooms", roomHandler.GetUserRooms)
+		r.Get("/rooms/{roomID}", roomHandler.GetRoomMessages)
 		r.Get("/ws/{roomID}", roomHandler.HandleWebSocket)
 
 	})

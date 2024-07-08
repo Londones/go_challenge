@@ -76,7 +76,7 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 	annonceID := r.FormValue("AnnonceID")
 	userID := r.FormValue("UserID")
 
-	if name == "" || birthDateStr == "" || sexe == "" || color == "" || behavior == "" || sterilizedStr == "" || race == "" || ReservedStr == "" || annonceID == "" || userID == "" {
+	if name == "" || birthDateStr == "" || sexe == "" || color == "" || behavior == "" || sterilizedStr == "" || race == "" || ReservedStr == "" || userID == "" {
 		http.Error(w, "all fields are required", http.StatusBadRequest)
 		return
 	}
