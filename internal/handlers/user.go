@@ -287,20 +287,9 @@ func (h *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	token := auth.MakeToken(user.ID, "user")
-
-	http.SetCookie(w, &http.Cookie{
-		HttpOnly: true,
-		Expires:  time.Now().Add(24 * time.Hour),
-		Name:     "jwt",
-		Value:    token,
-		SameSite: http.SameSiteLaxMode,
-	})
-
 	w.Header().Set("Content-Type", "application/json")
-	response := fmt.Sprintf(`{"success": true, "token": "%s"}`, token)
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(response))
+	json.NewEncoder(w).Encode(user)
 }
 
 // @Summary Update an existing user
@@ -359,20 +348,9 @@ func (h *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	token := auth.MakeToken(user.ID, "user")
-
-	http.SetCookie(w, &http.Cookie{
-		HttpOnly: true,
-		Expires:  time.Now().Add(24 * time.Hour),
-		Name:     "jwt",
-		Value:    token,
-		SameSite: http.SameSiteLaxMode,
-	})
-
 	w.Header().Set("Content-Type", "application/json")
-	response := fmt.Sprintf(`{"success": true, "token": "%s"}`, token)
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(response))
+	json.NewEncoder(w).Encode(user)
 }
 
 // @Summary Delete an existing user
