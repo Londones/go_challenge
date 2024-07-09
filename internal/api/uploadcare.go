@@ -78,6 +78,10 @@ func uploadFile(client ucare.Client, file string, validContentTypes []string) (s
 	return fileURL, fileID, nil
 }
 
+func UploadFilePDF(client ucare.Client, file string) (string, string, error) {
+	return uploadFile(client, file, []string{"application/pdf"})
+}
+
 func constructFileURL(fileID string) string {
 	return "https://ucarecdn.com/" + fileID + "/"
 }

@@ -7,9 +7,11 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"path/filepath"
 
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
+	"go-challenge/internal/api"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/schema"
@@ -27,22 +29,22 @@ func NewAssociationHandler(associationQueries *queries.DatabaseService, uploadca
 }
 
 // @Summary Create a new association
-// @Description Create a new association with the provided details and uploaded file
-// @ID create-association
+// @Description Create a new association with the input payload and a PDF file
+// @Tags associations
 // @Accept multipart/form-data
 // @Produce json
-// @Param association body models.Association true "Association details"
-// @Param kbisFile formData file true "KBIS file"
+// @Param association body models.Association true "Association payload"
+// @Param kbisFile formData file true "PDF file"
 // @Success 201 {object} models.Association "Successfully created association"
-// @Failure 400 {object} string "Invalid form data"
-// @Failure 500 {object} string "Internal server error"
+// @Failure 400 {object} string "Bad Request: Error uploading image 2/3, Invalid content type for kbisFile, expected application/pdf"
+// @Failure 500 {object} string "Internal Server Error: Error uploading image 1/4/5/6/7/8"
 // @Router /associations [post]
 func (h *AssociationHandler) CreateAssociationHandler(w http.ResponseWriter, r *http.Request) {
     var association models.Association
 
     err := r.ParseMultipartForm(10 << 20) // 10 MB
     if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
+        http.Error(w, "Error uploading image 1: "+err.Error(), http.StatusInternalServerError)
         return
     }
 
@@ -50,51 +52,56 @@ func (h *AssociationHandler) CreateAssociationHandler(w http.ResponseWriter, r *
     decoder := schema.NewDecoder()
     err = decoder.Decode(&association, formData)
     if err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
+        http.Error(w, "Error uploading image 2: "+err.Error(), http.StatusBadRequest)
         return
     }
 
     file, handler, err := r.FormFile("kbisFile")
     if err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Error uploading image 3: "+err.Error(), http.StatusBadRequest)
         return
     }
     defer file.Close()
+
+	if handler.Header.Get("Content-Type") != "application/pdf" {
+		http.Error(w, "Invalid content type for kbisFile, expected application/pdf", http.StatusBadRequest)
+		return
+	}
 
     verified := false
     association.Verified = &verified
 
     if err := h.associationQueries.CreateAssociation(&association); err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
+        http.Error(w, "Error uploading image 4: "+err.Error(), http.StatusInternalServerError)
         return
     }
 
-    dirPath := fmt.Sprintf("internal/uploads/association/%d", association.ID)
-    if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-        err = os.MkdirAll(dirPath, 0755)
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
-        }
-    }
+    // Upload file to uploadcare
+    ext := filepath.Ext(handler.Filename)
 
-    dstPath := fmt.Sprintf("%s/%s", dirPath, handler.Filename)
-    dst, err := os.Create(dstPath)
+    tempFile, err := os.CreateTemp(os.TempDir(), "upload-*"+ext)
     if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
+        http.Error(w, "Error uploading image 5: "+err.Error(), http.StatusInternalServerError)
         return
     }
-    defer dst.Close()
+    defer os.Remove(tempFile.Name())
 
-    if _, err := io.Copy(dst, file); err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
+    _, err = io.Copy(tempFile, file)
+    if err != nil {
+        http.Error(w, "Error uploading image 6: "+err.Error(), http.StatusInternalServerError)
         return
     }
 
-    association.KbisFile = dstPath
+    FileURL, _, err := api.UploadFilePDF(h.uploadcareClient, tempFile.Name())
+    if err != nil {
+		http.Error(w, "Error uploading image 7: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    association.KbisFile = FileURL
 
     if err := h.associationQueries.UpdateAssociation(&association); err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
+        http.Error(w, "Error uploading image 8: "+err.Error(), http.StatusInternalServerError)
         return
     }
 
@@ -103,6 +110,13 @@ func (h *AssociationHandler) CreateAssociationHandler(w http.ResponseWriter, r *
     json.NewEncoder(w).Encode(association)
 }
 
+// @Summary Get all associations
+// @Description Retrieve all associations from the database
+// @Tags associations
+// @Produce json
+// @Success 200 {array} models.Association "Successfully retrieved all associations"
+// @Failure 500 {object} string "Internal Server Error"
+// @Router /associations [get]
 func (h *AssociationHandler) GetAllAssociationsHandler(w http.ResponseWriter, r *http.Request) {
 	associations, err := h.associationQueries.GetAllAssociations()
 	if err != nil {
@@ -117,6 +131,17 @@ func (h *AssociationHandler) GetAllAssociationsHandler(w http.ResponseWriter, r 
 	json.NewEncoder(w).Encode(associations)
 }
 
+// @Summary Update an association's verify status
+// @Description Update the verify status of an association with the given ID
+// @Tags associations
+// @Accept json
+// @Produce json
+// @Param id path int true "Association ID"
+// @Param verified body bool true "Verify status"
+// @Success 200 {object} models.Association "Successfully updated association"
+// @Failure 400 {object} string "Bad Request: Missing association ID, Invalid association ID"
+// @Failure 500 {object} string "Internal Server Error"
+// @Router /associations/{id} [put]
 func (h *AssociationHandler) UpdateAssociationVerifyStatusHandler(w http.ResponseWriter, r *http.Request) {
     associationIDStr := chi.URLParam(r, "id")
     if associationIDStr == "" {
