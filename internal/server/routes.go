@@ -15,11 +15,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
+
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
 	r := chi.NewRouter()
+
 	r.Use(middleware.Logger)
 
 	r.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
@@ -29,6 +31,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	annonceHandler := handlers.NewAnnonceHandler(s.dbService, s.dbService, s.dbService)
 	catHandler := handlers.NewCatHandler(s.dbService, s.uploadcareClient)
 	favoriteHandler := handlers.NewFavoriteHandler(s.dbService, s.dbService)
+	ratingHandler := handlers.NewRatingHandler(s.dbService, s.dbService)
 	roomHandler := handlers.NewRoomHandler(s.dbService)
 
 	roomHandler.LoadRooms()
@@ -58,6 +61,13 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Delete("/annonces/{id}", annonceHandler.DeleteAnnonceHandler)
 		r.Get("/annonces/cats/{catID}", annonceHandler.FetchAnnonceByCatIDHandler)
 
+		//**	Rating routes
+		r.Get("/ratings", ratingHandler.FetchAllRatingsHandler)
+		r.Get("/ratings/{id}", ratingHandler.GetRatingByIDHandler)
+		r.Post("/ratings", ratingHandler.CreateRatingHandler)
+		r.Put("/ratings/{id}", ratingHandler.UpdateRatingHandler)
+		r.Delete("/ratings/{id}", ratingHandler.DeleteRatingHandler)
+
 		//**	Cats routes
 		r.Get("/cats", catHandler.GetAllCatsHandler)
 		r.Get("/cats/{id}", catHandler.GetCatByIDHandler)
@@ -66,6 +76,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Delete("/cats/{id}", catHandler.DeleteCatHandler)
 
 		//** User routes
+		r.Get("/users", userHandler.GetAllUsersHandler)
 		r.Get("/users/annonces/{id}", annonceHandler.GetUserAnnoncesHandler)
 		r.Get("/users/{id}", userHandler.GetUserByIDHandler)
 		r.Get("/users/current", userHandler.GetCurrentUserHandler)

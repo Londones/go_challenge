@@ -219,7 +219,6 @@ func (h *UserHandler) ModifyProfilePictureHandler(w http.ResponseWriter, r *http
 	w.Write([]byte("Profile picture updated successfully"))
 }
 
-
 // @Summary Get all users
 // @Description Retrieve a list of all users
 // @ID get-all-users
@@ -243,67 +242,47 @@ func (h *UserHandler) GetAllUsersHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-// @Summary Update user
-// @Description Update the details of an existing user
-// @ID update-user
+// @Summary Create user
+// @Description Create a new user with the given email, password, name, address, cp, and ville
+// @ID create-user
 // @Accept  json
 // @Produce  json
-// @Param id path string true "ID of the user to update"
-// @Param email formData string false "Email of the user"
-// @Param name formData string false "Name of the user"
-// @Param addressRue formData string false "Address of the user"
-// @Param cp formData string false "Postal code of the user"
-// @Param ville formData string false "City of the user"
+// @Param email formData string true "Email"
+// @Param password formData string true "Password"
+// @Param name formData string false "Name"
+// @Param addressRue formData string false "Address"
+// @Param cp formData string false "CP"
+// @Param ville formData string false "Ville"
 // @Security ApiKeyAuth
-// @Success 200 {object} User "User updated successfully"
-// @Failure 400 {object} Error "Missing or invalid fields in the request"
-// @Failure 403 {object} Error "User is not authorized to update this user"
-// @Failure 404 {object} Error "User not found"
-// @Failure 500 {object} Error "Internal server error"
-// @Router /users/{id} [put]
+// @Success 200 {object} User "User created successfully"
+// @Failure 400 {object} Error "Invalid JSON body"
+// @Failure 500 {object} Error "Error creating user"
+// @Router /users [post]
 func (h *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Error parsing form: "+err.Error(), http.StatusInternalServerError)
+	var user models.User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
 		return
 	}
 
-	email := r.FormValue("email")
-	password := r.FormValue("password")
-	name := r.FormValue("name")
-	addressRue := r.FormValue("addressRue")
-	cp := r.FormValue("cp")
-	ville := r.FormValue("ville")
+	user.ID = uuid.New().String()
 
-	if email == "" || password == "" {
-		http.Error(w, "email and password are required", http.StatusBadRequest)
-		return
-	}
-
-	hashedPassword, passwordError := auth.HashPassword(password)
+	hashedPassword, passwordError := auth.HashPassword(user.Password)
 	if passwordError != nil {
 		http.Error(w, "error hashing password", http.StatusInternalServerError)
 		return
 	}
+	user.Password = hashedPassword
 
-	userRole, err := h.userQueries.GetRoleByName(models.UserRole)
-    if err != nil {
-        http.Error(w, "error fetching user role", http.StatusInternalServerError)
-        return
-    }
-
-	user := &models.User{
-		ID:            uuid.New().String(),
-		Email:         email,
-		Password:      hashedPassword,
-		Name:          name,
-		AddressRue:    addressRue,
-		Cp:            cp,
-		Ville:         ville,
-		Roles:         []models.Roles{*userRole},
-		ProfilePicURL: "default",
+	userRole, err := h.userQueries.GetRoleByName(models.RoleName(user.Roles[0].Name))
+	if err != nil {
+		http.Error(w, "error fetching user role", http.StatusInternalServerError)
+		return
 	}
+	user.Roles = []models.Roles{*userRole}
 
-	err = h.userQueries.CreateUser(user, userRole)
+	err = h.userQueries.CreateUser(&user, userRole)
 	if err != nil {
 		http.Error(w, "error creating user", http.StatusInternalServerError)
 		return
@@ -326,29 +305,23 @@ func (h *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 // @Summary Update user
-// @Description Update the details of an existing user
+// @Description Update an existing user with the given email, password, name, address, cp, and ville
 // @ID update-user
 // @Accept  json
 // @Produce  json
 // @Param id path string true "ID of the user to update"
-// @Param email formData string false "Email of the user"
-// @Param name formData string false "Name of the user"
-// @Param addressRue formData string false "Address of the user"
-// @Param cp formData string false "Postal code of the user"
-// @Param ville formData string false "City of the user"
+// @Param email formData string true "Email"
+// @Param password formData string true "Password"
+// @Param name formData string false "Name"
+// @Param addressRue formData string false "Address"
+// @Param cp formData string false "CP"
+// @Param ville formData string false "Ville"
 // @Security ApiKeyAuth
 // @Success 200 {object} User "User updated successfully"
-// @Failure 400 {object} Error "Missing or invalid fields in the request"
-// @Failure 403 {object} Error "User is not authorized to update this user"
-// @Failure 404 {object} Error "User not found"
-// @Failure 500 {object} Error "Internal server error"
+// @Failure 400 {object} Error "User ID is required"
+// @Failure 500 {object} Error "Error updating user"
 // @Router /users/{id} [put]
 func (h *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Error parsing form: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	userID := chi.URLParam(r, "id")
 	if userID == "" {
 		http.Error(w, "User ID is required", http.StatusBadRequest)
@@ -361,21 +334,27 @@ func (h *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if email := r.FormValue("email"); email != "" {
-		user.Email = email
+	err = json.NewDecoder(r.Body).Decode(user)
+	if err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
 	}
-	if name := r.FormValue("name"); name != "" {
-		user.Name = name
+
+	if user.Password != "" {
+		hashedPassword, passwordError := auth.HashPassword(user.Password)
+		if passwordError != nil {
+			http.Error(w, "error hashing password", http.StatusInternalServerError)
+			return
+		}
+		user.Password = hashedPassword
 	}
-	if addressRue := r.FormValue("addressRue"); addressRue != "" {
-		user.AddressRue = addressRue
+
+	userRole, err := h.userQueries.GetRoleByName(models.RoleName(user.Roles[0].Name))
+	if err != nil {
+		http.Error(w, "error fetching user role", http.StatusInternalServerError)
+		return
 	}
-	if cp := r.FormValue("cp"); cp != "" {
-		user.Cp = cp
-	}
-	if ville := r.FormValue("ville"); ville != "" {
-		user.Ville = ville
-	}
+	user.Roles = []models.Roles{*userRole}
 
 	err = h.userQueries.UpdateUser(user)
 	if err != nil {
@@ -383,10 +362,20 @@ func (h *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	token := auth.MakeToken(user.ID, "user")
+
+	http.SetCookie(w, &http.Cookie{
+		HttpOnly: true,
+		Expires:  time.Now().Add(24 * time.Hour),
+		Name:     "jwt",
+		Value:    token,
+		SameSite: http.SameSiteLaxMode,
+	})
+
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(user); err != nil {
-		http.Error(w, "Error encoding user to JSON", http.StatusInternalServerError)
-	}
+	response := fmt.Sprintf(`{"success": true, "token": "%s"}`, token)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(response))
 }
 
 // @Summary Delete user
@@ -435,6 +424,7 @@ func (h *UserHandler) GetCurrentUserHandler(w http.ResponseWriter, r *http.Reque
 
 	userID := claims["id"].(string)
 	user, err := h.userQueries.FindUserByID(userID)
+	fmt.Println(user)
 	if err != nil {
 		http.Error(w, "error finding user", http.StatusInternalServerError)
 		return
@@ -444,7 +434,6 @@ func (h *UserHandler) GetCurrentUserHandler(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
 }
-
 
 // GetUserByIDHandler godoc
 // @Summary Get user by ID
