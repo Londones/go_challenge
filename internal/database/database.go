@@ -90,21 +90,34 @@ func New(config *Config) (*Service, error) {
 		fmt.Printf("failed to migrate models: %v", err)
 	}
 
-	// Exécution des fixtures de chats avec un ID utilisateur statique
-	cats, err := fixtures.CreateCatFixtures(db, 10)
-	if err != nil {
-		fmt.Printf("failed to create cat fixtures: %v", err)
-	}
-
-	// Exécution des fixtures d'annonces avec les chats existants
-	if err := fixtures.CreateAnnonceFixtures(db, cats); err != nil {
-		fmt.Printf("failed to create annonce fixtures: %v", err)
-	}
-
 	s := &Service{Db: db}
 
-	// print that the database is connected
+	// Print that the database is connected
 	fmt.Printf("Connected to database %s\n", config.Database)
+
+	// Get the USER role
+	var userRole models.Roles
+	if err := db.Where("name = ?", models.UserRole).First(&userRole).Error; err != nil {
+		fmt.Printf("failed to find user role: %v", err)
+	}
+
+	// Create 5 users
+	users, err := fixtures.CreateUserFixtures(db, 5, &userRole)
+	if err != nil {
+		fmt.Printf("failed to create user fixtures: %v", err)
+	}
+
+	// For each user, create 5 cats and 5 corresponding annonces
+	for _, user := range users {
+		cats, err := fixtures.CreateCatFixturesForUser(db, 5, user.ID)
+		if err != nil {
+			fmt.Printf("failed to create cat fixtures for user %s: %v", user.ID, err)
+		}
+
+		if err := fixtures.CreateAnnonceFixtures(db, cats); err != nil {
+			fmt.Printf("failed to create annonce fixtures for user %s: %v", user.ID, err)
+		}
+	}
 
 	return s, nil
 }

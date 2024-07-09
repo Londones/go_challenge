@@ -59,7 +59,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/annonces/cats/{catID}", annonceHandler.FetchAnnonceByCatIDHandler)
 
 		//**	Rating routes
-		r.Get("/ratings/annonces/{id}", ratingHandler.FetchAllRatingsHandler)
+		r.Get("/ratings", ratingHandler.FetchAllRatingsHandler)
+		r.Get("/ratings/{id}", ratingHandler.GetRatingByIDHandler)
 		r.Post("/ratings", ratingHandler.CreateRatingHandler)
 		r.Put("/ratings/{id}", ratingHandler.UpdateRatingHandler)
 		r.Delete("/ratings/{id}", ratingHandler.DeleteRatingHandler)

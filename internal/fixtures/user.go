@@ -14,7 +14,7 @@ import (
 
 func NewUserFixture(i int) *models.User {
 	name := fmt.Sprintf("user%d", i)
-	email := fmt.Sprintf("user%d@example.com", i)
+	email := fmt.Sprintf("user%d@gmail.com", i)
 	password, err := auth.HashPassword("password")
 	if err != nil {
 		log.Fatalf("failed to hash password: %v", err)
@@ -33,17 +33,24 @@ func NewUserFixture(i int) *models.User {
 		AddressRue:    randomChoice(addressRues),
 		Cp:            randomChoice(cps),
 		Ville:         randomChoice(villes),
+		AssociationID: 0,
+		Roles:         []models.Roles{},
 		GoogleID:      "",
-		ProfilePicURL: "",
+		ProfilePicURL: "default",
 	}
 }
 
-func CreateUserFixtures(db *gorm.DB, count int) ([]*models.User, error) {
+func CreateUserFixtures(db *gorm.DB, count int, userRole *models.Roles) ([]*models.User, error) {
 	var users []*models.User
+
 	for i := 1; i <= count; i++ {
 		user := NewUserFixture(i)
 		if err := db.Create(user).Error; err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to create user %d: %v", i, err)
+		}
+		// Assign the user role to the newly created user
+		if err := db.Model(user).Association("Roles").Append(userRole).Error; err != nil {
+			return nil, fmt.Errorf("failed to assign role to user %d: %v", i, err)
 		}
 		users = append(users, user)
 	}
