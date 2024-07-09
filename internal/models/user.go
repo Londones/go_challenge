@@ -18,10 +18,7 @@ type User struct {
 	Cp            string     `gorm:"type:char(5)"`
 	Ville         string     `gorm:"type:varchar(100)"`
 	AssociationID uint
-	Annonce       []Annonce
-	Favorite      []Annonce
-	Rating        []Rating
-	Roles         []Roles `gorm:"many2many:user_roles;" json:"roles"`
+	Roles         []Roles `gorm:"many2many:user_roles;"`
 	GoogleID      string
 	ProfilePicURL string `gorm:"type:varchar(500)"`
 }
