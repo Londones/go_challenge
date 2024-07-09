@@ -22,3 +22,30 @@ func (s *DatabaseService) CreateAssociation(association *models.Association) err
 	}
 	return nil
 }
+
+func (s *DatabaseService) GetAllAssociations() ([]models.Association, error) {
+    db := s.s.DB()
+    var associations []models.Association
+    if err := db.Preload("Owner").Order("verified ASC").Find(&associations).Error; err != nil {
+        return nil, err
+    }
+    
+    return associations, nil
+}
+
+func (s *DatabaseService) UpdateAssociation(association *models.Association) error {
+	db := s.s.DB()
+	if err := db.Save(association).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *DatabaseService) FindAssociationById(id int) (*models.Association, error) {
+	db := s.s.DB()
+	var association models.Association
+	if err := db.Preload("Owner").First(&association, id).Error; err != nil {
+		return nil, err
+	}
+	return &association, nil
+}
