@@ -5,6 +5,7 @@ import "github.com/jinzhu/gorm"
 type Rating struct {
 	gorm.Model
 	Mark      int8
+	Comment   string
 	UserID    string
-	AnnonceID uint
+	AnnonceID string
 }

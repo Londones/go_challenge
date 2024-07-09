@@ -36,8 +36,17 @@ func main() {
 	// Création d'un nouveau ServeMux
 	mux := http.NewServeMux()
 
-	// Gestion des CORS pour tout le ServeMux
-	handler := cors.Default().Handler(mux)
+	// Handle CORS for the entire ServeMux
+    corsHandler := cors.New(cors.Options{
+        AllowedOrigins:   []string{"*"},
+        AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+        ExposedHeaders:   []string{"Link"},
+        AllowCredentials: false,
+        MaxAge:           300,
+    })
+
+    handler := corsHandler.Handler(mux)
 
 	// Définir le gestionnaire pour la racine du ServeMux
 	mux.Handle("/", server.Handler)
@@ -51,6 +60,7 @@ func main() {
 
 	// Lancement du serveur
 	fmt.Println("Server is running on port" + port)
+	
 	err = http.ListenAndServe(":"+port, handler)
 	if err != nil {
 		panic(fmt.Sprintf("cannot start server: %s", err))

@@ -18,10 +18,11 @@ func (s *DatabaseService) FindUserByEmail(email string) (*models.User, error) {
 func (s *DatabaseService) FindUserByID(id string) (*models.User, error) {
 	db := s.s.DB()
 	var user models.User
-	if err := db.Where("ID = ?", id).First(&user).Error; err != nil {
+	if err := db.Preload("Roles").Where("ID = ?", id).First(&user).Error; err != nil {
 		utils.Logger("error", "Find User By ID:", "Failed to find user by ID", err.Error())
 		return nil, err
 	}
+
 	return &user, nil
 }
 
@@ -56,18 +57,33 @@ func (s *DatabaseService) GetUserFavorites(UserID string) ([]models.Favorite, er
 
 func (s *DatabaseService) UpdateUser(user *models.User) error {
 	db := s.s.DB()
-	return db.Save(user).Error
+	if err := db.Save(user).Error; err != nil {
+		return err
+	}
+
+	association := db.Model(user).Association("Roles").Replace(user.Roles)
+	if association.Error != nil {
+		return association.Error
+	}
+	return nil
 }
 
 func (s *DatabaseService) DeleteUser(id string) error {
 	db := s.s.DB()
-	return db.Where("id = ?", id).Delete(&models.User{}).Error
+	var user models.User
+	if err := db.Where("ID = ?", id).First(&user).Error; err != nil {
+		return err
+	}
+	if err := db.Delete(&user).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *DatabaseService) GetAllUsers() ([]models.User, error) {
 	db := s.s.DB()
 	var users []models.User
-	if err := db.Find(&users).Error; err != nil {
+	if err := db.Preload("Roles").Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil
