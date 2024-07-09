@@ -62,7 +62,7 @@ func (h *RatingHandler) CreateRatingHandler(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "error getting claims", http.StatusInternalServerError)
 		return
 	}
-	userID := claims["id"].(uint)
+	userID := claims["id"].(string)
 
 	rating := &models.Rating{
 		Mark:      int8(mark),
@@ -134,7 +134,7 @@ func (h *RatingHandler) UpdateRatingHandler(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "error getting claims", http.StatusInternalServerError)
 		return
 	}
-	userID := claims["id"].(uint)
+	userID := claims["id"].(string)
 
 	existingRating, err := h.ratingQueries.FindRatingByID(ratingID)
 	if err != nil {
@@ -178,6 +178,34 @@ func (h *RatingHandler) FetchAllRatingsHandler(w http.ResponseWriter, r *http.Re
 	json.NewEncoder(w).Encode(ratings)
 }
 
+// GetRatingByIDHandler retrieves a rating by its ID.
+// @Summary Get rating by ID
+// @Description Retrieve a rating by its ID
+// @Tags ratings
+// @Produce json
+// @Param id path string true "ID of the rating to retrieve"
+// @Success 200 {object} models.Rating "Rating retrieved successfully"
+// @Failure 404 {string} string "Rating not found"
+// @Failure 500 {string} string "Internal server error"
+// @Router /ratings/{id} [get]
+func (h *RatingHandler) GetRatingByIDHandler(w http.ResponseWriter, r *http.Request) {
+	ratingID := chi.URLParam(r, "id")
+
+	rating, err := h.ratingQueries.FindRatingByID(ratingID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Rating not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error finding rating", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(rating)
+}
+
 // DeleteRatingHandler handles the deletion of a rating.
 // @Summary Delete rating
 // @Description Delete an existing rating
@@ -206,7 +234,7 @@ func (h *RatingHandler) DeleteRatingHandler(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "Error getting claims", http.StatusInternalServerError)
 		return
 	}
-	userID := claims["id"].(uint)
+	userID := claims["id"].(string)
 
 	if rating.UserID != userID {
 		http.Error(w, "User is not authorized to delete this rating", http.StatusForbidden)

@@ -6,6 +6,6 @@ type Rating struct {
 	gorm.Model
 	Mark      int8
 	Comment   string
-	UserID    uint
+	UserID    string
 	AnnonceID string
 }

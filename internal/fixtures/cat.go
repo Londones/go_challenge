@@ -52,11 +52,10 @@ func NewCatFixture(userID string, pictureIndex int) *models.Cats {
 	}
 }
 
-func CreateCatFixtures(db *gorm.DB, count int) ([]*models.Cats, error) {
+func CreateCatFixturesForUser(db *gorm.DB, count int, userID string) ([]*models.Cats, error) {
 	var cats []*models.Cats
-	staticUserID := "1aa8f5af-57b6-4cf5-9c3a-139801f0f40b"
 	for i := 0; i < count; i++ {
-		cat := NewCatFixture(staticUserID, i)
+		cat := NewCatFixture(userID, i)
 		if err := db.Create(cat).Error; err != nil {
 			return nil, err
 		}
