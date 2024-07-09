@@ -31,6 +31,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	annonceHandler := handlers.NewAnnonceHandler(s.dbService, s.dbService, s.dbService)
 	catHandler := handlers.NewCatHandler(s.dbService, s.uploadcareClient)
 	favoriteHandler := handlers.NewFavoriteHandler(s.dbService, s.dbService)
+	ratingHandler := handlers.NewRatingHandler(s.dbService, s.dbService)
 
 	r.Group(func(r chi.Router) {
 		// Apply JWT middleware to all routes within this group
@@ -56,6 +57,13 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Put("/annonces/{id}", annonceHandler.ModifyDescriptionAnnonceHandler)
 		r.Delete("/annonces/{id}", annonceHandler.DeleteAnnonceHandler)
 		r.Get("/annonces/cats/{catID}", annonceHandler.FetchAnnonceByCatIDHandler)
+
+		//**	Rating routes
+		r.Get("/ratings", ratingHandler.FetchAllRatingsHandler)
+		r.Get("/ratings/{id}", ratingHandler.GetRatingByIDHandler)
+		r.Post("/ratings", ratingHandler.CreateRatingHandler)
+		r.Put("/ratings/{id}", ratingHandler.UpdateRatingHandler)
+		r.Delete("/ratings/{id}", ratingHandler.DeleteRatingHandler)
 
 		//**	Cats routes
 		r.Get("/cats", catHandler.GetAllCatsHandler)

@@ -962,6 +962,201 @@ const docTemplate = `{
                 }
             }
         },
+        "/ratings": {
+            "get": {
+                "description": "Retrieve all ratings from the database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ratings"
+                ],
+                "summary": "Fetch all ratings",
+                "responses": {
+                    "200": {
+                        "description": "List of all ratings",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Rating"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new rating with the provided details",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ratings"
+                ],
+                "summary": "Create rating",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Rating mark",
+                        "name": "mark",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comment about the rating",
+                        "name": "comment",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Annonce ID",
+                        "name": "annonceID",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Rating created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Rating"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid fields in the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/ratings/{id}": {
+            "put": {
+                "description": "Update the details of an existing rating",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ratings"
+                ],
+                "summary": "Update rating",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the rating to update",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Updated mark",
+                        "name": "mark",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Updated comment",
+                        "name": "comment",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rating updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Rating"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid fields in the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "User is not authorized to modify this rating",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Rating not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete an existing rating",
+                "tags": [
+                    "ratings"
+                ],
+                "summary": "Delete rating",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the rating to delete",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Rating deleted successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "User is not authorized to delete this rating",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Rating not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/register": {
             "post": {
                 "description": "Register a new user with the given email, password, name, address, cp, and ville",
@@ -1037,6 +1232,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/users": {
+            "get": {
+                "description": "Retrieve a list of all users",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get all users",
+                "responses": {
+                    "200": {
+                        "description": "List of users",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.User"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error fetching users",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/users/annonces/{id}": {
             "get": {
                 "description": "Retrieve all annonces for a specific user from the database",
@@ -1074,6 +1298,216 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/current": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieve the details of the currently authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get current user",
+                "responses": {
+                    "200": {
+                        "description": "User details",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "500": {
+                        "description": "error finding user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieve the details of a user by their ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get user by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User details",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "User ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error finding user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update the details of an existing user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Update user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the user to update",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Email of the user",
+                        "name": "email",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name of the user",
+                        "name": "name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Address of the user",
+                        "name": "addressRue",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Postal code of the user",
+                        "name": "cp",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "City of the user",
+                        "name": "ville",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid fields in the request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "User is not authorized to update this user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Delete an existing user",
+                "tags": [
+                    "users"
+                ],
+                "summary": "Delete user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the user to delete",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "User ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error deleting user",
                         "schema": {
                             "type": "string"
                         }
@@ -1201,7 +1635,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "annonceID": {
-                    "type": "integer"
+                    "type": "string"
+                },
+                "comment": {
+                    "type": "string"
                 },
                 "createdAt": {
                     "type": "string"
@@ -1210,7 +1647,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "mark": {
                     "type": "integer"
@@ -1219,19 +1656,21 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "userID": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
         "models.RoleName": {
             "type": "string",
             "enum": [
-                "admin",
-                "user"
+                "ADMIN",
+                "USER",
+                "ASSO"
             ],
             "x-enum-varnames": [
-                "Admin",
-                "UserRole"
+                "AdminRole",
+                "UserRole",
+                "AssoRole"
             ]
         },
         "models.Roles": {
@@ -1260,12 +1699,6 @@ const docTemplate = `{
                 "addressRue": {
                     "type": "string"
                 },
-                "annonce": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Annonce"
-                    }
-                },
                 "associationID": {
                     "type": "integer"
                 },
@@ -1280,12 +1713,6 @@ const docTemplate = `{
                 },
                 "email": {
                     "type": "string"
-                },
-                "favorite": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Annonce"
-                    }
                 },
                 "googleID": {
                     "type": "string"
@@ -1302,14 +1729,11 @@ const docTemplate = `{
                 "profilePicURL": {
                     "type": "string"
                 },
-                "rating": {
+                "roles": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.Rating"
+                        "$ref": "#/definitions/models.Roles"
                     }
-                },
-                "role": {
-                    "$ref": "#/definitions/models.Roles"
                 },
                 "updatedAt": {
                     "type": "string"
