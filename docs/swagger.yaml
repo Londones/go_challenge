@@ -77,7 +77,7 @@ definitions:
     type: object
   models.Rating:
     properties:
-      annonceID:
+      authorID:
         type: string
       comment:
         type: string
@@ -86,13 +86,13 @@ definitions:
       deletedAt:
         type: string
       id:
-        type: string
+        type: integer
       mark:
         type: integer
       updatedAt:
         type: string
       userID:
-        type: integer
+        type: string
     type: object
   models.RoleName:
     enum:
@@ -791,105 +791,131 @@ paths:
       - users
   /ratings:
     get:
-      description: Retrieve all ratings from the database
+      description: Récupère toutes les Ratings de la base de données
       produces:
       - application/json
       responses:
         "200":
-          description: List of all ratings
+          description: Liste de toutes les Ratings
           schema:
             items:
               $ref: '#/definitions/models.Rating'
             type: array
         "500":
-          description: Internal server error
+          description: Erreur interne du serveur
           schema:
             type: string
-      summary: Fetch all ratings
+      summary: Récupérer toutes les Ratings
       tags:
-      - ratings
+      - Ratings
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: Create a new rating with the provided details
+      description: Crée une nouvelle évaluation avec les détails fournis
       parameters:
-      - description: Rating mark
+      - description: Note de l'évaluation
         in: formData
         name: mark
         required: true
         type: integer
-      - description: Comment about the rating
+      - description: Commentaire sur l'évaluation
         in: formData
         name: comment
         type: string
-      - description: Annonce ID
+      - description: ID de l'utilisateur évalué
         in: formData
-        name: annonceID
+        name: userID
         required: true
         type: string
       produces:
       - application/json
       responses:
         "201":
-          description: Rating created successfully
+          description: Évaluation créée avec succès
           schema:
             $ref: '#/definitions/models.Rating'
         "400":
-          description: Missing or invalid fields in the request
+          description: Champs manquants ou invalides dans la requête
           schema:
             type: string
         "500":
-          description: Internal server error
+          description: Erreur interne du serveur
           schema:
             type: string
-      summary: Create rating
+      summary: Créer une évaluation
       tags:
-      - ratings
+      - Ratings
   /ratings/{id}:
     delete:
-      description: Delete an existing rating
+      description: Supprime une évaluation existante
       parameters:
-      - description: ID of the rating to delete
+      - description: ID de l'évaluation à supprimer
         in: path
         name: id
         required: true
         type: string
       responses:
         "204":
-          description: Rating deleted successfully
+          description: Évaluation supprimée avec succès
           schema:
             type: string
         "403":
-          description: User is not authorized to delete this rating
+          description: L'utilisateur n'est pas autorisé à supprimer cette évaluation
           schema:
             type: string
         "404":
-          description: Rating not found
+          description: Évaluation non trouvée
           schema:
             type: string
         "500":
-          description: Internal server error
+          description: Erreur interne du serveur
           schema:
             type: string
-      summary: Delete rating
+      summary: Supprimer une évaluation
       tags:
-      - ratings
-    put:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: Update the details of an existing rating
+      - Ratings
+    get:
+      description: Récupère une évaluation par son ID
       parameters:
-      - description: ID of the rating to update
+      - description: ID de l'évaluation à récupérer
         in: path
         name: id
         required: true
         type: string
-      - description: Updated mark
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Évaluation récupérée avec succès
+          schema:
+            $ref: '#/definitions/models.Rating'
+        "404":
+          description: Évaluation non trouvée
+          schema:
+            type: string
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Récupérer une évaluation par ID
+      tags:
+      - Ratings
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Met à jour les détails d'une évaluation existante
+      parameters:
+      - description: ID de l'évaluation à mettre à jour
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Note mise à jour
         in: formData
         name: mark
         required: true
         type: integer
-      - description: Updated comment
+      - description: Commentaire mis à jour
         in: formData
         name: comment
         type: string
@@ -897,28 +923,86 @@ paths:
       - application/json
       responses:
         "200":
-          description: Rating updated successfully
+          description: Évaluation mise à jour avec succès
           schema:
             $ref: '#/definitions/models.Rating'
         "400":
-          description: Missing or invalid fields in the request
+          description: Champs manquants ou invalides dans la requête
           schema:
             type: string
         "403":
-          description: User is not authorized to modify this rating
+          description: L'utilisateur n'est pas autorisé à modifier cette évaluation
           schema:
             type: string
         "404":
-          description: Rating not found
+          description: Évaluation non trouvée
           schema:
             type: string
         "500":
-          description: Internal server error
+          description: Erreur interne du serveur
           schema:
             type: string
-      summary: Update rating
+      summary: Mettre à jour une évaluation
       tags:
-      - ratings
+      - Ratings
+  /ratings/author/{authorID}:
+    get:
+      description: Récupère toutes les Ratings créées par un auteur spécifique
+      parameters:
+      - description: ID de l'auteur
+        in: path
+        name: authorID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste des Ratings par l'auteur
+          schema:
+            items:
+              $ref: '#/definitions/models.Rating'
+            type: array
+        "404":
+          description: Auteur non trouvé
+          schema:
+            type: string
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Récupérer les Ratings d'un auteur
+      tags:
+      - Ratings
+  /ratings/user/{userID}:
+    get:
+      description: Récupère toutes les Ratings pour un utilisateur spécifique
+      parameters:
+      - description: ID de l'utilisateur
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste des Ratings pour l'utilisateur
+          schema:
+            items:
+              $ref: '#/definitions/models.Rating'
+            type: array
+        "404":
+          description: Utilisateur non trouvé
+          schema:
+            type: string
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Récupérer les Ratings d'un utilisateur
+      tags:
+      - Ratings
   /register:
     post:
       consumes:
@@ -989,6 +1073,58 @@ paths:
       summary: Get all users
       tags:
       - users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user with the given email, password, name, address,
+        cp, and ville
+      parameters:
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: Name
+        in: formData
+        name: name
+        type: string
+      - description: Address
+        in: formData
+        name: addressRue
+        type: string
+      - description: CP
+        in: formData
+        name: cp
+        type: string
+      - description: Ville
+        in: formData
+        name: ville
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User created successfully
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Invalid JSON body
+          schema:
+            type: string
+        "500":
+          description: Error creating user
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Create user
+      tags:
+      - users
   /users/{id}:
     delete:
       description: Delete an existing user
@@ -998,9 +1134,13 @@ paths:
         name: id
         required: true
         type: string
+      produces:
+      - application/json
       responses:
         "204":
           description: No Content
+          schema:
+            type: string
         "400":
           description: User ID is required
           schema:
@@ -1044,64 +1184,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get user by ID
-      tags:
-      - users
-    put:
-      consumes:
-      - application/json
-      description: Update the details of an existing user
-      parameters:
-      - description: ID of the user to update
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Email of the user
-        in: formData
-        name: email
-        type: string
-      - description: Name of the user
-        in: formData
-        name: name
-        type: string
-      - description: Address of the user
-        in: formData
-        name: addressRue
-        type: string
-      - description: Postal code of the user
-        in: formData
-        name: cp
-        type: string
-      - description: City of the user
-        in: formData
-        name: ville
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: User updated successfully
-          schema:
-            $ref: '#/definitions/models.User'
-        "400":
-          description: Missing or invalid fields in the request
-          schema:
-            type: string
-        "403":
-          description: User is not authorized to update this user
-          schema:
-            type: string
-        "404":
-          description: User not found
-          schema:
-            type: string
-        "500":
-          description: Internal server error
-          schema:
-            type: string
-      security:
-      - ApiKeyAuth: []
-      summary: Update user
       tags:
       - users
   /users/annonces/{id}:
