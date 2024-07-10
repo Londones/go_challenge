@@ -957,17 +957,17 @@
         },
         "/ratings": {
             "get": {
-                "description": "Retrieve all ratings from the database",
+                "description": "Récupère toutes les Ratings de la base de données",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "ratings"
+                    "Ratings"
                 ],
-                "summary": "Fetch all ratings",
+                "summary": "Récupérer toutes les Ratings",
                 "responses": {
                     "200": {
-                        "description": "List of all ratings",
+                        "description": "Liste de toutes les Ratings",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -976,7 +976,7 @@
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Erreur interne du serveur",
                         "schema": {
                             "type": "string"
                         }
@@ -984,7 +984,7 @@
                 }
             },
             "post": {
-                "description": "Create a new rating with the provided details",
+                "description": "Crée une nouvelle évaluation avec les détails fournis",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -992,46 +992,134 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ratings"
+                    "Ratings"
                 ],
-                "summary": "Create rating",
+                "summary": "Créer une évaluation",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Rating mark",
+                        "description": "Note de l'évaluation",
                         "name": "mark",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Comment about the rating",
+                        "description": "Commentaire sur l'évaluation",
                         "name": "comment",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "Annonce ID",
-                        "name": "annonceID",
+                        "description": "ID de l'utilisateur évalué",
+                        "name": "userID",
                         "in": "formData",
                         "required": true
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Rating created successfully",
+                        "description": "Évaluation créée avec succès",
                         "schema": {
                             "$ref": "#/definitions/models.Rating"
                         }
                     },
                     "400": {
-                        "description": "Missing or invalid fields in the request",
+                        "description": "Champs manquants ou invalides dans la requête",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Erreur interne du serveur",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/ratings/author/{authorID}": {
+            "get": {
+                "description": "Récupère toutes les Ratings créées par un auteur spécifique",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ratings"
+                ],
+                "summary": "Récupérer les Ratings d'un auteur",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de l'auteur",
+                        "name": "authorID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste des Ratings par l'auteur",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Rating"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Auteur non trouvé",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Erreur interne du serveur",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/ratings/user/{userID}": {
+            "get": {
+                "description": "Récupère toutes les Ratings pour un utilisateur spécifique",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ratings"
+                ],
+                "summary": "Récupérer les Ratings d'un utilisateur",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de l'utilisateur",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste des Ratings pour l'utilisateur",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Rating"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Utilisateur non trouvé",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Erreur interne du serveur",
                         "schema": {
                             "type": "string"
                         }
@@ -1040,8 +1128,47 @@
             }
         },
         "/ratings/{id}": {
+            "get": {
+                "description": "Récupère une évaluation par son ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ratings"
+                ],
+                "summary": "Récupérer une évaluation par ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de l'évaluation à récupérer",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Évaluation récupérée avec succès",
+                        "schema": {
+                            "$ref": "#/definitions/models.Rating"
+                        }
+                    },
+                    "404": {
+                        "description": "Évaluation non trouvée",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Erreur interne du serveur",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "put": {
-                "description": "Update the details of an existing rating",
+                "description": "Met à jour les détails d'une évaluation existante",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -1049,58 +1176,58 @@
                     "application/json"
                 ],
                 "tags": [
-                    "ratings"
+                    "Ratings"
                 ],
-                "summary": "Update rating",
+                "summary": "Mettre à jour une évaluation",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID of the rating to update",
+                        "description": "ID de l'évaluation à mettre à jour",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "Updated mark",
+                        "description": "Note mise à jour",
                         "name": "mark",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Updated comment",
+                        "description": "Commentaire mis à jour",
                         "name": "comment",
                         "in": "formData"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Rating updated successfully",
+                        "description": "Évaluation mise à jour avec succès",
                         "schema": {
                             "$ref": "#/definitions/models.Rating"
                         }
                     },
                     "400": {
-                        "description": "Missing or invalid fields in the request",
+                        "description": "Champs manquants ou invalides dans la requête",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "403": {
-                        "description": "User is not authorized to modify this rating",
+                        "description": "L'utilisateur n'est pas autorisé à modifier cette évaluation",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "404": {
-                        "description": "Rating not found",
+                        "description": "Évaluation non trouvée",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Erreur interne du serveur",
                         "schema": {
                             "type": "string"
                         }
@@ -1108,15 +1235,15 @@
                 }
             },
             "delete": {
-                "description": "Delete an existing rating",
+                "description": "Supprime une évaluation existante",
                 "tags": [
-                    "ratings"
+                    "Ratings"
                 ],
-                "summary": "Delete rating",
+                "summary": "Supprimer une évaluation",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID of the rating to delete",
+                        "description": "ID de l'évaluation à supprimer",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1124,25 +1251,25 @@
                 ],
                 "responses": {
                     "204": {
-                        "description": "Rating deleted successfully",
+                        "description": "Évaluation supprimée avec succès",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "403": {
-                        "description": "User is not authorized to delete this rating",
+                        "description": "L'utilisateur n'est pas autorisé à supprimer cette évaluation",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "404": {
-                        "description": "Rating not found",
+                        "description": "Évaluation non trouvée",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Erreur interne du serveur",
                         "schema": {
                             "type": "string"
                         }
@@ -1247,6 +1374,84 @@
                     },
                     "500": {
                         "description": "Error fetching users",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create a new user with the given email, password, name, address, cp, and ville",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Create user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Email",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Address",
+                        "name": "addressRue",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "CP",
+                        "name": "cp",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ville",
+                        "name": "ville",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error creating user",
                         "schema": {
                             "type": "string"
                         }
@@ -1380,95 +1585,6 @@
                     }
                 }
             },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Update the details of an existing user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Update user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID of the user to update",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Email of the user",
-                        "name": "email",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Name of the user",
-                        "name": "name",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Address of the user",
-                        "name": "addressRue",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Postal code of the user",
-                        "name": "cp",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "City of the user",
-                        "name": "ville",
-                        "in": "formData"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "User updated successfully",
-                        "schema": {
-                            "$ref": "#/definitions/models.User"
-                        }
-                    },
-                    "400": {
-                        "description": "Missing or invalid fields in the request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "403": {
-                        "description": "User is not authorized to update this user",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "404": {
-                        "description": "User not found",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
             "delete": {
                 "security": [
                     {
@@ -1476,6 +1592,9 @@
                     }
                 ],
                 "description": "Delete an existing user",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "users"
                 ],
@@ -1491,7 +1610,10 @@
                 ],
                 "responses": {
                     "204": {
-                        "description": "No Content"
+                        "description": "No Content",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     "400": {
                         "description": "User ID is required",
@@ -1627,7 +1749,7 @@
         "models.Rating": {
             "type": "object",
             "properties": {
-                "annonceID": {
+                "authorID": {
                     "type": "string"
                 },
                 "comment": {
@@ -1640,7 +1762,7 @@
                     "type": "string"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "mark": {
                     "type": "integer"
@@ -1649,7 +1771,7 @@
                     "type": "string"
                 },
                 "userID": {
-                    "type": "integer"
+                    "type": "string"
                 }
             }
         },

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"go-challenge/internal/fixtures"
 	"go-challenge/internal/models"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -117,6 +118,14 @@ func New(config *Config) (*Service, error) {
 	// 		fmt.Printf("failed to create annonce fixtures for user %s: %v", user.ID, err)
 	// 	}
 	// }
+
+	// Création des fixtures pour les évaluations
+	staticUserID := "38f5ca5d-0c87-425f-97fe-c84c3ee0997c"
+	staticAuthorID := "5a7a8b69-6f8d-4818-ac15-b6a83b4fe518"
+	err = fixtures.CreateRatingFixtures(db, staticUserID, staticAuthorID, 5)
+	if err != nil {
+		fmt.Printf("failed to create rating fixtures: %v", err)
+	}
 
 	return s, nil
 }
