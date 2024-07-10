@@ -305,6 +305,15 @@ func (h *CatHandler) GetAllCatsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for _, cat := range cats {
+		currentRace, err := h.catQueries.FindRaceByID(cat.RaceID)
+		if err != nil {
+			http.Error(w, "error fetching the race of a cat", http.StatusInternalServerError)
+			return
+		}
+		cat.RaceID = currentRace.RaceName
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(cats)
 	if err != nil {
@@ -340,6 +349,13 @@ func (h *CatHandler) GetCatByIDHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error fetching cat", http.StatusInternalServerError)
 		return
 	}
+
+	currentRace, err := h.catQueries.FindRaceByID(cat.RaceID)
+	if err != nil {
+		http.Error(w, "error fetching the race of a cat", http.StatusInternalServerError)
+		return
+	}
+	cat.RaceID = currentRace.RaceName
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(cat); err != nil {
