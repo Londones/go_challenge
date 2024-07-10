@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"go-challenge/internal/fixtures"
 	"go-challenge/internal/models"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -101,29 +100,29 @@ func New(config *Config) (*Service, error) {
 		fmt.Printf("failed to find user role: %v", err)
 	}
 
-	// Create 5 races
-	err = fixtures.CreateRaceFixture(db)
-	if err != nil {
-		fmt.Printf("failed to create race fixture: %v", err)
-	}
-
-	// Create 5 users
-	users, err := fixtures.CreateUserFixtures(db, 5, &userRole)
-	if err != nil {
-		fmt.Printf("failed to create user fixtures: %v", err)
-	}
-
-	// For each user, create 5 cats and 5 corresponding annonces
-	for _, user := range users {
-		cats, err := fixtures.CreateCatFixturesForUser(db, 5, user.ID)
-		if err != nil {
-			fmt.Printf("failed to create cat fixtures for user %s: %v", user.ID, err)
-		}
-
-		if err := fixtures.CreateAnnonceFixtures(db, cats); err != nil {
-			fmt.Printf("failed to create annonce fixtures for user %s: %v", user.ID, err)
-		}
-	}
+	//// Create 5 races
+	//err = fixtures.CreateRaceFixture(db)
+	//if err != nil {
+	//	fmt.Printf("failed to create race fixture: %v", err)
+	//}
+	//
+	//// Create 5 users
+	//users, err := fixtures.CreateUserFixtures(db, 5, &userRole)
+	//if err != nil {
+	//	fmt.Printf("failed to create user fixtures: %v", err)
+	//}
+	//
+	//// For each user, create 5 cats and 5 corresponding annonces
+	//for _, user := range users {
+	//	cats, err := fixtures.CreateCatFixturesForUser(db, 5, user.ID)
+	//	if err != nil {
+	//		fmt.Printf("failed to create cat fixtures for user %s: %v", user.ID, err)
+	//	}
+	//
+	//	if err := fixtures.CreateAnnonceFixtures(db, cats); err != nil {
+	//		fmt.Printf("failed to create annonce fixtures for user %s: %v", user.ID, err)
+	//	}
+	//}
 
 	return s, nil
 }
