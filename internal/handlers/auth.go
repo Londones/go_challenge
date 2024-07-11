@@ -84,7 +84,7 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	token := auth.MakeToken(existingUser.ID, string(existingUser.Email))
+	token := auth.MakeToken(existingUser.ID, string(existingUser.Roles[0].Name))
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
@@ -201,7 +201,7 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := auth.MakeToken(user.ID, string(user.Email))
+	token := auth.MakeToken(user.ID, string(user.Roles[0].Name))
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
 		Expires:  time.Now().Add(24 * time.Hour),

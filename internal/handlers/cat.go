@@ -73,7 +73,6 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 	race := r.FormValue("Race")
 	description := r.FormValue("Description")
 	ReservedStr := r.FormValue("Reserved")
-	annonceID := r.FormValue("AnnonceID")
 	userID := r.FormValue("UserID")
 
 	if name == "" || birthDateStr == "" || sexe == "" || color == "" || behavior == "" || sterilizedStr == "" || race == "" || ReservedStr == "" || userID == "" {
@@ -159,7 +158,6 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 		Race:            race,
 		Description:     &description,
 		Reserved:        Reserved,
-		AnnonceID:       annonceID,
 		UserID:          userID,
 	}
 
@@ -273,9 +271,6 @@ func (h *CatHandler) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		cat.Reserved = reserved
-	}
-	if annonceID := r.FormValue("AnnonceID"); annonceID != "" {
-		cat.AnnonceID = annonceID
 	}
 
 	err = h.catQueries.UpdateCat(cat)

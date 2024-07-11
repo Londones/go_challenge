@@ -6,7 +6,7 @@ import (
 
 type Message struct {
 	gorm.Model
-	ChatID   uint   `gorm:"not null"`
+	RoomID   uint   `gorm:"not null"`
 	SenderID string `gorm:"not null"`
 	Content  string `gorm:"not null"`
 }
