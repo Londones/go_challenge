@@ -25,6 +25,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Use(middleware.Logger)
 
 	r.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
+	r.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("/internal/uploads/"))))
 
 	authHandler := handlers.NewAuthHandler(s.dbService)
 	userHandler := handlers.NewUserHandler(s.dbService, s.uploadcareClient)
@@ -32,6 +33,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	catHandler := handlers.NewCatHandler(s.dbService, s.uploadcareClient)
 	favoriteHandler := handlers.NewFavoriteHandler(s.dbService, s.dbService)
 	raceHandler := handlers.NewRaceHandler(s.dbService, s.uploadcareClient)
+	associationHandler := handlers.NewAssociationHandler(s.dbService, s.uploadcareClient)
 	ratingHandler := handlers.NewRatingHandler(s.dbService, s.dbService)
 
 	r.Group(func(r chi.Router) {
@@ -43,11 +45,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 			// Protected routes for admin users
 			r.Use(AdminOnly)
 			// Admin specific routes
+			r.Put("/race/{id}", raceHandler.UpdateRaceHandler)
+			r.Post("/race", raceHandler.RaceCreationHandler)
+			r.Delete("/race/{id}", raceHandler.DeleteRaceHandler)
 		})
 		//** Race routes for admin
-		r.Put("/race/{id}", raceHandler.UpdateRaceHandler)
-		r.Post("/race", raceHandler.RaceCreationHandler)
-		r.Delete("/race/{id}", raceHandler.DeleteRaceHandler)
 
 		r.Group(func(r chi.Router) {
 			// Protected routes for personal user data
@@ -99,6 +101,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 		//** Auth routes
 		r.Get("/logout/{provider}", authHandler.LogoutProvider)
 		r.Get("/logout", authHandler.BasicLogout)
+
+		//** Association routes
+		r.Post("/associations", associationHandler.CreateAssociationHandler)
+		r.Get("/associations", associationHandler.GetAllAssociationsHandler)
+		r.Put("/associations/{id}/verify", associationHandler.UpdateAssociationVerifyStatusHandler)
 	})
 
 	// Public routes
