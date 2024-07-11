@@ -17,7 +17,7 @@ type User struct {
 	AddressRue    string     `gorm:"type:varchar(250)"`
 	Cp            string     `gorm:"type:char(5)"`
 	Ville         string     `gorm:"type:varchar(100)"`
-	AssociationID uint
+	Associations  []Association `gorm:"many2many:association_members;"`
 	Roles         []Roles `gorm:"many2many:user_roles;"`
 	GoogleID      string
 	ProfilePicURL string `gorm:"type:varchar(500)"`

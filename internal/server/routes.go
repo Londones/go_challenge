@@ -25,12 +25,14 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Use(middleware.Logger)
 
 	r.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
+	r.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("/internal/uploads/"))))
 
 	authHandler := handlers.NewAuthHandler(s.dbService)
 	userHandler := handlers.NewUserHandler(s.dbService, s.uploadcareClient)
 	annonceHandler := handlers.NewAnnonceHandler(s.dbService, s.dbService, s.dbService)
 	catHandler := handlers.NewCatHandler(s.dbService, s.uploadcareClient)
 	favoriteHandler := handlers.NewFavoriteHandler(s.dbService, s.dbService)
+	associationHandler := handlers.NewAssociationHandler(s.dbService, s.uploadcareClient)
 	ratingHandler := handlers.NewRatingHandler(s.dbService, s.dbService)
 
 	r.Group(func(r chi.Router) {
@@ -89,6 +91,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 		//** Auth routes
 		r.Get("/logout/{provider}", authHandler.LogoutProvider)
 		r.Get("/logout", authHandler.BasicLogout)
+
+		//** Association routes
+		r.Post("/associations", associationHandler.CreateAssociationHandler)
+		r.Get("/associations", associationHandler.GetAllAssociationsHandler)
+		r.Put("/associations/{id}/verify", associationHandler.UpdateAssociationVerifyStatusHandler)
 	})
 
 	// Public routes
