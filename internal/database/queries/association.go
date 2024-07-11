@@ -15,22 +15,37 @@ func NewQueriesService(s *database.Service) *DatabaseService {
 	}
 }
 
-func (s *DatabaseService) CreateAssociation(association *models.Association) (id uint, err error) {
+func (s *DatabaseService) CreateAssociation(association *models.Association) error {
 	db := s.s.DB()
 	if err := db.Create(association).Error; err != nil {
-		return 0, err
-	}
-	return association.ID, nil
-}
-
-func (s *DatabaseService) AddUserToAssociation(associationID uint, userID string) error {
-	db := s.s.DB()
-	var association models.Association
-	if err := db.Where("id = ?", associationID).First(&association).Error; err != nil {
 		return err
 	}
+	return nil
+}
 
-	association.MemberIDs = append(association.MemberIDs, userID)
+func (s *DatabaseService) GetAllAssociations() ([]models.Association, error) {
+    db := s.s.DB()
+    var associations []models.Association
+    if err := db.Preload("Owner").Order("verified ASC").Find(&associations).Error; err != nil {
+        return nil, err
+    }
+    
+    return associations, nil
+}
 
-	return db.Save(&association).Error
+func (s *DatabaseService) UpdateAssociation(association *models.Association) error {
+	db := s.s.DB()
+	if err := db.Save(association).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *DatabaseService) FindAssociationById(id int) (*models.Association, error) {
+	db := s.s.DB()
+	var association models.Association
+	if err := db.Preload("Owner").First(&association, id).Error; err != nil {
+		return nil, err
+	}
+	return &association, nil
 }
