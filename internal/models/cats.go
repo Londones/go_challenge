@@ -20,7 +20,6 @@ type Cats struct {
 	Race            string  `gorm:"type:varchar(100)"`
 	Description     *string `gorm:"type:varchar(250)"`
 	Reserved        bool
-	AnnonceID       string         `gorm:"type:varchar(100)"`
 	PicturesURL     pq.StringArray `gorm:"type:varchar(500)[]"`
 	UserID          string         `gorm:"type:varchar(100)"`
 }

@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"go-challenge/internal/fixtures"
+	//"go-challenge/internal/fixtures"
 	"go-challenge/internal/models"
 	"go-challenge/internal/utils"
 
@@ -97,7 +97,7 @@ func New(config *Config) (*Service, error) {
 	fmt.Printf("Connected to database %s\n", config.Database)
 
 	// Get the USER role
-	var userRole models.Roles
+	/*var userRole models.Roles
 	if err := db.Where("name = ?", models.UserRole).First(&userRole).Error; err != nil {
 		fmt.Printf("failed to find user role: %v", err)
 	}
@@ -119,6 +119,7 @@ func New(config *Config) (*Service, error) {
 			fmt.Printf("failed to create annonce fixtures for user %s: %v", user.ID, err)
 		}
 	}
+	fmt.Printf("Finished creating fixtures\n")*/
 
 	return s, nil
 }

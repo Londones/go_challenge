@@ -23,6 +23,12 @@ type RoomHandler struct {
 	upgrader    websocket.Upgrader
 }
 
+type MessageJSON struct {
+	Content   string `json:"Content"`
+	SenderID  string `json:"SenderID"`
+	CreatedAt string `json:"CreatedAt"`
+}
+
 func NewRoomHandler(roomQueries *queries.DatabaseService) *RoomHandler {
 	return &RoomHandler{
 		roomQueries: roomQueries,
@@ -92,21 +98,22 @@ func (r *Rooms) AddRoom(room *models.Room) {
 // @Security BearerAuth
 // @Router /ws/{roomID} [get]
 func (h *RoomHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
-	conn, err := h.upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		utils.Logger("error", "Handle WebSocket:", "Failed to upgrade connection", fmt.Sprintf("Error: %v", err))
-		http.Error(w, "error upgrading connection", http.StatusInternalServerError)
-		return
-	}
 
 	_, claims, _ := jwtauth.FromContext(r.Context())
-	userID := claims["userID"].(string)
+	userID := claims["id"].(string)
 	roomIDstring := chi.URLParam(r, "roomID")
 
 	roomID, err := strconv.ParseUint(roomIDstring, 10, 64)
 	if err != nil {
 		utils.Logger("error", "Handle WebSocket:", "Failed to parse room ID", fmt.Sprintf("Error: %v", err))
 		http.Error(w, "error parsing room ID", http.StatusBadRequest)
+		return
+	}
+
+	conn, err := h.upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		utils.Logger("error", "Handle WebSocket:", "Failed to upgrade connection", fmt.Sprintf("Error: %v", err))
+		http.Error(w, "error upgrading connection", http.StatusInternalServerError)
 		return
 	}
 
@@ -205,10 +212,23 @@ func (c *Client) readPump(room *Room, h *RoomHandler) {
 			break
 		}
 
-		_, error := h.roomQueries.SaveMessage(room.roomID, c.userID, string(message))
+		createdMessage, error := h.roomQueries.SaveMessage(room.roomID, c.userID, string(message))
 		if error != nil {
 			log.Printf("Error saving message: %v", error)
 			break
+		}
+
+		jsonMessage := MessageJSON{
+			Content:   createdMessage.Content,
+			SenderID:  createdMessage.SenderID,
+			CreatedAt: createdMessage.CreatedAt.String(),
+		}
+
+		message, err = json.Marshal(jsonMessage)
+		if err != nil {
+			utils.Logger("error", "Read Pump:", "Failed to marshal message", fmt.Sprintf("Error: %v", err))
+			log.Printf("error: %v", err)
+			continue
 		}
 
 		room.Broadcast(message)
@@ -254,7 +274,7 @@ func (c *Client) writePump() {
 // @Router /rooms [get]
 func (h *RoomHandler) GetUserRooms(w http.ResponseWriter, r *http.Request) {
 	_, claims, _ := jwtauth.FromContext(r.Context())
-	userID := claims["userID"].(string)
+	userID := claims["id"].(string)
 
 	rooms, err := h.roomQueries.FindRoomsByUserID(userID)
 	if err != nil {
@@ -283,6 +303,7 @@ func (h *RoomHandler) GetUserRooms(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(modifiedRooms)
 
 }
