@@ -993,7 +993,8 @@ const docTemplate = `{
             "post": {
                 "description": "Crée une nouvelle évaluation avec les détails fournis",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/x-www-form-urlencoded",
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -1177,7 +1178,8 @@ const docTemplate = `{
             "put": {
                 "description": "Met à jour les détails d'une évaluation existante",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/x-www-form-urlencoded",
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"

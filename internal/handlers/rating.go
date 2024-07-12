@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/jinzhu/gorm"
 )
 
 type RatingHandler struct {
@@ -32,6 +34,7 @@ func NewRatingHandler(ratingQueries, userQueries *queries.DatabaseService) *Rati
 // @Description Crée une nouvelle évaluation avec les détails fournis
 // @Tags Ratings
 // @Accept x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param mark formData int true "Note de l'évaluation"
 // @Param comment formData string false "Commentaire sur l'évaluation"
@@ -41,21 +44,49 @@ func NewRatingHandler(ratingQueries, userQueries *queries.DatabaseService) *Rati
 // @Failure 500 {string} string "Erreur interne du serveur"
 // @Router /ratings [post]
 func (h *RatingHandler) CreateRatingHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	markStr := r.FormValue("mark")
-	comment := r.FormValue("comment")
-	userID := r.FormValue("userID")
+	contentType := r.Header.Get("Content-Type")
+	var mark int
+	var comment, userID string
 
-	if markStr == "" || userID == "" {
+	if strings.Contains(contentType, "application/json") {
+		var data struct {
+			Mark    int    `json:"mark"`
+			Comment string `json:"comment"`
+			UserID  string `json:"userID"`
+		}
+		err := json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+		mark = data.Mark
+		comment = data.Comment
+		userID = data.UserID
+	} else {
+		r.ParseForm()
+		markStr := r.FormValue("mark")
+		comment = r.FormValue("comment")
+		userID = r.FormValue("userID")
+
+		if markStr == "" || userID == "" {
+			http.Error(w, "La note et l'ID de l'utilisateur sont requis", http.StatusBadRequest)
+			return
+		}
+
+		var err error
+		mark, err = strconv.Atoi(markStr)
+		if err != nil {
+			http.Error(w, "Valeur de note invalide", http.StatusBadRequest)
+			return
+		}
+	}
+
+	if mark == 0 || userID == "" {
 		http.Error(w, "La note et l'ID de l'utilisateur sont requis", http.StatusBadRequest)
 		return
 	}
 
-	mark, err := strconv.ParseInt(markStr, 10, 8)
-	if err != nil {
-		http.Error(w, "Valeur de note invalide", http.StatusBadRequest)
-		return
-	}
+	fmt.Printf("Received Data: Mark=%d, Comment=%s, UserID=%s\n", mark, comment, userID)
 
 	_, claims, err := jwtauth.FromContext(r.Context())
 	if err != nil {
@@ -100,6 +131,7 @@ func (h *RatingHandler) CreateRatingHandler(w http.ResponseWriter, r *http.Reque
 // @Description Met à jour les détails d'une évaluation existante
 // @Tags Ratings
 // @Accept x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param id path string true "ID de l'évaluation à mettre à jour"
 // @Param mark formData int true "Note mise à jour"
@@ -111,22 +143,48 @@ func (h *RatingHandler) CreateRatingHandler(w http.ResponseWriter, r *http.Reque
 // @Failure 500 {string} string "Erreur interne du serveur"
 // @Router /ratings/{id} [put]
 func (h *RatingHandler) UpdateRatingHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	contentType := r.Header.Get("Content-Type")
+	var mark int
+	var comment string
 
 	ratingID := chi.URLParam(r, "id")
-	markStr := r.FormValue("mark")
-	comment := r.FormValue("comment")
 
-	if markStr == "" {
+	if strings.Contains(contentType, "application/json") {
+		var data struct {
+			Mark    int    `json:"mark"`
+			Comment string `json:"comment"`
+		}
+		err := json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+		mark = data.Mark
+		comment = data.Comment
+	} else {
+		r.ParseForm()
+		markStr := r.FormValue("mark")
+		comment = r.FormValue("comment")
+
+		if markStr == "" {
+			http.Error(w, "La note est requise", http.StatusBadRequest)
+			return
+		}
+
+		var err error
+		mark, err = strconv.Atoi(markStr)
+		if err != nil {
+			http.Error(w, "Valeur de note invalide", http.StatusBadRequest)
+			return
+		}
+	}
+
+	if mark == 0 {
 		http.Error(w, "La note est requise", http.StatusBadRequest)
 		return
 	}
 
-	mark, err := strconv.ParseInt(markStr, 10, 8)
-	if err != nil {
-		http.Error(w, "Valeur de note invalide", http.StatusBadRequest)
-		return
-	}
+	fmt.Printf("Received Data: Mark=%d, Comment=%s\n", mark, comment)
 
 	_, claims, err := jwtauth.FromContext(r.Context())
 	if err != nil {
@@ -222,7 +280,7 @@ func (h *RatingHandler) DeleteRatingHandler(w http.ResponseWriter, r *http.Reque
 
 	rating, err := h.ratingQueries.FindRatingByID(ratingID)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, "Évaluation non trouvée", http.StatusNotFound)
 			return
 		}

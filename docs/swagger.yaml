@@ -811,6 +811,7 @@ paths:
     post:
       consumes:
       - application/x-www-form-urlencoded
+      - application/json
       description: Crée une nouvelle évaluation avec les détails fournis
       parameters:
       - description: Note de l'évaluation
@@ -903,6 +904,7 @@ paths:
     put:
       consumes:
       - application/x-www-form-urlencoded
+      - application/json
       description: Met à jour les détails d'une évaluation existante
       parameters:
       - description: ID de l'évaluation à mettre à jour
