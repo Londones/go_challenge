@@ -291,21 +291,22 @@ func (h *RoomHandler) GetUserRooms(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "error getting annonce", http.StatusInternalServerError)
 			return
 		}
+
 		modifiedRoom := map[string]interface{}{
 			"id":           room.ID,
-			"user1ID":      room.User1ID,
-			"user2ID":      room.User2ID,
-			"annonceID":    room.AnnonceID,
-			"annonceTitle": annonce.Title,
+			"user1ID":      string(room.User1ID),
+			"user2ID":      string(room.User2ID),
+			"annonceID":    annonce.ID,
+			"annonceTitle": string(annonce.Title),
 		}
 
 		modifiedRooms = append(modifiedRooms, modifiedRoom)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(modifiedRooms)
-
+	if err := json.NewEncoder(w).Encode(modifiedRooms); err != nil {
+		http.Error(w, "error encoding rooms to JSON", http.StatusInternalServerError)
+	}
 }
 
 // GetRoomMessages godoc

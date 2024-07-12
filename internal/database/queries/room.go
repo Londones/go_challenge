@@ -39,7 +39,7 @@ func (s *DatabaseService) FindRoomsByUserID(userid string) ([]*models.Room, erro
 	db := s.s.DB()
 	var rooms []*models.Room
 	// find all rooms where the user is either userID1 or userID2
-	if err := db.Where("userID1 = ? OR userID2 = ?", userid, userid).Find(&rooms).Error; err != nil {
+	if err := db.Where("user1_ID = ? OR user2_ID = ?", userid, userid).Find(&rooms).Error; err != nil {
 		utils.Logger("error", "Find Rooms By User ID:", "Failed to find rooms by user ID", fmt.Sprintf("Error: %v", err))
 		return nil, err
 	}

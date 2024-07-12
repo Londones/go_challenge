@@ -92,7 +92,8 @@ func (s *DatabaseService) FindAnnonceByCatID(catID string) (*models.Annonce, err
 func (s *DatabaseService) GetUserIDByAnnonceID(annonceID string) (id string, err error) {
 	db := s.s.DB()
 	var user models.User
-	if err := db.Table("users").Joins("JOIN annonces ON users.id = annonces.user_id").Where("annonces.id = ?", annonceID).First(&user).Error; err != nil {
+
+	if err := db.Table("users").Joins("JOIN annonces ON users.id = annonces.user_id::uuid").Where("annonces.id = ?", annonceID).First(&user).Error; err != nil {
 		return "", err
 	}
 	return user.ID, nil
