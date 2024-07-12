@@ -33,7 +33,7 @@ func NewUserFixture(i int) *models.User {
 		AddressRue:    randomChoice(addressRues),
 		Cp:            randomChoice(cps),
 		Ville:         randomChoice(villes),
-		AssociationID: 0,
+		Associations:  []models.Association{},
 		Roles:         []models.Roles{},
 		GoogleID:      "",
 		ProfilePicURL: "default",
@@ -53,6 +53,7 @@ func CreateUserFixtures(db *gorm.DB, count int, userRole *models.Roles) ([]*mode
 			return nil, fmt.Errorf("failed to assign role to user %d: %v", i, err)
 		}
 		users = append(users, user)
+		fmt.Printf("Created user %d\n", i)
 	}
 	return users, nil
 }
