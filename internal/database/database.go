@@ -6,7 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
+	//"go-challenge/internal/fixtures"
 	"go-challenge/internal/models"
+	"go-challenge/internal/utils"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jinzhu/gorm"
@@ -95,7 +97,7 @@ func New(config *Config) (*Service, error) {
 	fmt.Printf("Connected to database %s\n", config.Database)
 
 	// Get the USER role
-	var userRole models.Roles
+	/*var userRole models.Roles
 	if err := db.Where("name = ?", models.UserRole).First(&userRole).Error; err != nil {
 		fmt.Printf("failed to find user role: %v", err)
 	}
@@ -123,6 +125,7 @@ func New(config *Config) (*Service, error) {
 	//		fmt.Printf("failed to create annonce fixtures for user %s: %v", user.ID, err)
 	//	}
 	//}
+	fmt.Printf("Finished creating fixtures\n")*/
 
 	return s, nil
 }
@@ -153,8 +156,11 @@ func migrateAllModels(db *gorm.DB) error {
 		&models.Rating{},
 		&models.Roles{},
 		&models.User{},
+		&models.Message{},
+		&models.Room{},
 	).Error
 	if err != nil {
+		utils.Logger("debug", "AutoMigrate:", "Failed to migrate models", fmt.Sprintf("Error: %v", err))
 		fmt.Printf("AutoMigrate error: %v\n", err)
 		return err
 	}
@@ -170,6 +176,7 @@ func migrateAllModels(db *gorm.DB) error {
 		var existingRole models.Roles
 		if db.Where("name = ?", role.Name).First(&existingRole).RecordNotFound() {
 			if err := db.Create(&role).Error; err != nil {
+				utils.Logger("debug", "Create Role:", "Failed to create role", fmt.Sprintf("Error: %v", err))
 				fmt.Printf("Error creating role: %v\n", err)
 				return err
 			}

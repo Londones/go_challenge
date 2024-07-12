@@ -53,6 +53,7 @@ func CreateUserFixtures(db *gorm.DB, count int, userRole *models.Roles) ([]*mode
 			return nil, fmt.Errorf("failed to assign role to user %d: %v", i, err)
 		}
 		users = append(users, user)
+		fmt.Printf("Created user %d\n", i)
 	}
 	return users, nil
 }

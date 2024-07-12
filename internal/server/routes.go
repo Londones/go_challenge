@@ -35,6 +35,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 	raceHandler := handlers.NewRaceHandler(s.dbService, s.uploadcareClient)
 	associationHandler := handlers.NewAssociationHandler(s.dbService, s.uploadcareClient)
 	ratingHandler := handlers.NewRatingHandler(s.dbService, s.dbService)
+	roomHandler := handlers.NewRoomHandler(s.dbService)
+
+	roomHandler.LoadRooms()
 
 	r.Group(func(r chi.Router) {
 		// Apply JWT middleware to all routes within this group
@@ -106,6 +109,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/associations", associationHandler.CreateAssociationHandler)
 		r.Get("/associations", associationHandler.GetAllAssociationsHandler)
 		r.Put("/associations/{id}/verify", associationHandler.UpdateAssociationVerifyStatusHandler)
+
+		//** Chat routes
+		r.Get("/rooms", roomHandler.GetUserRooms)
+		r.Get("/rooms/{roomID}", roomHandler.GetRoomMessages)
+		r.Get("/ws/{roomID}", roomHandler.HandleWebSocket)
+
 	})
 
 	// Public routes

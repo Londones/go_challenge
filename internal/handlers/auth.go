@@ -12,6 +12,7 @@ import (
 	"go-challenge/internal/auth"
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
+	"go-challenge/internal/utils"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -44,7 +45,9 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 	r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
 
 	user, err := gothic.CompleteUserAuth(w, r)
+	utils.Logger("info", "User", fmt.Sprintf("%+v", user), "")
 	if err != nil {
+		utils.Logger("error", "Complete User Auth:", "Failed to complete user authentication", fmt.Sprintf("Error: %v", err))
 		fmt.Fprintln(w, err)
 		return
 	}
@@ -81,7 +84,7 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	token := auth.MakeToken(existingUser.ID, string(existingUser.Email))
+	token := auth.MakeToken(existingUser.ID, string(existingUser.Roles[0].Name))
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
@@ -198,7 +201,7 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := auth.MakeToken(user.ID, string(user.Email))
+	token := auth.MakeToken(user.ID, "USER")
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
 		Expires:  time.Now().Add(24 * time.Hour),
