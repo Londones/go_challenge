@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
@@ -24,9 +25,9 @@ type RoomHandler struct {
 }
 
 type MessageJSON struct {
-	Content   string `json:"Content"`
-	SenderID  string `json:"SenderID"`
-	CreatedAt string `json:"CreatedAt"`
+	Content   string    `json:"Content"`
+	SenderID  string    `json:"SenderID"`
+	CreatedAt time.Time `json:"CreatedAt"`
 }
 
 func NewRoomHandler(roomQueries *queries.DatabaseService) *RoomHandler {
@@ -218,13 +219,13 @@ func (c *Client) readPump(room *Room, h *RoomHandler) {
 			break
 		}
 
-		jsonMessage := MessageJSON{
+		/*jsonMessage := MessageJSON{
 			Content:   createdMessage.Content,
 			SenderID:  createdMessage.SenderID,
-			CreatedAt: createdMessage.CreatedAt.String(),
-		}
+			CreatedAt: createdMessage.CreatedAt.Format(time.RFC3339),
+		}*/
 
-		message, err = json.Marshal(jsonMessage)
+		message, err = json.Marshal(createdMessage)
 		if err != nil {
 			utils.Logger("error", "Read Pump:", "Failed to marshal message", fmt.Sprintf("Error: %v", err))
 			log.Printf("error: %v", err)
@@ -249,12 +250,15 @@ func (c *Client) writePump() {
 		}
 		w.Write(message)
 		utils.Logger("info", "Write Pump:", "Message sent", fmt.Sprintf("Message: %v", message))
+		utils.Logger("info", "Write Pump:", "Message sent to", fmt.Sprintf("User ID: %v %v", c.userID, message))
 
 		n := len(c.send)
 		for i := 0; i < n; i++ {
 			w.Write([]byte{'\n'})
 			w.Write(<-c.send)
 		}
+
+		utils.Logger("info", "Write Pump:", "Messages sent", fmt.Sprintf("Number of messages: %v", n))
 
 		if err := w.Close(); err != nil {
 			utils.Logger("error", "Write Pump:", "Failed to close writer", fmt.Sprintf("Error: %v", err))
