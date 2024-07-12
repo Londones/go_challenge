@@ -128,7 +128,7 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := auth.MakeToken(user.ID, "user")
+	token := auth.MakeToken(user.ID, "USER")
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
