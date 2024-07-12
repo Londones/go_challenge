@@ -33,7 +33,7 @@ func NewUserFixture(i int) *models.User {
 		AddressRue:    randomChoice(addressRues),
 		Cp:            randomChoice(cps),
 		Ville:         randomChoice(villes),
-		AssociationID: 0,
+		Associations:  []models.Association{},
 		Roles:         []models.Roles{},
 		GoogleID:      "",
 		ProfilePicURL: "default",

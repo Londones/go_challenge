@@ -17,7 +17,7 @@ type Cats struct {
 	Color           string `gorm:"type:varchar(100)"`
 	Behavior        string `gorm:"type:varchar(100)"`
 	Sterilized      bool
-	Race            string  `gorm:"type:varchar(100)"`
+	RaceID          string
 	Description     *string `gorm:"type:varchar(250)"`
 	Reserved        bool
 	PicturesURL     pq.StringArray `gorm:"type:varchar(500)[]"`

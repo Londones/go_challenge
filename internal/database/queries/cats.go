@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"go-challenge/internal/models"
-
 	"gorm.io/gorm"
+	"time"
 )
 
 func (s *DatabaseService) CreateCat(cat *models.Cats) (id uint, err error) {
@@ -89,4 +89,18 @@ func (s *DatabaseService) UpdateCat(cat *models.Cats) error {
 	}
 
 	return nil
+}
+
+func (s *DatabaseService) GetCatByFilters(raceId string, age int, sex string) ([]models.Cats, error) {
+	var cats []models.Cats
+	var birthDate time.Time
+	db := s.s.DB()
+
+	birthDate = time.Now().AddDate(-age, 0, 0)
+
+	if err := db.Where("sexe = ?", sex).Or("race_id = ?", raceId).Or("birth_date >= ?", birthDate).Find(&cats).Error; err != nil {
+		return nil, err
+	}
+
+	return cats, nil
 }

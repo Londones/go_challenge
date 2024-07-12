@@ -2,6 +2,7 @@ package fixtures
 
 import (
 	"math/rand"
+	"strconv"
 	"time"
 
 	"go-challenge/internal/models"
@@ -10,11 +11,10 @@ import (
 	"github.com/lib/pq"
 )
 
-func NewCatFixture(userID string, pictureIndex int) *models.Cats {
+func NewCatFixture(userID string, pictureIndex int, race models.Races) *models.Cats {
 	names := []string{"Mittens", "Whiskers", "Shadow", "Bella", "Luna", "Simba"}
 	sexes := []string{"Male", "Female"}
 	colors := []string{"Black", "White", "Gray", "Orange", "Calico"}
-	races := []string{"Persian", "Maine Coon", "Siamese", "Bengal", "Sphynx"}
 	behaviors := []string{"Playful", "Lazy", "Aggressive", "Friendly", "Shy"}
 	descriptions := []string{
 		"Un chat très amical et joueur.",
@@ -44,7 +44,7 @@ func NewCatFixture(userID string, pictureIndex int) *models.Cats {
 		Color:           randomChoice(colors),
 		Behavior:        randomChoice(behaviors),
 		Sterilized:      randomBool(),
-		Race:            randomChoice(races),
+		RaceID:          strconv.FormatUint(uint64(race.ID), 10),
 		Description:     &description,
 		Reserved:        randomBool(),
 		PicturesURL:     pq.StringArray{picturesURL[pictureIndex%len(picturesURL)]},
@@ -54,8 +54,13 @@ func NewCatFixture(userID string, pictureIndex int) *models.Cats {
 
 func CreateCatFixturesForUser(db *gorm.DB, count int, userID string) ([]*models.Cats, error) {
 	var cats []*models.Cats
+	var races []models.Races
+	if err := db.Find(&races).Error; err != nil {
+
+		return nil, err
+	}
 	for i := 0; i < count; i++ {
-		cat := NewCatFixture(userID, i)
+		cat := NewCatFixture(userID, i, races[i])
 		if err := db.Create(cat).Error; err != nil {
 			return nil, err
 		}
