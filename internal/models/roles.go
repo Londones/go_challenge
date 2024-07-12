@@ -6,8 +6,8 @@ type RoleName string
 
 const (
 	AdminRole RoleName = "ADMIN"
-	UserRole RoleName = "USER"
-	AssoRole RoleName = "ASSO"
+	UserRole  RoleName = "USER"
+	AssoRole  RoleName = "ASSO"
 )
 
 type Roles struct {

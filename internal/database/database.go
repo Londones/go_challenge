@@ -6,8 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
+	//"go-challenge/internal/fixtures"
 	"go-challenge/internal/fixtures"
 	"go-challenge/internal/models"
+	"go-challenge/internal/utils"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jinzhu/gorm"
@@ -151,12 +153,16 @@ func migrateAllModels(db *gorm.DB) error {
 		&models.Annonce{},
 		&models.Association{},
 		&models.Cats{},
+		&models.Races{},
 		&models.Favorite{},
 		&models.Rating{},
 		&models.Roles{},
 		&models.User{},
+		&models.Message{},
+		&models.Room{},
 	).Error
 	if err != nil {
+		utils.Logger("debug", "AutoMigrate:", "Failed to migrate models", fmt.Sprintf("Error: %v", err))
 		fmt.Printf("AutoMigrate error: %v\n", err)
 		return err
 	}
@@ -172,6 +178,7 @@ func migrateAllModels(db *gorm.DB) error {
 		var existingRole models.Roles
 		if db.Where("name = ?", role.Name).First(&existingRole).RecordNotFound() {
 			if err := db.Create(&role).Error; err != nil {
+				utils.Logger("debug", "Create Role:", "Failed to create role", fmt.Sprintf("Error: %v", err))
 				fmt.Printf("Error creating role: %v\n", err)
 				return err
 			}

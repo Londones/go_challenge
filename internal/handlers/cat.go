@@ -73,10 +73,9 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 	race := r.FormValue("Race")
 	description := r.FormValue("Description")
 	ReservedStr := r.FormValue("Reserved")
-	annonceID := r.FormValue("AnnonceID")
 	userID := r.FormValue("UserID")
 
-	if name == "" || birthDateStr == "" || sexe == "" || color == "" || behavior == "" || sterilizedStr == "" || race == "" || ReservedStr == "" || annonceID == "" || userID == "" {
+	if name == "" || birthDateStr == "" || sexe == "" || color == "" || behavior == "" || sterilizedStr == "" || race == "" || ReservedStr == "" || userID == "" {
 		http.Error(w, "all fields are required", http.StatusBadRequest)
 		return
 	}
@@ -156,10 +155,9 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 		Behavior:        behavior,
 		Sterilized:      sterilized,
 		PicturesURL:     fileURLs,
-		Race:            race,
+		RaceID:          race,
 		Description:     &description,
 		Reserved:        Reserved,
-		AnnonceID:       annonceID,
 		UserID:          userID,
 	}
 
@@ -261,7 +259,7 @@ func (h *CatHandler) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
 		cat.Sterilized = sterilized
 	}
 	if race := r.FormValue("Race"); race != "" {
-		cat.Race = race
+		cat.RaceID = race
 	}
 	if description := r.FormValue("Description"); description != "" {
 		cat.Description = &description
@@ -273,9 +271,6 @@ func (h *CatHandler) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		cat.Reserved = reserved
-	}
-	if annonceID := r.FormValue("AnnonceID"); annonceID != "" {
-		cat.AnnonceID = annonceID
 	}
 
 	err = h.catQueries.UpdateCat(cat)
@@ -303,6 +298,15 @@ func (h *CatHandler) GetAllCatsHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "error fetching cats", http.StatusInternalServerError)
 		return
+	}
+
+	for _, cat := range cats {
+		currentRace, err := h.catQueries.FindRaceByID(cat.RaceID)
+		if err != nil {
+			http.Error(w, "error fetching the race of a cat", http.StatusInternalServerError)
+			return
+		}
+		cat.RaceID = currentRace.RaceName
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -341,6 +345,13 @@ func (h *CatHandler) GetCatByIDHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	currentRace, err := h.catQueries.FindRaceByID(cat.RaceID)
+	if err != nil {
+		http.Error(w, "error fetching the race of a cat", http.StatusInternalServerError)
+		return
+	}
+	cat.RaceID = currentRace.RaceName
+
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(cat); err != nil {
 		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
@@ -377,4 +388,58 @@ func (h *CatHandler) DeleteCatHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// FindCatsByFilterHandler godoc
+// @Summary Get cats by filters
+// @Description Retrieve cats using their sex, age or race
+// @Tags cats
+// @Param raceId query string false "RaceID"
+// @Param age query int false "Age"
+// @Param sexe query string false "Sexe"
+// @Produce  json
+// @Success 200 {object} []models.Cats "Found cats"
+// @Failure 400 {string} string "An error has occured"
+// @Failure 404 {string} string "No cats were found"
+// @Failure 500 {string} string "error fetching cats"
+// @Router /cats/ [get]
+func (h *CatHandler) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Request) {
+	var data []*models.Annonce
+	params := r.URL.Query()
+
+	raceId := params.Get("raceId")
+	sexe := params.Get("sexe")
+	age, _ := strconv.Atoi(params.Get("age"))
+
+	cats, err := h.catQueries.GetCatByFilters(raceId, age, sexe)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, fmt.Sprintf("Error in parameters"), http.StatusNotFound)
+			return
+		}
+		http.Error(w, "error fetching cat", http.StatusInternalServerError)
+		return
+	}
+
+	for _, cat := range cats {
+		annonce, fail := h.catQueries.FindAnnonceByCatID(fmt.Sprintf("%d", cat.ID))
+		if fail != nil {
+			continue
+		}
+
+		data = append(data, annonce)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(data)
+
+	if len(data) == 0 {
+		http.Error(w, "No cats were found with using the filters.", http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
+		return
+	}
 }

@@ -128,7 +128,7 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := auth.MakeToken(user.ID, "user")
+	token := auth.MakeToken(user.ID, "USER")
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
@@ -289,20 +289,9 @@ func (h *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	token := auth.MakeToken(user.ID, "user")
-
-	http.SetCookie(w, &http.Cookie{
-		HttpOnly: true,
-		Expires:  time.Now().Add(24 * time.Hour),
-		Name:     "jwt",
-		Value:    token,
-		SameSite: http.SameSiteLaxMode,
-	})
-
 	w.Header().Set("Content-Type", "application/json")
-	response := fmt.Sprintf(`{"success": true, "token": "%s"}`, token)
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(response))
+	json.NewEncoder(w).Encode(user)
 }
 
 // CreateUserHandler godoc
@@ -363,20 +352,9 @@ func (h *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	token := auth.MakeToken(user.ID, "user")
-
-	http.SetCookie(w, &http.Cookie{
-		HttpOnly: true,
-		Expires:  time.Now().Add(24 * time.Hour),
-		Name:     "jwt",
-		Value:    token,
-		SameSite: http.SameSiteLaxMode,
-	})
-
 	w.Header().Set("Content-Type", "application/json")
-	response := fmt.Sprintf(`{"success": true, "token": "%s"}`, token)
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(response))
+	json.NewEncoder(w).Encode(user)
 }
 
 // DeleteUserHandler godoc
@@ -436,11 +414,11 @@ func (h *UserHandler) GetCurrentUserHandler(w http.ResponseWriter, r *http.Reque
 	json.NewEncoder(w).Encode(user)
 }
 
-// GetUserByIDHandler godoc
-// @Summary Get user by ID
-// @Description Retrieve the details of a user by their ID
-// @Tags users
-// @Produce  json
+// @Summary Retrieve a user by ID
+// @Description Retrieve a user by the provided ID
+// @ID get-user-by-id
+// @Accept json
+// @Produce json
 // @Param id path string true "User ID"
 // @Security ApiKeyAuth
 // @Success 200 {object} models.User "User details"
