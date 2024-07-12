@@ -13,7 +13,7 @@ func (s *DatabaseService) SaveMessage(roomID uint, senderID string, content stri
 		SenderID: senderID,
 		Content:  content,
 	}
-	if err := db.Create(message).Error; err != nil {
+	if err := db.Create(&message).Error; err != nil {
 		utils.Logger("error", "Message Creation:", "Failed to create message", fmt.Sprintf("Error: %v", err))
 		return nil, err
 	}
@@ -24,7 +24,7 @@ func (s *DatabaseService) SaveMessage(roomID uint, senderID string, content stri
 func (s *DatabaseService) GetMessagesByRoomID(roomID uint) ([]*models.Message, error) {
 	db := s.s.DB()
 	var messages []*models.Message
-	if err := db.Where("chat_id = ?", roomID).Order("created_at").Find(&messages).Error; err != nil {
+	if err := db.Where("room_id = ?", roomID).Order("created_at").Find(&messages).Error; err != nil {
 		utils.Logger("error", "Get Messages By Room ID:", "Failed to get messages by room ID", fmt.Sprintf("Error: %v", err))
 		return nil, err
 	}
