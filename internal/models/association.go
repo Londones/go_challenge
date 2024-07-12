@@ -2,7 +2,6 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
-	"github.com/lib/pq"
 )
 
 type Association struct {
@@ -13,9 +12,9 @@ type Association struct {
 	Ville      string `gorm:"type:varchar(100)"`
 	Phone      string `gorm:"type:varchar(13)"`
 	Email      string `gorm:"type:varchar(100)"`
-	//ValidationDocument1 byte Je ne sais pas encore comment les mettre dans les models.
-	//ValidationDocument1 byte
-	//ValidationDocument1 byte
-	MemberIDs pq.StringArray `gorm:"type:varchar(100)[]"`
-	Verified  bool
+	KbisFile   string `gorm:"type:varchar(500)"`
+	Members    []User `gorm:"many2many:association_members;"`
+	OwnerID    string `gorm:"type:uuid;not null"`
+	Owner      User   `gorm:"foreignkey:OwnerID;association_foreignkey:ID"`
+	Verified   *bool  `gorm:"type:boolean;default:false"`
 }

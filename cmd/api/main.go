@@ -10,22 +10,23 @@ import (
 	"github.com/rs/cors"
 )
 
-// @title           GO-challenge-PurrfectMatch
-// @version         1.0
-// @description     Swagger de PurrfectMatch
-// @termsOfService  http://swagger.io/terms/
+//    @title            GO-challenge-PurrfectMatch
+//    @version        1.0
+//    @description    Swagger de PurrfectMatch
+//    @termsOfService    http://swagger.io/terms/
 
-// @contact.name    API Support
-// @contact.url     http://www.swagger.io/support
-// @contact.email   support@swagger.io
+//    @contact.name    API Support
+//    @contact.url    http://www.swagger.io/support
+//    @contact.email    support@swagger.io
 
-// @license.name    Apache 2.0
-// @license.url     http://www.apache.org/licenses/LICENSE-2.0.html
+//    @license.name    Apache 2.0
+//    @license.url    http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host            localhost:8080
-// @BasePath        /
+// @host        localhost:8080
+// @BasePath    /
 
-// Pour lancer le swagger : swag init --parseDependency -d internal/handlers -g ../../cmd/api/main.go
+// Pour lancer le swagger : swag init --parseDependency -d ./internal/server -g ../../cmd/api/main.go
+// puis supprimer les lignes
 func main() {
 	auth.NewAuth()
 	server, err := server.NewServer()
@@ -36,17 +37,8 @@ func main() {
 	// Création d'un nouveau ServeMux
 	mux := http.NewServeMux()
 
-	// Handle CORS for the entire ServeMux
-    corsHandler := cors.New(cors.Options{
-        AllowedOrigins:   []string{"*"},
-        AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-        ExposedHeaders:   []string{"Link"},
-        AllowCredentials: false,
-        MaxAge:           300,
-    })
-
-    handler := corsHandler.Handler(mux)
+	// Gestion des CORS pour tout le ServeMux
+	handler := cors.Default().Handler(mux)
 
 	// Définir le gestionnaire pour la racine du ServeMux
 	mux.Handle("/", server.Handler)
@@ -60,7 +52,6 @@ func main() {
 
 	// Lancement du serveur
 	fmt.Println("Server is running on port" + port)
-	
 	err = http.ListenAndServe(":"+port, handler)
 	if err != nil {
 		panic(fmt.Sprintf("cannot start server: %s", err))
