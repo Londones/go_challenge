@@ -32,6 +32,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	annonceHandler := handlers.NewAnnonceHandler(s.dbService, s.dbService, s.dbService)
 	catHandler := handlers.NewCatHandler(s.dbService, s.uploadcareClient)
 	favoriteHandler := handlers.NewFavoriteHandler(s.dbService, s.dbService)
+	raceHandler := handlers.NewRaceHandler(s.dbService, s.uploadcareClient)
 	associationHandler := handlers.NewAssociationHandler(s.dbService, s.uploadcareClient)
 	ratingHandler := handlers.NewRatingHandler(s.dbService, s.dbService)
 
@@ -44,7 +45,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 			// Protected routes for admin users
 			r.Use(AdminOnly)
 			// Admin specific routes
+			r.Put("/race/{id}", raceHandler.UpdateRaceHandler)
+			r.Post("/race", raceHandler.RaceCreationHandler)
+			r.Delete("/race/{id}", raceHandler.DeleteRaceHandler)
 		})
+		//** Race routes for admin
 
 		r.Group(func(r chi.Router) {
 			// Protected routes for personal user data
@@ -73,6 +78,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Put("/cats/{id}", catHandler.UpdateCatHandler)
 		r.Post("/cats", catHandler.CatCreationHandler)
 		r.Delete("/cats/{id}", catHandler.DeleteCatHandler)
+		r.Get("/cats/", catHandler.FindCatsByFilterHandler)
+
+		//** Race routes
+		r.Get("/races", raceHandler.GetAllRaceHandler)
+		r.Get("/race/{id}", raceHandler.GetRaceByIDHandler)
 
 		//** User routes
 		r.Get("/users", userHandler.GetAllUsersHandler)
