@@ -219,14 +219,13 @@ func (h *UserHandler) ModifyProfilePictureHandler(w http.ResponseWriter, r *http
 	w.Write([]byte("Profile picture updated successfully"))
 }
 
-// @Summary Retrieve all users
-// @Description Retrieve all users from the database
-// @ID get-all-users
-// @Accept  json
+// GetAllUsersHandler godoc
+// @Summary Get all users
+// @Description Retrieve a list of all users
+// @Tags users
 // @Produce  json
-// @Success 200 {array} models.User
-// @Failure 500 {object} string "error fetching users"
-// @Failure 500 {object} string "error encoding users to JSON"
+// @Success 200 {array} models.User "List of users"
+// @Failure 500 {string} string "Error fetching users"
 // @Router /users [get]
 func (h *UserHandler) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	users, err := h.userQueries.GetAllUsers()
@@ -243,17 +242,22 @@ func (h *UserHandler) GetAllUsersHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-// @Summary Create a new user
-// @Description Create a new user with the provided details
-// @ID create-user
-// @Accept json
-// @Produce json
-// @Param user body models.User true "User details"
-// @Success 200 {object} string "success: true, token: {token}"
-// @Failure 400 {object} string "Invalid JSON body"
-// @Failure 500 {object} string "error hashing password"
-// @Failure 500 {object} string "error fetching user role"
-// @Failure 500 {object} string "error creating user"
+// CreateUserHandler godoc
+// @Summary Create user
+// @Description Create a new user with the given email, password, name, address, cp, and ville
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param email formData string true "Email"
+// @Param password formData string true "Password"
+// @Param name formData string false "Name"
+// @Param addressRue formData string false "Address"
+// @Param cp formData string false "CP"
+// @Param ville formData string false "Ville"
+// @Security ApiKeyAuth
+// @Success 200 {object} models.User "User created successfully"
+// @Failure 400 {string} string "Invalid JSON body"
+// @Failure 500 {string} string "Error creating user"
 // @Router /users [post]
 func (h *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	var user models.User
@@ -290,21 +294,23 @@ func (h *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(user)
 }
 
-// @Summary Update an existing user
-// @Description Update an existing user with the provided details
-// @ID update-user
-// @Accept json
-// @Produce json
-// @Param id path string true "User ID"
-// @Param user body models.User true "User details"
-// @Success 200 {object} string "success: true, token: {token}"
-// @Failure 400 {object} string "User ID is required"
-// @Failure 400 {object} string "Invalid JSON body"
-// @Failure 404 {object} string "User not found"
-// @Failure 500 {object} string "error hashing password"
-// @Failure 500 {object} string "error fetching user role"
-// @Failure 500 {object} string "Error updating user"
-// @Router /users/{id} [put]
+// CreateUserHandler godoc
+// @Summary Create user
+// @Description Create a new user with the given email, password, name, address, cp, and ville
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param email formData string true "Email"
+// @Param password formData string true "Password"
+// @Param name formData string false "Name"
+// @Param addressRue formData string false "Address"
+// @Param cp formData string false "CP"
+// @Param ville formData string false "Ville"
+// @Security ApiKeyAuth
+// @Success 200 {object} models.User "User created successfully"
+// @Failure 400 {string} string "Invalid JSON body"
+// @Failure 500 {string} string "Error creating user"
+// @Router /users [post]
 func (h *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	userID := chi.URLParam(r, "id")
 	if userID == "" {
@@ -351,15 +357,16 @@ func (h *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(user)
 }
 
-// @Summary Delete an existing user
-// @Description Delete an existing user with the provided ID
-// @ID delete-user
-// @Accept json
-// @Produce json
-// @Param id path string true "User ID"
-// @Success 204 {object} string "No Content"
-// @Failure 400 {object} string "User ID is required"
-// @Failure 500 {object} string "Error deleting user"
+// DeleteUserHandler godoc
+// @Summary Delete user
+// @Description Delete an existing user
+// @Tags users
+// @Produce  json
+// @Param id path string true "ID of the user to delete"
+// @Security ApiKeyAuth
+// @Success 204 {string} string "No Content"
+// @Failure 400 {string} string "User ID is required"
+// @Failure 500 {string} string "Error deleting user"
 // @Router /users/{id} [delete]
 func (h *UserHandler) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	userID := chi.URLParam(r, "id")
@@ -377,14 +384,15 @@ func (h *UserHandler) DeleteUserHandler(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// @Summary Retrieve the current user
-// @Description Retrieve the current user based on the JWT token
-// @ID get-current-user
-// @Accept json
-// @Produce json
-// @Success 200 {object} models.User
-// @Failure 500 {object} string "error getting claims"
-// @Failure 500 {object} string "error finding user"
+// GetCurrentUserHandler godoc
+// @Summary Get current user
+// @Description Retrieve the details of the currently authenticated user
+// @Tags users
+// @Produce  json
+// @Security ApiKeyAuth
+// @Success 200 {object} models.User "User details"
+// @Failure 500 {string} string "error getting claims"
+// @Failure 500 {string} string "error finding user"
 // @Router /users/current [get]
 func (h *UserHandler) GetCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
 	_, claims, err := jwtauth.FromContext(r.Context())
@@ -412,10 +420,11 @@ func (h *UserHandler) GetCurrentUserHandler(w http.ResponseWriter, r *http.Reque
 // @Accept json
 // @Produce json
 // @Param id path string true "User ID"
-// @Success 200 {object} models.User
-// @Failure 400 {object} string "User ID is required"
-// @Failure 404 {object} string "User not found"
-// @Failure 500 {object} string "Error finding user"
+// @Security ApiKeyAuth
+// @Success 200 {object} models.User "User details"
+// @Failure 400 {string} string "User ID is required"
+// @Failure 404 {string} string "User not found"
+// @Failure 500 {string} string "Error finding user"
 // @Router /users/{id} [get]
 func (h *UserHandler) GetUserByIDHandler(w http.ResponseWriter, r *http.Request) {
 	userID := chi.URLParam(r, "id")
