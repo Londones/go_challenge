@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"go-challenge/internal/models"
+	"strconv"
+
 	"gorm.io/gorm"
 )
 
@@ -17,12 +19,23 @@ func (s *DatabaseService) CreateRace(race *models.Races) (id uint, err error) {
 }
 
 func (s *DatabaseService) DeleteRace(id string) error {
+	// Vérifiez si l'ID est vide
+	if id == "" {
+		return fmt.Errorf("l'ID fourni est vide")
+	}
+
+	// Convertir l'ID en entier
+	raceID, err := strconv.Atoi(id)
+	if err != nil {
+		return fmt.Errorf("conversion de l'ID en entier a échoué : %v", err)
+	}
+
 	db := s.s.DB()
 
 	var race models.Races
-	if err := db.Where("id = ?", id).First(&race).Error; err != nil {
+	if err := db.Where("id = ?", raceID).First(&race).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("race with ID %s not found", id)
+			return fmt.Errorf("race avec ID %d introuvable", raceID)
 		}
 		return err
 	}
@@ -45,20 +58,42 @@ func (s *DatabaseService) GetAllRace() ([]models.Races, error) {
 }
 
 func (s *DatabaseService) FindRaceByID(id string) (race models.Races, err error) {
+	// Vérifiez si l'ID est vide
+	if id == "" {
+		return models.Races{}, fmt.Errorf("l'ID fourni est vide")
+	}
+
+	// Convertir l'ID en entier
+	raceID, err := strconv.Atoi(id)
+	if err != nil {
+		return models.Races{}, fmt.Errorf("conversion de l'ID en entier a échoué : %v", err)
+	}
+
 	db := s.s.DB()
-	if err := db.Where("ID = ?", id).First(&race).Error; err != nil {
+	if err := db.Where("ID = ?", raceID).First(&race).Error; err != nil {
 		return models.Races{}, err
 	}
 	return race, nil
 }
 
 func (s *DatabaseService) DeleteRaceById(id string) error {
+	// Vérifiez si l'ID est vide
+	if id == "" {
+		return fmt.Errorf("l'ID fourni est vide")
+	}
+
+	// Convertir l'ID en entier
+	raceID, err := strconv.Atoi(id)
+	if err != nil {
+		return fmt.Errorf("conversion de l'ID en entier a échoué : %v", err)
+	}
+
 	db := s.s.DB()
 
 	var race models.Races
-	if err := db.Where("id = ?", id).First(&race).Error; err != nil {
+	if err := db.Where("id = ?", raceID).First(&race).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("Race with ID %s not found", id)
+			return fmt.Errorf("Race avec ID %d introuvable", raceID)
 		}
 		return err
 	}
@@ -76,7 +111,7 @@ func (s *DatabaseService) UpdateRace(race models.Races) error {
 	var existingRace models.Races
 	if err := db.Where("id = ?", race.ID).First(&existingRace).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("Race with ID %d not found", race.ID)
+			return fmt.Errorf("Race avec ID %d introuvable", race.ID)
 		}
 		return err
 	}
