@@ -50,10 +50,10 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 	}
 
 	userRole, err := h.userQueries.GetRoleByName(models.UserRole)
-    if err != nil {
-        http.Error(w, "error fetching user role", http.StatusInternalServerError)
-        return
-    }
+	if err != nil {
+		http.Error(w, "error fetching user role", http.StatusInternalServerError)
+		return
+	}
 
 	// check if user with this google id exists
 	existingUser, err := h.userQueries.FindUserByGoogleID(user.UserID)

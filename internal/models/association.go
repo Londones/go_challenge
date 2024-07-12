@@ -16,5 +16,5 @@ type Association struct {
 	Members    []User `gorm:"many2many:association_members;"`
 	OwnerID    string `gorm:"type:uuid;not null"`
 	Owner      User   `gorm:"foreignkey:OwnerID;association_foreignkey:ID"`
-	Verified   *bool `gorm:"type:boolean;default:false"`
+	Verified   *bool  `gorm:"type:boolean;default:false"`
 }

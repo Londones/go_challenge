@@ -19,8 +19,6 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/google/uuid"
 	"github.com/uploadcare/uploadcare-go/ucare"
-
-	
 )
 
 type UserHandler struct {
