@@ -60,6 +60,15 @@ func (s *Server) RegisterRoutes() http.Handler {
 			// User specific routes
 		})
 
+		//**	Rating routes
+		r.Get("/ratings", ratingHandler.FetchAllRatingsHandler)
+		r.Get("/ratings/{id}", ratingHandler.GetRatingByIDHandler)
+		r.Post("/ratings", ratingHandler.CreateRatingHandler)
+		r.Put("/ratings/{id}", ratingHandler.UpdateRatingHandler)
+		r.Delete("/ratings/{id}", ratingHandler.DeleteRatingHandler)
+		r.Get("/ratings/user/{userID}", ratingHandler.GetUserRatingsHandler)
+		r.Get("/ratings/author/{authorID}", ratingHandler.GetAuthorsRatingsHandler)
+
 		//**	Annonces routes
 		r.Get("/annonces", annonceHandler.GetAllAnnoncesHandler)
 		r.Get("/annonces/{id}", annonceHandler.GetAnnonceByIDHandler)
@@ -67,13 +76,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Put("/annonces/{id}", annonceHandler.ModifyDescriptionAnnonceHandler)
 		r.Delete("/annonces/{id}", annonceHandler.DeleteAnnonceHandler)
 		r.Get("/annonces/cats/{catID}", annonceHandler.FetchAnnonceByCatIDHandler)
-
-		//**	Rating routes
-		r.Get("/ratings", ratingHandler.FetchAllRatingsHandler)
-		r.Get("/ratings/{id}", ratingHandler.GetRatingByIDHandler)
-		r.Post("/ratings", ratingHandler.CreateRatingHandler)
-		r.Put("/ratings/{id}", ratingHandler.UpdateRatingHandler)
-		r.Delete("/ratings/{id}", ratingHandler.DeleteRatingHandler)
 
 		//**	Cats routes
 		r.Get("/cats", catHandler.GetAllCatsHandler)
