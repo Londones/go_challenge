@@ -4,9 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/go-chi/chi/v5"
-	"github.com/jinzhu/gorm"
 	"github.com/uploadcare/uploadcare-go/ucare"
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
@@ -80,127 +78,102 @@ func (h *RaceHandler) GetRaceByIDHandler(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(race)
 }
 
-// UpdateRaceHandler godoc
-// @Summary Search then update a race using its ID
-// @Description Update a race name
-// @Tags race
-// @Produce json
-// @Accept x-www-form-urlencoded
-// @Param id path string true "ID of the race to update"
-// @Param raceName query string true "New race name"
-// @Security ApiKeyAuth
-// @Success 200 {object} models.Races "Race updated successfully"
-// @Failure 400 {string} string "Missing or invalid fields in the request"
-// @Failure 403 {string} string "User is not authorized to update this race"
-// @Failure 404 {string} string "Race not found"
-// @Failure 500 {string} string "Internal server error"
-// @Router /race/{id} [put]
+// UpdateRaceHandler updates a race
+// @Summary Update a race
+// @Description Update a race by ID
+// @Tags races
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Race ID"
+// @Param body body models.Race true "Race object"
+// @Success 200 {object} models.Race "Successfully updated race"
+// @Failure 400 {object} string "Invalid ID supplied"
+// @Failure 404 {object} string "Race not found"
+// @Failure 400 {object} string "Invalid JSON body"
+// @Failure 500 {object} string "Error updating race"
+// @Router /races/{id} [put]
 func (h *RaceHandler) UpdateRaceHandler(w http.ResponseWriter, r *http.Request) {
-
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Error parsing form: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	raceID := chi.URLParam(r, "id")
 	if raceID == "" {
-		http.Error(w, "race ID is required", http.StatusBadRequest)
+		http.Error(w, "Race ID is required", http.StatusBadRequest)
 		return
 	}
 
 	race, err := h.raceQueries.FindRaceByID(raceID)
 	if err != nil {
-		http.Error(w, "race not found", http.StatusNotFound)
+		http.Error(w, "Race not found", http.StatusNotFound)
 		return
 	}
 
-	if name := r.FormValue("raceName"); name != "" {
-		race.RaceName = name
+	err = json.NewDecoder(r.Body).Decode(&race)
+	if err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
 	}
 
 	err = h.raceQueries.UpdateRace(race)
 	if err != nil {
-		http.Error(w, "error updating race", http.StatusInternalServerError)
+		http.Error(w, "Error updating race", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(race); err != nil {
-		http.Error(w, "error encoding race to JSON", http.StatusInternalServerError)
-	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(race)
 }
 
-// RaceCreationHandler godoc
-// @Summary Create a new Race
-// @Description Create a new Race from a Form
-// @Tags race
-// @Accept  x-www-form-urlencoded
+// CreateRaceHandler creates a new race
+// @Summary Create a new race
+// @Description Create a new race with the input payload
+// @Tags races
+// @Accept  json
 // @Produce  json
-// @Param name formData string true "Name"
-// @Success 201 {object} models.Races "Race created	successfully"
-// @Failure 400 {string} string "all fields are required"
-// @Failure 500 {string} string "error creating race"
-// @Router /race [post]
-func (h *RaceHandler) RaceCreationHandler(w http.ResponseWriter, r *http.Request) {
+// @Param body body models.Races true "Race object"
+// @Success 200 {object} models.Races "Successfully created race"
+// @Failure 400 {object} string "Invalid JSON body"
+// @Failure 500 {object} string "Error creating race"
+// @Router /races [post]
+func (h *RaceHandler) CreateRaceHandler(w http.ResponseWriter, r *http.Request) {
+    var race models.Races
 
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+    err := json.NewDecoder(r.Body).Decode(&race)
+    if err != nil {
+        http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+        return
+    }
 
-	name := r.FormValue("name")
+    err = h.raceQueries.CreateRace(&race)
+    if err != nil {
+        http.Error(w, "error creating race", http.StatusInternalServerError)
+        return
+    }
 
-	if name == "" {
-		http.Error(w, "all fields are required", http.StatusBadRequest)
-		return
-	}
-
-	race := &models.Races{
-		RaceName: name,
-	}
-
-	_, err = h.raceQueries.CreateRace(race)
-	if err != nil {
-		http.Error(w, "error creating race", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(race)
-	if err != nil {
-		http.Error(w, "error encoding race to JSON", http.StatusInternalServerError)
-		return
-	}
+    w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(race)
 }
 
-// DeleteRaceHandler godoc
+// DeleteRaceHandler deletes a race
 // @Summary Delete a race
-// @Description Delete a race using its ID
-// @Tags race
-// @Param id query string true "ID"
-// @Success 204 "No Content"
-// @Failure 400 {string} string "race ID is required"
-// @Failure 404 {string} string "race not found"
-// @Failure 500 {string} string "error deleting race"
-// @Router /race/{id} [delete]
+// @Description Delete a race by ID
+// @Tags races
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Race ID"
+// @Success 204 "Successfully deleted race"
+// @Failure 400 {object} string "Invalid ID supplied"
+// @Failure 500 {object} string "Error deleting race"
+// @Router /races/{id} [delete]
 func (h *RaceHandler) DeleteRaceHandler(w http.ResponseWriter, r *http.Request) {
-	params := r.URL.Query()
-
-	id := params.Get("id")
-
-	if id == "" {
-		http.Error(w, "race ID is required", http.StatusBadRequest)
+	raceID := chi.URLParam(r, "id")
+	if raceID == "" {
+		http.Error(w, "Race ID is required", http.StatusBadRequest)
 		return
 	}
 
-	err := h.raceQueries.DeleteRace(id)
+	err := h.raceQueries.DeleteRace(raceID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			http.Error(w, fmt.Sprintf("race with ID %s not found", id), http.StatusNotFound)
-			return
-		}
-		http.Error(w, "error deleting race", http.StatusInternalServerError)
+		http.Error(w, "Error deleting race", http.StatusInternalServerError)
 		return
 	}
 
