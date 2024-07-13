@@ -109,6 +109,12 @@ func New(config *Config) (*Service, error) {
 		fmt.Printf("failed to create user fixtures: %v", err)
 	}
 
+	// Create 5 races
+	err = fixtures.CreateRaceFixture(db)
+	if err != nil {
+		fmt.Printf("failed to create race fixture: %v", err)
+	}
+
 	// For each user, create 5 cats and 5 corresponding annonces
 	for _, user := range users {
 		cats, err := fixtures.CreateCatFixturesForUser(db, 5, user.ID)
@@ -119,12 +125,6 @@ func New(config *Config) (*Service, error) {
 		if err := fixtures.CreateAnnonceFixtures(db, cats); err != nil {
 			fmt.Printf("failed to create annonce fixtures for user %s: %v", user.ID, err)
 		}
-	}
-
-	// Create 5 races
-	err = fixtures.CreateRaceFixture(db)
-	if err != nil {
-		fmt.Printf("failed to create race fixture: %v", err)
 	}
 
 	// Création des fixtures pour les évaluations
