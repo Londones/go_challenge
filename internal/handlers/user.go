@@ -414,8 +414,10 @@ func (h *UserHandler) GetCurrentUserHandler(w http.ResponseWriter, r *http.Reque
 	json.NewEncoder(w).Encode(user)
 }
 
+// GetUserByIDHandler godoc
 // @Summary Retrieve a user by ID
 // @Description Retrieve a user by the provided ID
+// @Tags users
 // @ID get-user-by-id
 // @Accept json
 // @Produce json

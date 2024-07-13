@@ -348,23 +348,3 @@ func (h *AnnonceHandler) FetchAnnonceByCatIDHandler(w http.ResponseWriter, r *ht
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(annonce)
 }
-
-// GetAddressFromUserID godoc
-// @Summary Get the user address from user ID
-// @Description Get the address from the user ID
-// @Tags annonces
-// @Produce json
-// @Param userID path string true "ID of the annonce's user"
-// @Success 200 {object} String "Address"
-// @Failure 400 {string} string "Invalid annonce ID format"
-// @Failure 404 {string} string "Annonce not found"
-// @Failure 500 {string} string "Internal server error"
-// @Router /annonces/address/{id} [get]
-func (h *AnnonceHandler) GetAddressFromUserID(w http.ResponseWriter, r *http.Request) {
-	userID := chi.URLParam(r, "id")
-	if annonceID == "" {
-		http.Error(w, "ID is required", http.StatusBadRequest)
-		return
-	}
-	address, err := h.annonceQueries.GetAddressFromAnnonceID(userID)
-}
