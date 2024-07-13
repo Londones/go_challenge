@@ -76,6 +76,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Put("/annonces/{id}", annonceHandler.ModifyDescriptionAnnonceHandler)
 		r.Delete("/annonces/{id}", annonceHandler.DeleteAnnonceHandler)
 		r.Get("/annonces/cats/{catID}", annonceHandler.FetchAnnonceByCatIDHandler)
+		r.Get("annonce/address/{id}", annonceHandler.GetAddressFromUserID)
 
 		//**	Cats routes
 		r.Get("/cats", catHandler.GetAllCatsHandler)
