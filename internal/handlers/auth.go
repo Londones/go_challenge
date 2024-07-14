@@ -11,11 +11,11 @@ import (
 
 	"go-challenge/internal/auth"
 	"go-challenge/internal/database/queries"
-	//"go-challenge/internal/models"
+	"go-challenge/internal/models"
 	"go-challenge/internal/utils"
 
 	"github.com/go-chi/chi/v5"
-	//"github.com/google/uuid"
+	"github.com/google/uuid"
 	"github.com/markbates/goth/gothic"
 )
 
@@ -52,7 +52,7 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	/*userRole, err := h.userQueries.GetRoleByName(models.UserRole)
+	userRole, err := h.userQueries.GetRoleByName(models.UserRole)
 	if err != nil {
 		http.Error(w, "error fetching user role", http.StatusInternalServerError)
 		return
@@ -66,25 +66,38 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 		if err != nil {
 			// create user
 			newUser := &models.User{
-				ID:       uuid.New().String(),
-				Email:    user.Email,
-				Name:     user.Name,
-				GoogleID: user.UserID,
-				Roles:    []models.Roles{*userRole},
+				ID:            uuid.New().String(),
+				Email:         user.Email,
+				Name:          user.Email,
+				GoogleID: 	   user.UserID,
+				ProfilePicURL: "default",
 			}
-
-			err := h.userQueries.CreateUser(newUser, userRole)
+		
+			err = h.userQueries.CreateUser(newUser, userRole)
 			if err != nil {
-				http.Error(w, "error creating user", http.StatusInternalServerError)
+				http.Error(w, "Error creating user", http.StatusInternalServerError)
 				return
 			}
+
+			token := auth.MakeToken(newUser.ID, string(newUser.Email))
+			w.Header().Set("Location", "purrmatch://auth_success?token="+token)
+			w.WriteHeader(http.StatusTemporaryRedirect)
+			//fmt.Println("Redirected to purrmatch://auth_success?token=" + token)
+		} else if (existingUser != nil && existingUser.GoogleID == user.UserID) {
+			token := auth.MakeToken(existingUser.ID, string(existingUser.Email))
+			w.Header().Set("Location", "purrmatch://auth_success?token="+token)
+			w.WriteHeader(http.StatusTemporaryRedirect)
+			//fmt.Println("Redirected to purrmatch://auth_success?token=" + token)
 		} else {
 			http.Error(w, "An account has already been registered with this email", http.StatusConflict)
 			return
 		}
-	}*/
-
-	token := auth.MakeToken(user.UserID, string(user.Email))
+	} else if existingUser != nil {
+		token := auth.MakeToken(existingUser.ID, string(existingUser.Email))
+		w.Header().Set("Location", "purrmatch://auth_success?token="+token)
+		w.WriteHeader(http.StatusTemporaryRedirect)
+		//fmt.Println("Redirected to purrmatch://auth_success?token=" + token)
+	}
 
 	/*http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
@@ -95,9 +108,8 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 	})*/
 
 	//http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusFound)
-	w.Header().Set("Location", "purrmatch://auth_success#token="+token)
-	w.WriteHeader(http.StatusTemporaryRedirect)
-	fmt.Println("Redirected to purrmatch://auth_success#token=" + token)
+
+	http.Error(w, "Cannot login with OAuth", http.StatusUnauthorized)
 }
 
 // LogoutProvider godoc
