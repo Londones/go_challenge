@@ -48,9 +48,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 			// Protected routes for admin users
 			r.Use(AdminOnly)
 			// Admin specific routes
-			r.Put("/race/{id}", raceHandler.UpdateRaceHandler)
-			r.Post("/race", raceHandler.RaceCreationHandler)
-			r.Delete("/race/{id}", raceHandler.DeleteRaceHandler)
 		})
 		//** Race routes for admin
 
@@ -73,7 +70,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/annonces", annonceHandler.GetAllAnnoncesHandler)
 		r.Get("/annonces/{id}", annonceHandler.GetAnnonceByIDHandler)
 		r.Post("/annonces", annonceHandler.AnnonceCreationHandler)
-		r.Put("/annonces/{id}", annonceHandler.ModifyDescriptionAnnonceHandler)
+		r.Put("/annonces/{id}", annonceHandler.ModifyAnnonceHandler)
 		r.Delete("/annonces/{id}", annonceHandler.DeleteAnnonceHandler)
 		r.Get("/annonces/cats/{catID}", annonceHandler.FetchAnnonceByCatIDHandler)
 
@@ -84,10 +81,14 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/cats", catHandler.CatCreationHandler)
 		r.Delete("/cats/{id}", catHandler.DeleteCatHandler)
 		r.Get("/cats/", catHandler.FindCatsByFilterHandler)
+		r.Get("/cats/user/{userID}", catHandler.GetCatsByUserHandler)
 
 		//** Race routes
 		r.Get("/races", raceHandler.GetAllRaceHandler)
 		r.Get("/race/{id}", raceHandler.GetRaceByIDHandler)
+		r.Post("/races", raceHandler.CreateRaceHandler)
+		r.Put("/races/{id}", raceHandler.UpdateRaceHandler)
+		r.Delete("/races/{id}", raceHandler.DeleteRaceHandler)
 
 		//** User routes
 		r.Get("/users", userHandler.GetAllUsersHandler)
