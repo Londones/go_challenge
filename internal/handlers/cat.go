@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"go-challenge/internal/api"
@@ -181,6 +182,7 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 // @Description Update the details of an existing cat
 // @Tags cats
 // @Accept x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param id path string true "Cat ID"
 // @Param name formData string false "Name"
@@ -195,14 +197,80 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 // @Param Description formData string false "Description"
 // @Param Reserved formData string false "Reserved"
 // @Param AnnonceID formData string false "Annonce ID"
+// @Param body body models.Cats false "Cat object"
 // @Success 200 {object} models.Cats "Cat updated successfully"
 // @Failure 400 {string} string "Missing or invalid fields in the request"
 // @Failure 500 {string} string "Internal server error"
 // @Router /cats/{id} [put]
 func (h *CatHandler) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Error parsing form: "+err.Error(), http.StatusInternalServerError)
-		return
+	contentType := r.Header.Get("Content-Type")
+	var updateData models.Cats
+
+	if strings.Contains(contentType, "application/json") {
+		if err := json.NewDecoder(r.Body).Decode(&updateData); err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+	} else {
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Error parsing form: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if name := r.FormValue("name"); name != "" {
+			updateData.Name = name
+		}
+		if birthDateStr := r.FormValue("BirthDate"); birthDateStr != "" {
+			layout := "2006-01-02"
+			parsedBirthDate, err := time.Parse(layout, birthDateStr)
+			if err != nil {
+				http.Error(w, "invalid birthDate format", http.StatusBadRequest)
+				return
+			}
+			updateData.BirthDate = &parsedBirthDate
+		}
+		if sexe := r.FormValue("sexe"); sexe != "" {
+			updateData.Sexe = sexe
+		}
+		if lastVaccineStr := r.FormValue("LastVaccine"); lastVaccineStr != "" {
+			layout := "2006-01-02"
+			parsedLastVaccine, err := time.Parse(layout, lastVaccineStr)
+			if err != nil {
+				http.Error(w, "invalid lastVaccine format", http.StatusBadRequest)
+				return
+			}
+			updateData.LastVaccine = &parsedLastVaccine
+		}
+		if lastVaccineName := r.FormValue("LastVaccineName"); lastVaccineName != "" {
+			updateData.LastVaccineName = lastVaccineName
+		}
+		if color := r.FormValue("Color"); color != "" {
+			updateData.Color = color
+		}
+		if behavior := r.FormValue("Behavior"); behavior != "" {
+			updateData.Behavior = behavior
+		}
+		if sterilizedStr := r.FormValue("Sterilized"); sterilizedStr != "" {
+			sterilized, err := strconv.ParseBool(sterilizedStr)
+			if err != nil {
+				http.Error(w, "invalid sterilized format", http.StatusBadRequest)
+				return
+			}
+			updateData.Sterilized = sterilized
+		}
+		if race := r.FormValue("Race"); race != "" {
+			updateData.RaceID = race
+		}
+		if description := r.FormValue("Description"); description != "" {
+			updateData.Description = &description
+		}
+		if reservedStr := r.FormValue("Reserved"); reservedStr != "" {
+			reserved, err := strconv.ParseBool(reservedStr)
+			if err != nil {
+				http.Error(w, "invalid reserved format", http.StatusBadRequest)
+				return
+			}
+			updateData.Reserved = reserved
+		}
 	}
 
 	catID := chi.URLParam(r, "id")
@@ -217,60 +285,38 @@ func (h *CatHandler) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if name := r.FormValue("name"); name != "" {
-		cat.Name = name
+	if updateData.Name != "" {
+		cat.Name = updateData.Name
 	}
-	if birthDateStr := r.FormValue("BirthDate"); birthDateStr != "" {
-		layout := "2006-01-02"
-		parsedBirthDate, err := time.Parse(layout, birthDateStr)
-		if err != nil {
-			http.Error(w, "invalid birthDate format", http.StatusBadRequest)
-			return
-		}
-		cat.BirthDate = &parsedBirthDate
+	if updateData.BirthDate != nil {
+		cat.BirthDate = updateData.BirthDate
 	}
-	if sexe := r.FormValue("sexe"); sexe != "" {
-		cat.Sexe = sexe
+	if updateData.Sexe != "" {
+		cat.Sexe = updateData.Sexe
 	}
-	if lastVaccineStr := r.FormValue("LastVaccine"); lastVaccineStr != "" {
-		layout := "2006-01-02"
-		parsedLastVaccine, err := time.Parse(layout, lastVaccineStr)
-		if err != nil {
-			http.Error(w, "invalid lastVaccine format", http.StatusBadRequest)
-			return
-		}
-		cat.LastVaccine = &parsedLastVaccine
+	if updateData.LastVaccine != nil {
+		cat.LastVaccine = updateData.LastVaccine
 	}
-	if lastVaccineName := r.FormValue("LastVaccineName"); lastVaccineName != "" {
-		cat.LastVaccineName = lastVaccineName
+	if updateData.LastVaccineName != "" {
+		cat.LastVaccineName = updateData.LastVaccineName
 	}
-	if color := r.FormValue("Color"); color != "" {
-		cat.Color = color
+	if updateData.Color != "" {
+		cat.Color = updateData.Color
 	}
-	if behavior := r.FormValue("Behavior"); behavior != "" {
-		cat.Behavior = behavior
+	if updateData.Behavior != "" {
+		cat.Behavior = updateData.Behavior
 	}
-	if sterilizedStr := r.FormValue("Sterilized"); sterilizedStr != "" {
-		sterilized, err := strconv.ParseBool(sterilizedStr)
-		if err != nil {
-			http.Error(w, "invalid sterilized format", http.StatusBadRequest)
-			return
-		}
-		cat.Sterilized = sterilized
+	if updateData.Sterilized {
+		cat.Sterilized = updateData.Sterilized
 	}
-	if race := r.FormValue("Race"); race != "" {
-		cat.RaceID = race
+	if updateData.RaceID != "" {
+		cat.RaceID = updateData.RaceID
 	}
-	if description := r.FormValue("Description"); description != "" {
-		cat.Description = &description
+	if updateData.Description != nil {
+		cat.Description = updateData.Description
 	}
-	if reservedStr := r.FormValue("Reserved"); reservedStr != "" {
-		reserved, err := strconv.ParseBool(reservedStr)
-		if err != nil {
-			http.Error(w, "invalid reserved format", http.StatusBadRequest)
-			return
-		}
-		cat.Reserved = reserved
+	if updateData.Reserved {
+		cat.Reserved = updateData.Reserved
 	}
 
 	err = h.catQueries.UpdateCat(cat)
@@ -362,15 +408,14 @@ func (h *CatHandler) GetCatByIDHandler(w http.ResponseWriter, r *http.Request) {
 // @Summary Delete cat by ID
 // @Description Delete a cat by its ID
 // @Tags cats
-// @Param id query string true "Cat ID"
+// @Param id path string true "Cat ID"
 // @Success 204 "No Content"
 // @Failure 400 {string} string "Cat ID is required"
 // @Failure 404 {string} string "Cat not found"
 // @Failure 500 {string} string "Error deleting cat"
 // @Router /cats/{id} [delete]
 func (h *CatHandler) DeleteCatHandler(w http.ResponseWriter, r *http.Request) {
-	params := r.URL.Query()
-	id := params.Get("id")
+	id := chi.URLParam(r, "id")
 
 	if id == "" {
 		http.Error(w, "cat ID is required", http.StatusBadRequest)
@@ -440,6 +485,37 @@ func (h *CatHandler) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Requ
 
 	if err != nil {
 		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
+		return
+	}
+}
+
+// GetCatsByUserHandler godoc
+// @Summary Get cats by user ID
+// @Description Retrieve all cats for a specific user
+// @Tags cats
+// @Produce json
+// @Param userID path string true "User ID"
+// @Success 200 {array} models.Cats "List of user's cats"
+// @Failure 400 {string} string "User ID is required"
+// @Failure 500 {string} string "Error fetching cats"
+// @Router /cats/user/{userID} [get]
+func (h *CatHandler) GetCatsByUserHandler(w http.ResponseWriter, r *http.Request) {
+	userID := chi.URLParam(r, "userID")
+	if userID == "" {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	cats, err := h.catQueries.FindCatsByUserID(userID)
+	if err != nil {
+		http.Error(w, "error fetching cats", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(cats)
+	if err != nil {
+		http.Error(w, "error encoding cats to JSON", http.StatusInternalServerError)
 		return
 	}
 }

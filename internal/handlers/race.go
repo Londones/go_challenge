@@ -4,11 +4,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/go-chi/chi/v5"
-	"github.com/uploadcare/uploadcare-go/ucare"
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/uploadcare/uploadcare-go/ucare"
 )
 
 type RaceHandler struct {
@@ -29,7 +30,6 @@ func NewRaceHandler(raceQueries *queries.DatabaseService, uploadcareClient ucare
 // @Failure 500 {string} string "error fetching races"
 // @Router /races [get]
 func (h *RaceHandler) GetAllRaceHandler(w http.ResponseWriter, r *http.Request) {
-
 	races, err := h.raceQueries.GetAllRace()
 	if err != nil {
 		http.Error(w, "error fetching races", http.StatusInternalServerError)
@@ -54,9 +54,8 @@ func (h *RaceHandler) GetAllRaceHandler(w http.ResponseWriter, r *http.Request) 
 // @Failure 400 {string} string "Invalid ID format"
 // @Failure 404 {string} string "Race not found"
 // @Failure 500 {string} string "Internal server error"
-// @Router /race/{id} [get]
+// @Router /races/{id} [get]
 func (h *RaceHandler) GetRaceByIDHandler(w http.ResponseWriter, r *http.Request) {
-
 	raceID := chi.URLParam(r, "id")
 	if raceID == "" {
 		http.Error(w, "ID of the race is required", http.StatusBadRequest)
@@ -81,12 +80,12 @@ func (h *RaceHandler) GetRaceByIDHandler(w http.ResponseWriter, r *http.Request)
 // UpdateRaceHandler updates a race
 // @Summary Update a race
 // @Description Update a race by ID
-// @Tags races
+// @Tags race
 // @Accept  json
 // @Produce  json
 // @Param id path string true "Race ID"
-// @Param body body models.Race true "Race object"
-// @Success 200 {object} models.Race "Successfully updated race"
+// @Param body body models.Races true "Race object"
+// @Success 200 {object} models.Races "Successfully updated race"
 // @Failure 400 {object} string "Invalid ID supplied"
 // @Failure 404 {object} string "Race not found"
 // @Failure 400 {object} string "Invalid JSON body"
@@ -125,7 +124,7 @@ func (h *RaceHandler) UpdateRaceHandler(w http.ResponseWriter, r *http.Request) 
 // CreateRaceHandler creates a new race
 // @Summary Create a new race
 // @Description Create a new race with the input payload
-// @Tags races
+// @Tags race
 // @Accept  json
 // @Produce  json
 // @Param body body models.Races true "Race object"
@@ -134,21 +133,21 @@ func (h *RaceHandler) UpdateRaceHandler(w http.ResponseWriter, r *http.Request) 
 // @Failure 500 {object} string "Error creating race"
 // @Router /races [post]
 func (h *RaceHandler) CreateRaceHandler(w http.ResponseWriter, r *http.Request) {
-    var race models.Races
+	var race models.Races
 
-    err := json.NewDecoder(r.Body).Decode(&race)
-    if err != nil {
-        http.Error(w, "Invalid JSON body", http.StatusBadRequest)
-        return
-    }
+	err := json.NewDecoder(r.Body).Decode(&race)
+	if err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
 
-    err = h.raceQueries.CreateRace(&race)
-    if err != nil {
-        http.Error(w, "error creating race", http.StatusInternalServerError)
-        return
-    }
+	err = h.raceQueries.CreateRace(&race)
+	if err != nil {
+		http.Error(w, "error creating race", http.StatusInternalServerError)
+		return
+	}
 
-    w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(race)
 }
@@ -156,7 +155,7 @@ func (h *RaceHandler) CreateRaceHandler(w http.ResponseWriter, r *http.Request) 
 // DeleteRaceHandler deletes a race
 // @Summary Delete a race
 // @Description Delete a race by ID
-// @Tags races
+// @Tags race
 // @Accept  json
 // @Produce  json
 // @Param id path string true "Race ID"
