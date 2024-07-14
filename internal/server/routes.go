@@ -7,12 +7,7 @@ import (
 	"os"
 
 	"go-challenge/internal/auth"
-<<<<<<< HEAD
-
-	_ "go-challenge/docs"
-=======
 	"go-challenge/internal/handlers"
->>>>>>> dev
 	"go-challenge/internal/utils"
 
 	_ "go-challenge/docs"
