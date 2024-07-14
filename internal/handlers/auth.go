@@ -11,11 +11,11 @@ import (
 
 	"go-challenge/internal/auth"
 	"go-challenge/internal/database/queries"
-	"go-challenge/internal/models"
+	//"go-challenge/internal/models"
 	"go-challenge/internal/utils"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
+	//"github.com/google/uuid"
 	"github.com/markbates/goth/gothic"
 )
 
@@ -52,7 +52,7 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	userRole, err := h.userQueries.GetRoleByName(models.UserRole)
+	/*userRole, err := h.userQueries.GetRoleByName(models.UserRole)
 	if err != nil {
 		http.Error(w, "error fetching user role", http.StatusInternalServerError)
 		return
@@ -82,19 +82,22 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 			http.Error(w, "An account has already been registered with this email", http.StatusConflict)
 			return
 		}
-	}
+	}*/
 
-	token := auth.MakeToken(existingUser.ID, string(existingUser.Email))
+	token := auth.MakeToken(user.UserID, string(user.Email))
 
-	http.SetCookie(w, &http.Cookie{
+	/*http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
 		Expires:  time.Now().Add(24 * time.Hour),
 		Name:     "jwt",
 		Value:    token,
 		SameSite: http.SameSiteLaxMode,
-	})
+	})*/
 
-	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusFound)
+	//http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusFound)
+	w.Header().Set("Location", "purrmatch://auth_success#token="+token)
+	w.WriteHeader(http.StatusTemporaryRedirect)
+	fmt.Println("Redirected to purrmatch://auth_success#token=" + token)
 }
 
 // LogoutProvider godoc
@@ -140,11 +143,16 @@ func (h *AuthHandler) BasicLogout(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {string} string "Error message"
 // @Router /auth/{provider} [get]
 func (h *AuthHandler) BeginAuthProviderCallback(w http.ResponseWriter, r *http.Request) {
-	type contextKey string
-
+	/*type contextKey string
+	fmt.Println("BeginAuthProviderCallback")
 	const providerKey contextKey = "provider"
 	provider := chi.URLParam(r, "provider")
-	r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
+	fmt.Println("Provider:", provider)*/	
+	//r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
+
+	q := r.URL.Query()
+	q.Add("provider", chi.URLParam(r, "provider"))
+	r.URL.RawQuery = q.Encode()
 
 	gothic.BeginAuthHandler(w, r)
 }
