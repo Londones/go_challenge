@@ -1,0 +1,31 @@
+name: Build Go server
+
+on:
+    push:
+        branches:
+            - master
+            - dev
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v4
+
+            - name: Setup Go environment
+              uses: actions/setup-go@v5.0.0
+
+            - name: Get dependencies
+              run: go get -v -t -d ./...
+
+            - name: Build server
+              run: go build -v -o server ./cmd/api/main.go
+
+            - name: Build fixtures
+              run: go build -v -o fixtures ./internal/database/load_fixtures.go
+
+            - name: Archive server
+              uses: actions/upload-artifact@v2
+              with:
+                  path: server
