@@ -69,3 +69,32 @@ func (s *DatabaseService) GetAllAnnonces() ([]models.Annonce, error) {
 	}
 	return annonces, nil
 }
+
+func (s *DatabaseService) GetUserAnnonces(userID string) ([]models.Annonce, error) {
+	db := s.s.DB()
+	var annonces []models.Annonce
+	if err := db.Where("user_id = ?", userID).Find(&annonces).Error; err != nil {
+		return nil, err
+	}
+	return annonces, nil
+}
+
+// get l'annonce d'un chat par son id
+func (s *DatabaseService) FindAnnonceByCatID(catID string) (*models.Annonce, error) {
+	db := s.s.DB()
+	var annonce models.Annonce
+	if err := db.Where("cat_id = ?", catID).First(&annonce).Error; err != nil {
+		return nil, err
+	}
+	return &annonce, nil
+}
+
+func (s *DatabaseService) GetUserIDByAnnonceID(annonceID string) (id string, err error) {
+	db := s.s.DB()
+	var user models.User
+
+	if err := db.Table("users").Joins("JOIN annonces ON users.id = annonces.user_id::uuid").Where("annonces.id = ?", annonceID).First(&user).Error; err != nil {
+		return "", err
+	}
+	return user.ID, nil
+}

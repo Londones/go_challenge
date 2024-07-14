@@ -1,12 +1,14 @@
 package auth
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/gorilla/sessions"
+	"github.com/joho/godotenv"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
@@ -20,7 +22,15 @@ const (
 
 var TokenAuth *jwtauth.JWTAuth
 
-var secret = os.Getenv("JWT_SECRET")
+var secret string
+
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
+	secret = os.Getenv("JWT_SECRET")
+}
 
 func MakeToken(id string, role string) string {
 	_, tokenString, _ := TokenAuth.Encode(map[string]interface{}{"id": id, "role": role})

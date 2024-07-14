@@ -57,11 +57,30 @@ definitions:
         type: boolean
       updatedAt:
         type: string
+      userID:
+        type: string
+    type: object
+  models.Favorite:
+    properties:
+      annonceID:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      updatedAt:
+        type: string
+      userID:
+        type: string
     type: object
   models.Rating:
     properties:
-      annonceID:
-        type: integer
+      authorID:
+        type: string
+      comment:
+        type: string
       createdAt:
         type: string
       deletedAt:
@@ -77,12 +96,14 @@ definitions:
     type: object
   models.RoleName:
     enum:
-    - admin
-    - user
+    - ADMIN
+    - USER
+    - ASSO
     type: string
     x-enum-varnames:
-    - Admin
+    - AdminRole
     - UserRole
+    - AssoRole
   models.Roles:
     properties:
       createdAt:
@@ -100,10 +121,6 @@ definitions:
     properties:
       addressRue:
         type: string
-      annonce:
-        items:
-          $ref: '#/definitions/models.Annonce'
-        type: array
       associationID:
         type: integer
       cp:
@@ -114,10 +131,6 @@ definitions:
         type: string
       email:
         type: string
-      favorite:
-        items:
-          $ref: '#/definitions/models.Annonce'
-        type: array
       googleID:
         type: string
       id:
@@ -128,12 +141,10 @@ definitions:
         type: string
       profilePicURL:
         type: string
-      rating:
+      roles:
         items:
-          $ref: '#/definitions/models.Rating'
+          $ref: '#/definitions/models.Roles'
         type: array
-      role:
-        $ref: '#/definitions/models.Roles'
       updatedAt:
         type: string
       ville:
@@ -177,7 +188,7 @@ paths:
       - application/x-www-form-urlencoded
       description: Create a new annonce with the provided details
       parameters:
-      - description: title of the annonce
+      - description: Title of the annonce
         in: formData
         name: title
         required: true
@@ -187,7 +198,7 @@ paths:
         name: description
         required: true
         type: string
-      - description: cat ID
+      - description: Cat ID
         in: formData
         name: catID
         required: true
@@ -196,9 +207,9 @@ paths:
       - application/json
       responses:
         "201":
-          description: annonce created successfully
+          description: Annonce created successfully
           schema:
-            type: string
+            $ref: '#/definitions/models.Annonce'
         "400":
           description: Missing or invalid fields in the request
           schema:
@@ -236,8 +247,6 @@ paths:
           description: Internal server error
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
       summary: Delete annonce
       tags:
       - annonces
@@ -268,7 +277,7 @@ paths:
           description: Internal server error
           schema:
             type: string
-      summary: Get an annonces by ID
+      summary: Get an annonce by ID
       tags:
       - annonces
     put:
@@ -290,7 +299,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: annonce updated successfully
+          description: Annonce updated successfully
           schema:
             $ref: '#/definitions/models.Annonce'
         "400":
@@ -309,65 +318,40 @@ paths:
           description: Internal server error
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
-      summary: Modify annonces description
+      summary: Modify annonce description
       tags:
       - annonces
-  /association:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: Create a new association with the provided details
+  /annonces/cats/{catID}:
+    get:
+      description: Retrieve an annonce from the database by its Cat ID
       parameters:
-      - description: Name
-        in: formData
-        name: name
-        required: true
-        type: string
-      - description: Address
-        in: formData
-        name: address
-        required: true
-        type: string
-      - description: Postal Code
-        in: formData
-        name: cp
-        required: true
-        type: string
-      - description: City
-        in: formData
-        name: city
-        required: true
-        type: string
-      - description: Phone
-        in: formData
-        name: phone
-        required: true
-        type: string
-      - description: Email
-        in: formData
-        name: email
+      - description: Cat ID of the annonce to retrieve
+        in: path
+        name: catID
         required: true
         type: string
       produces:
       - application/json
       responses:
-        "201":
-          description: Location" "Redirect location
+        "200":
+          description: Annonce details
           schema:
-            type: header
+            $ref: '#/definitions/models.Annonce'
         "400":
-          description: all fields are required
+          description: Invalid Cat ID format
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
           schema:
             type: string
         "500":
-          description: error creating association
+          description: Internal server error
           schema:
             type: string
-      summary: Create association
+      summary: Get an annonce by Cat ID
       tags:
-      - associations
+      - annonces
   /auth/{provider}:
     get:
       consumes:
@@ -439,7 +423,7 @@ paths:
       - cats
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - multipart/form-data
       description: Create a new cat with the provided details
       parameters:
       - description: Name
@@ -448,8 +432,6 @@ paths:
         required: true
         type: string
       - description: Birth Date
-        example: "2021-01-01"
-        format: date
         in: formData
         name: BirthDate
         required: true
@@ -460,8 +442,6 @@ paths:
         required: true
         type: string
       - description: Last Vaccine Date
-        example: "2022-06-15"
-        format: date
         in: formData
         name: LastVaccine
         type: string
@@ -480,9 +460,6 @@ paths:
         required: true
         type: string
       - description: Sterilized
-        enum:
-        - "true"
-        - "false"
         in: formData
         name: Sterilized
         required: true
@@ -497,9 +474,6 @@ paths:
         name: Description
         type: string
       - description: Reserved
-        enum:
-        - "true"
-        - "false"
         in: formData
         name: Reserved
         required: true
@@ -507,6 +481,11 @@ paths:
       - description: Annonce ID
         in: formData
         name: AnnonceID
+        required: true
+        type: string
+      - description: User ID
+        in: formData
+        name: UserID
         required: true
         type: string
       - description: Image
@@ -518,7 +497,7 @@ paths:
       - application/json
       responses:
         "201":
-          description: "cat created\tsuccessfully"
+          description: cat created successfully
           schema:
             $ref: '#/definitions/models.Cats'
         "400":
@@ -545,15 +524,15 @@ paths:
         "204":
           description: No Content
         "400":
-          description: cat ID is required
+          description: Cat ID is required
           schema:
             type: string
         "404":
-          description: cat not found
+          description: Cat not found
           schema:
             type: string
         "500":
-          description: error deleting cat
+          description: Error deleting cat
           schema:
             type: string
       summary: Delete cat by ID
@@ -563,7 +542,7 @@ paths:
       description: Retrieve a cat by its ID
       parameters:
       - description: Cat ID
-        in: query
+        in: path
         name: id
         required: true
         type: string
@@ -575,15 +554,15 @@ paths:
           schema:
             $ref: '#/definitions/models.Cats'
         "400":
-          description: cat ID is required
+          description: Cat ID is required
           schema:
             type: string
         "404":
-          description: cat not found
+          description: Cat not found
           schema:
             type: string
         "500":
-          description: error fetching cat
+          description: Error fetching cat
           schema:
             type: string
       summary: Get cat by ID
@@ -594,73 +573,59 @@ paths:
       - application/x-www-form-urlencoded
       description: Update the details of an existing cat
       parameters:
-      - description: ID of the cat to update
+      - description: Cat ID
         in: path
         name: id
         required: true
         type: string
-      - description: Name of the cat
+      - description: Name
         in: formData
         name: name
         type: string
-      - description: Birth date of the cat
-        example: "2021-01-01"
-        format: date
+      - description: Birth Date
         in: formData
         name: BirthDate
         type: string
-      - description: Sex of the cat
+      - description: Sexe
         in: formData
         name: sexe
         type: string
-      - description: Last vaccine date of the cat
-        example: "2022-06-15"
-        format: date
+      - description: Last Vaccine Date
         in: formData
         name: LastVaccine
         type: string
-      - description: Name of the last vaccine administered
+      - description: Last Vaccine Name
         in: formData
         name: LastVaccineName
         type: string
-      - description: Color of the cat
+      - description: Color
         in: formData
         name: Color
         type: string
-      - description: Behavior of the cat
+      - description: Behavior
         in: formData
         name: Behavior
         type: string
-      - description: Whether the cat is sterilized
-        enum:
-        - "true"
-        - "false"
+      - description: Sterilized
         in: formData
         name: Sterilized
         type: string
-      - description: Race of the cat
+      - description: Race
         in: formData
         name: Race
         type: string
-      - description: Description of the cat
+      - description: Description
         in: formData
         name: Description
         type: string
-      - description: Whether the cat is reserved
-        enum:
-        - "true"
-        - "false"
+      - description: Reserved
         in: formData
         name: Reserved
         type: string
-      - description: ID of the annonce associated with the cat
+      - description: Annonce ID
         in: formData
         name: AnnonceID
         type: string
-      - description: Image of the cat
-        in: formData
-        name: uploaded_file
-        type: file
       produces:
       - application/json
       responses:
@@ -672,23 +637,75 @@ paths:
           description: Missing or invalid fields in the request
           schema:
             type: string
-        "403":
-          description: User is not authorized to update this cat
-          schema:
-            type: string
-        "404":
-          description: Cat not found
-          schema:
-            type: string
         "500":
           description: Internal server error
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
       summary: Update cat
       tags:
       - cats
+  /favorites:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new favorite with the provided details
+      parameters:
+      - description: ID of the annonce
+        in: formData
+        name: annonceID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: favorite created successfully
+          schema:
+            $ref: '#/definitions/models.Favorite'
+        "400":
+          description: annonceID is required
+          schema:
+            type: string
+        "500":
+          description: error creating favorite
+          schema:
+            type: string
+      summary: Create favorites
+      tags:
+      - favorites
+  /favorites/users/{userID}:
+    get:
+      description: Get all favorites of the user
+      parameters:
+      - description: ID of the user
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of user favorites
+          schema:
+            items:
+              $ref: '#/definitions/models.Favorite'
+            type: array
+        "400":
+          description: user ID is required
+          schema:
+            type: string
+        "404":
+          description: favorites not found
+          schema:
+            type: string
+        "500":
+          description: error retrieving favorites
+          schema:
+            type: string
+      summary: Get user favorites
+      tags:
+      - favorites
   /login:
     post:
       consumes:
@@ -708,24 +725,20 @@ paths:
       produces:
       - application/json
       responses:
-        "302":
-          description: Location" "Redirect location
-          headers:
-            Set-Cookie:
-              description: jwt={token}; HttpOnly; SameSite=Lax; Expires={expiry}
-              type: string
+        "200":
+          description: Login successful
           schema:
-            type: header
+            type: string
         "400":
-          description: email and password are required
+          description: Email and password are required
           schema:
             type: string
         "401":
-          description: invalid password
+          description: Invalid password
           schema:
             type: string
         "404":
-          description: user not found
+          description: User not found
           schema:
             type: string
       summary: Login
@@ -734,33 +747,29 @@ paths:
   /logout:
     get:
       description: Remove the JWT cookie and redirect to the success page
-      produces:
-      - application/json
       responses:
         "302":
-          description: Location" "Redirect location
+          description: Redirect location
           schema:
-            type: header
+            type: string
       summary: Basic logout
       tags:
       - auth
   /logout/{provider}:
     get:
       description: Logout from the authentication provider and remove the JWT cookie
-      produces:
-      - application/json
       responses:
         "307":
-          description: Location" "Redirect location
+          description: Redirect location
           schema:
-            type: header
+            type: string
       summary: Logout from provider
       tags:
       - auth
   /profile/picture:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - multipart/form-data
       description: Modify the profile picture of the authenticated user
       parameters:
       - description: Image
@@ -768,8 +777,6 @@ paths:
         name: uploaded_file
         required: true
         type: file
-      produces:
-      - application/json
       responses:
         "200":
           description: Profile picture updated successfully
@@ -782,6 +789,222 @@ paths:
       summary: Modify profile picture
       tags:
       - users
+  /ratings:
+    get:
+      description: Récupère toutes les Ratings de la base de données
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste de toutes les Ratings
+          schema:
+            items:
+              $ref: '#/definitions/models.Rating'
+            type: array
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Récupérer toutes les Ratings
+      tags:
+      - Ratings
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      - application/json
+      description: Crée une nouvelle évaluation avec les détails fournis
+      parameters:
+      - description: Note de l'évaluation
+        in: formData
+        name: mark
+        required: true
+        type: integer
+      - description: Commentaire sur l'évaluation
+        in: formData
+        name: comment
+        type: string
+      - description: ID de l'utilisateur évalué
+        in: formData
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Évaluation créée avec succès
+          schema:
+            $ref: '#/definitions/models.Rating'
+        "400":
+          description: Champs manquants ou invalides dans la requête
+          schema:
+            type: string
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Créer une évaluation
+      tags:
+      - Ratings
+  /ratings/{id}:
+    delete:
+      description: Supprime une évaluation existante
+      parameters:
+      - description: ID de l'évaluation à supprimer
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Évaluation supprimée avec succès
+          schema:
+            type: string
+        "403":
+          description: L'utilisateur n'est pas autorisé à supprimer cette évaluation
+          schema:
+            type: string
+        "404":
+          description: Évaluation non trouvée
+          schema:
+            type: string
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Supprimer une évaluation
+      tags:
+      - Ratings
+    get:
+      description: Récupère une évaluation par son ID
+      parameters:
+      - description: ID de l'évaluation à récupérer
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Évaluation récupérée avec succès
+          schema:
+            $ref: '#/definitions/models.Rating'
+        "404":
+          description: Évaluation non trouvée
+          schema:
+            type: string
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Récupérer une évaluation par ID
+      tags:
+      - Ratings
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      - application/json
+      description: Met à jour les détails d'une évaluation existante
+      parameters:
+      - description: ID de l'évaluation à mettre à jour
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Note mise à jour
+        in: formData
+        name: mark
+        required: true
+        type: integer
+      - description: Commentaire mis à jour
+        in: formData
+        name: comment
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Évaluation mise à jour avec succès
+          schema:
+            $ref: '#/definitions/models.Rating'
+        "400":
+          description: Champs manquants ou invalides dans la requête
+          schema:
+            type: string
+        "403":
+          description: L'utilisateur n'est pas autorisé à modifier cette évaluation
+          schema:
+            type: string
+        "404":
+          description: Évaluation non trouvée
+          schema:
+            type: string
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Mettre à jour une évaluation
+      tags:
+      - Ratings
+  /ratings/author/{authorID}:
+    get:
+      description: Récupère toutes les Ratings créées par un auteur spécifique
+      parameters:
+      - description: ID de l'auteur
+        in: path
+        name: authorID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste des Ratings par l'auteur
+          schema:
+            items:
+              $ref: '#/definitions/models.Rating'
+            type: array
+        "404":
+          description: Auteur non trouvé
+          schema:
+            type: string
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Récupérer les Ratings d'un auteur
+      tags:
+      - Ratings
+  /ratings/user/{userID}:
+    get:
+      description: Récupère toutes les Ratings pour un utilisateur spécifique
+      parameters:
+      - description: ID de l'utilisateur
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste des Ratings pour l'utilisateur
+          schema:
+            items:
+              $ref: '#/definitions/models.Rating'
+            type: array
+        "404":
+          description: Utilisateur non trouvé
+          schema:
+            type: string
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Récupérer les Ratings d'un utilisateur
+      tags:
+      - Ratings
   /register:
     post:
       consumes:
@@ -805,7 +1028,7 @@ paths:
         type: string
       - description: Address
         in: formData
-        name: address
+        name: addressRue
         type: string
       - description: CP
         in: formData
@@ -818,23 +1041,199 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
-          headers:
-            Set-Cookie:
-              description: jwt={token}; HttpOnly; SameSite=Lax; Expires={expiry}
-              type: string
+        "200":
+          description: success
           schema:
             type: string
         "400":
-          description: Bad Request
+          description: email and password are required
           schema:
             type: string
         "500":
-          description: Internal Server Error
+          description: error creating user
           schema:
             type: string
       summary: Register a new user
+      tags:
+      - users
+  /users:
+    get:
+      description: Retrieve a list of all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of users
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "500":
+          description: Error fetching users
+          schema:
+            type: string
+      summary: Get all users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user with the given email, password, name, address,
+        cp, and ville
+      parameters:
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: Name
+        in: formData
+        name: name
+        type: string
+      - description: Address
+        in: formData
+        name: addressRue
+        type: string
+      - description: CP
+        in: formData
+        name: cp
+        type: string
+      - description: Ville
+        in: formData
+        name: ville
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User created successfully
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Invalid JSON body
+          schema:
+            type: string
+        "500":
+          description: Error creating user
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Create user
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      description: Delete an existing user
+      parameters:
+      - description: ID of the user to delete
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: User ID is required
+          schema:
+            type: string
+        "500":
+          description: Error deleting user
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Delete user
+      tags:
+      - users
+    get:
+      description: Retrieve the details of a user by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: User ID is required
+          schema:
+            type: string
+        "404":
+          description: User not found
+          schema:
+            type: string
+        "500":
+          description: Error finding user
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get user by ID
+      tags:
+      - users
+  /users/annonces/{id}:
+    get:
+      description: Retrieve all annonces for a specific user from the database
+      parameters:
+      - description: User ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of user's annonces
+          schema:
+            items:
+              $ref: '#/definitions/models.Annonce'
+            type: array
+        "400":
+          description: Bad request - missing userID parameter
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get user's annonces
+      tags:
+      - annonces
+  /users/current:
+    get:
+      description: Retrieve the details of the currently authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            $ref: '#/definitions/models.User'
+        "500":
+          description: error finding user
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get current user
       tags:
       - users
 swagger: "2.0"
