@@ -95,6 +95,7 @@ func New(config *Config) (*Service, error) {
 		if err != nil {
 			fmt.Printf("failed to connect to database: %v", err)
 		}
+		config.Database = os.Getenv("DATABASE_URL")
 	}
 
 	err = migrateAllModels(db)
