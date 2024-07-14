@@ -11,11 +11,11 @@ import (
 
 	"go-challenge/internal/auth"
 	"go-challenge/internal/database/queries"
-	"go-challenge/internal/models"
-	"go-challenge/internal/utils"
+	// "go-challenge/internal/models"
+	// "go-challenge/internal/utils"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
+	// "github.com/google/uuid"
 	"github.com/markbates/goth/gothic"
 )
 
@@ -38,63 +38,77 @@ func NewAuthHandler(userQueries *queries.DatabaseService) *AuthHandler {
 // @Failure 500 {string} string "Error message"
 // @Router /auth/{provider}/callback [get]
 func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Request) {
-	type contextKey string
+	fmt.Println("GetAuthCallbackFunction")
+    // type contextKey string
 
-	const providerKey contextKey = "provider"
-	provider := chi.URLParam(r, "provider")
-	r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
+    // const providerKey contextKey = "provider"
+    provider := chi.URLParam(r, "provider")
+    r = r.WithContext(context.WithValue(context.Background(), "provider", provider))
 
-	user, err := gothic.CompleteUserAuth(w, r)
-	utils.Logger("info", "User", fmt.Sprintf("%+v", user), "")
-	if err != nil {
-		utils.Logger("error", "Complete User Auth:", "Failed to complete user authentication", fmt.Sprintf("Error: %v", err))
-		fmt.Fprintln(w, err)
+    user, err := gothic.CompleteUserAuth(w, r)
+
+	if (err != nil) {
+		fmt.Println("error: ", err)
 		return
 	}
 
-	userRole, err := h.userQueries.GetRoleByName(models.UserRole)
-	if err != nil {
-		http.Error(w, "error fetching user role", http.StatusInternalServerError)
-		return
-	}
-
-	// check if user with this google id exists
-	existingUser, err := h.userQueries.FindUserByGoogleID(user.UserID)
-	if err != nil {
-		// check if user with this email exists
-		existingUser, err = h.userQueries.FindUserByEmail(user.Email)
-		if err != nil {
-			// create user
-			newUser := &models.User{
-				ID:       uuid.New().String(),
-				Email:    user.Email,
-				Name:     user.Name,
-				GoogleID: user.UserID,
-				Roles:    []models.Roles{*userRole},
-			}
-
-			err := h.userQueries.CreateUser(newUser, userRole)
-			if err != nil {
-				http.Error(w, "error creating user", http.StatusInternalServerError)
-				return
-			}
-		} else {
-			http.Error(w, "An account has already been registered with this email", http.StatusConflict)
-			return
-		}
-	}
-
-	token := auth.MakeToken(existingUser.ID, string(existingUser.Roles[0].Name))
-
-	http.SetCookie(w, &http.Cookie{
-		HttpOnly: true,
-		Expires:  time.Now().Add(24 * time.Hour),
-		Name:     "jwt",
-		Value:    token,
-		SameSite: http.SameSiteLaxMode,
-	})
+	fmt.Println("user: ", user)
 
 	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusFound)
+
+    // utils.Logger("info", "User", fmt.Sprintf("%+v", user), "")
+    // if err != nil {
+    //     utils.Logger("error", "Complete User Auth:", "Failed to complete user authentication", fmt.Sprintf("Error: %v", err))
+    //     fmt.Fprintln(w, err)
+    //     return
+    // }
+
+    // userRole, err := h.userQueries.GetRoleByName(models.UserRole)
+    // if err != nil {
+    //     http.Error(w, "error fetching user role", http.StatusInternalServerError)
+    //     return
+    // }
+
+    // check if user with this google id exists
+    // _, err = h.userQueries.FindUserByGoogleID(user.UserID)
+    // if err != nil {
+    //     // check if user with this email exists
+    //     _, err = h.userQueries.FindUserByEmail(user.Email)
+    //     if err != nil {
+    //         // create user
+    //         newUser := &models.User{
+    //             ID:            uuid.New().String(),
+    //             Email:         user.Email,
+    //             Name:          user.Name,
+    //             GoogleID:      user.UserID,
+    //             ProfilePicURL: user.AvatarURL,
+    //         }
+
+    //         err = h.userQueries.CreateUser(newUser, userRole)
+    //         if err != nil {
+    //             http.Error(w, "error creating user", http.StatusInternalServerError)
+    //             return
+    //         }
+
+    //         token := auth.MakeToken(newUser.ID, string(newUser.Roles[0].Name))
+
+    //         http.SetCookie(w, &http.Cookie{
+    //             HttpOnly: true,
+    //             Expires:  time.Now().Add(24 * time.Hour),
+    //             Name:     "jwt",
+    //             Value:    token,
+    //             SameSite: http.SameSiteLaxMode,
+    //         })
+
+	// 		fmt.Println("new user: ", newUser)
+
+    //         http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusFound)
+    //     } else {
+    //         http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/login", http.StatusFound)
+    //     }
+    // } else {
+    //     http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/login", http.StatusFound)
+    // }
 }
 
 // LogoutProvider godoc
@@ -140,13 +154,17 @@ func (h *AuthHandler) BasicLogout(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {string} string "Error message"
 // @Router /auth/{provider} [get]
 func (h *AuthHandler) BeginAuthProviderCallback(w http.ResponseWriter, r *http.Request) {
-	type contextKey string
+    q := r.URL.Query()
+	q.Add("provider", chi.URLParam(r, "provider"))
+	r.URL.RawQuery = q.Encode()
 
-	const providerKey contextKey = "provider"
-	provider := chi.URLParam(r, "provider")
-	r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
+	fmt.Println("BeginAuthProviderCallback", chi.URLParam(r, "provider"))
 
-	gothic.BeginAuthHandler(w, r)
+	session, _ := gothic.Store.Get(r, "goth")
+	session.Values["provider"] = chi.URLParam(r, "provider")
+	session.Save(r, w)
+
+    gothic.BeginAuthHandler(w, r)
 }
 
 // LoginHandler godoc

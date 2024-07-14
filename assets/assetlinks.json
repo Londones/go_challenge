@@ -1,0 +1,9 @@
+[{
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.purrfectmatch",
+      "sha256_cert_fingerprints":
+      ["C4:49:B6:85:2C:ED:21:EC:CB:01:F0:E1:A5:5E:64:D6:93:5F:0F:BE:04:3E:29:0B:12:F6:6F:08:BB:74:CB:39"]
+    }
+  }]

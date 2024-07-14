@@ -42,7 +42,7 @@ func NewServer() (*http.Server, error) {
 	}
 
 	server := &http.Server{
-		Addr:         fmt.Sprintf(":%d", newServer.port),
+		Addr:         fmt.Sprintf("localhost:%d", newServer.port),
 		Handler:      newServer.RegisterRoutes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,

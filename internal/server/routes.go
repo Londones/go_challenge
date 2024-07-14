@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/markbates/goth/gothic"
 
 	httpSwagger "github.com/swaggo/http-swagger"
 )
@@ -23,6 +25,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
+
+	r.Get("/auth/{provider}", s.BeginAuthProviderCallback)
+	r.Get("/auth/{provider}/callback", s.GetAuthCallbackFunction)
+
+	r.Handle("/.well-known/*", http.StripPrefix("/.well-known/", http.FileServer(http.Dir("assets"))))
+	r.HandleFunc("/auth/success", s.handleSuccessPage())
 
 	r.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 	r.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("/internal/uploads/"))))
@@ -120,8 +128,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	})
 
 	// Public routes
-	r.Get("/auth/{provider}/callback", authHandler.GetAuthCallbackFunction)
-	r.Get("/auth/{provider}", authHandler.BeginAuthProviderCallback)
+	// r.Get("/auth/{provider}/callback", authHandler.GetAuthCallbackFunction)
+	// r.Get("/auth/{provider}", authHandler.BeginAuthProviderCallback)
 	r.Post("/login", authHandler.LoginHandler)
 	r.Post("/register", userHandler.RegisterHandler)
 	r.Get("/", s.HelloWorldHandler)
@@ -130,6 +138,41 @@ func (s *Server) RegisterRoutes() http.Handler {
 	))
 
 	return r
+}
+
+func (s *Server) BeginAuthProviderCallback(w http.ResponseWriter, r *http.Request) {
+    q := r.URL.Query()
+	q.Add("provider", chi.URLParam(r, "provider"))
+	r.URL.RawQuery = q.Encode()
+
+	fmt.Println("BeginAuthProviderCallback---", chi.URLParam(r, "provider"))
+
+	session, _ := gothic.Store.Get(r, "goth")
+	session.Values["provider"] = chi.URLParam(r, "provider")
+	session.Save(r, w)
+
+    gothic.BeginAuthHandler(w, r)
+	fmt.Println("BeginAuthProviderCallback---OK", chi.URLParam(r, "provider"))
+}
+
+func (s *Server) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("GetAuthCallbackFunction---")
+
+    provider := chi.URLParam(r, "provider")
+    r = r.WithContext(context.WithValue(context.Background(), "provider", provider))
+
+    user, err := gothic.CompleteUserAuth(w, r)
+
+	if (err != nil) {
+		fmt.Println("error: ", err)
+		return
+	}
+
+	fmt.Println("user: ", user)
+
+	// fmt.Println("redirect: ", os.Getenv("APP_CLIENT_URL")+"/auth/success")
+
+	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusFound)
 }
 
 func (s *Server) HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
@@ -144,4 +187,10 @@ func (s *Server) HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, _ = w.Write(jsonResp)
+}
+
+func (s *Server) handleSuccessPage() http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        http.ServeFile(w, r, "/assets/success.html")
+    }
 }

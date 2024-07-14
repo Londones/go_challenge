@@ -38,7 +38,7 @@ func MakeToken(id string, role string) string {
 }
 
 func GetTokenFromCookie(r *http.Request) (string, error) {
-	cookie, err := r.Cookie("jwt") // replace with your cookie name
+	cookie, err := r.Cookie("jwt")
 	if err != nil {
 		return "", err
 	}
@@ -52,6 +52,11 @@ func NewAuth() {
 
 	googleClientID := os.Getenv("GOOGLE_CLIENT_ID")
 	googleClientSecret := os.Getenv("GOOGLE_CLIENT_SECRET")
+	clientCallbackURL := os.Getenv("CLIENT_CALLBACK_URL")
+
+	if googleClientID == "" || googleClientSecret == "" || clientCallbackURL == "" {
+		fmt.Println("Environment variables (CLIENT_ID, CLIENT_SECRET, CLIENT_CALLBACK_URL) are required")
+	}
 
 	store := sessions.NewCookieStore([]byte(key))
 	store.MaxAge(maxAge)
@@ -63,7 +68,7 @@ func NewAuth() {
 	gothic.Store = store
 
 	goth.UseProviders(
-		google.New(googleClientID, googleClientSecret, os.Getenv("SERVER_URL")+"/auth/google/callback"),
+		google.New(googleClientID, googleClientSecret, clientCallbackURL),
 	)
 }
 
