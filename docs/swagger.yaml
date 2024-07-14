@@ -19,10 +19,43 @@ definitions:
       userID:
         type: string
     type: object
+  models.Association:
+    properties:
+      addressRue:
+        type: string
+      cp:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      kbisFile:
+        type: string
+      members:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+      name:
+        type: string
+      owner:
+        $ref: '#/definitions/models.User'
+      ownerID:
+        type: string
+      phone:
+        type: string
+      updatedAt:
+        type: string
+      verified:
+        type: boolean
+      ville:
+        type: string
+    type: object
   models.Cats:
     properties:
-      annonceID:
-        type: string
       behavior:
         type: string
       birthDate:
@@ -47,7 +80,7 @@ definitions:
         items:
           type: string
         type: array
-      race:
+      raceID:
         type: string
       reserved:
         type: boolean
@@ -73,6 +106,40 @@ definitions:
       updatedAt:
         type: string
       userID:
+        type: string
+    type: object
+  models.Message:
+    properties:
+      content:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      roomID:
+        type: integer
+      senderID:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.Races:
+    properties:
+      cats:
+        items:
+          $ref: '#/definitions/models.Cats'
+        type: array
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      raceName:
+        type: string
+      updatedAt:
         type: string
     type: object
   models.Rating:
@@ -117,12 +184,31 @@ definitions:
       updatedAt:
         type: string
     type: object
+  models.Room:
+    properties:
+      annonceID:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      updatedAt:
+        type: string
+      user1ID:
+        type: string
+      user2ID:
+        type: string
+    type: object
   models.User:
     properties:
       addressRue:
         type: string
-      associationID:
-        type: integer
+      associations:
+        items:
+          $ref: '#/definitions/models.Association'
+        type: array
       cp:
         type: string
       createdAt:
@@ -164,6 +250,37 @@ info:
   title: GO-challenge-PurrfectMatch
   version: "1.0"
 paths:
+  /annonce/address/{userID}:
+    get:
+      description: Get the address from the user ID
+      parameters:
+      - description: ID of the annonce's user
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Address
+          schema:
+            type: string
+        "400":
+          description: Invalid annonce ID format
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get the user address from user ID
+      tags:
+      - annonces
   /annonces:
     get:
       description: Retrieve all annonces from the database
@@ -352,6 +469,95 @@ paths:
       summary: Get an annonce by Cat ID
       tags:
       - annonces
+  /associations:
+    get:
+      description: Retrieve all associations from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved all associations
+          schema:
+            items:
+              $ref: '#/definitions/models.Association'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get all associations
+      tags:
+      - associations
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create a new association with the input payload and a PDF file
+      parameters:
+      - description: Association payload
+        in: body
+        name: association
+        required: true
+        schema:
+          $ref: '#/definitions/models.Association'
+      - description: PDF file
+        in: formData
+        name: kbisFile
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created association
+          schema:
+            $ref: '#/definitions/models.Association'
+        "400":
+          description: 'Bad Request: Error uploading image 2/3, Invalid content type
+            for kbisFile, expected application/pdf'
+          schema:
+            type: string
+        "500":
+          description: 'Internal Server Error: Error uploading image 1/4/5/6/7/8'
+          schema:
+            type: string
+      summary: Create a new association
+      tags:
+      - associations
+  /associations/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update the verify status of an association with the given ID
+      parameters:
+      - description: Association ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Verify status
+        in: body
+        name: verified
+        required: true
+        schema:
+          type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated association
+          schema:
+            $ref: '#/definitions/models.Association'
+        "400":
+          description: 'Bad Request: Missing association ID, Invalid association ID'
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Update an association's verify status
+      tags:
+      - associations
   /auth/{provider}:
     get:
       consumes:
@@ -509,6 +715,46 @@ paths:
           schema:
             type: string
       summary: Create cat
+      tags:
+      - cats
+  /cats/:
+    get:
+      description: Retrieve cats using their sex, age or race
+      parameters:
+      - description: RaceID
+        in: query
+        name: raceId
+        type: string
+      - description: Age
+        in: query
+        name: age
+        type: integer
+      - description: Sexe
+        in: query
+        name: sexe
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Found cats
+          schema:
+            items:
+              $ref: '#/definitions/models.Cats'
+            type: array
+        "400":
+          description: An error has occured
+          schema:
+            type: string
+        "404":
+          description: No cats were found
+          schema:
+            type: string
+        "500":
+          description: error fetching cats
+          schema:
+            type: string
+      summary: Get cats by filters
       tags:
       - cats
   /cats/{id}:
@@ -789,6 +1035,154 @@ paths:
       summary: Modify profile picture
       tags:
       - users
+  /race:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new Race from a Form
+      parameters:
+      - description: Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: "Race created\tsuccessfully"
+          schema:
+            $ref: '#/definitions/models.Races'
+        "400":
+          description: all fields are required
+          schema:
+            type: string
+        "500":
+          description: error creating race
+          schema:
+            type: string
+      summary: Create a new Race
+      tags:
+      - race
+  /race/{id}:
+    delete:
+      description: Delete a race using its ID
+      parameters:
+      - description: ID
+        in: query
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: race ID is required
+          schema:
+            type: string
+        "404":
+          description: race not found
+          schema:
+            type: string
+        "500":
+          description: error deleting race
+          schema:
+            type: string
+      summary: Delete a race
+      tags:
+      - race
+    get:
+      description: Retrieve one specific race
+      parameters:
+      - description: ID of the race to retrieve
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Race detail
+          schema:
+            $ref: '#/definitions/models.Races'
+        "400":
+          description: Invalid ID format
+          schema:
+            type: string
+        "404":
+          description: Race not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get a specific race using its id
+      tags:
+      - race
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Update a race name
+      parameters:
+      - description: ID of the race to update
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New race name
+        in: query
+        name: raceName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Race updated successfully
+          schema:
+            $ref: '#/definitions/models.Races'
+        "400":
+          description: Missing or invalid fields in the request
+          schema:
+            type: string
+        "403":
+          description: User is not authorized to update this race
+          schema:
+            type: string
+        "404":
+          description: Race not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Search then update a race using its ID
+      tags:
+      - race
+  /races:
+    get:
+      description: Retrieve a list of all race
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of race
+          schema:
+            items:
+              $ref: '#/definitions/models.Races'
+            type: array
+        "500":
+          description: error fetching races
+          schema:
+            type: string
+      summary: Get all races
+      tags:
+      - race
   /ratings:
     get:
       description: Récupère toutes les Ratings de la base de données
@@ -1056,6 +1450,62 @@ paths:
       summary: Register a new user
       tags:
       - users
+  /rooms:
+    get:
+      consumes:
+      - application/json
+      description: Get all rooms for a user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: rooms for the user
+          schema:
+            items:
+              $ref: '#/definitions/models.Room'
+            type: array
+        "500":
+          description: error getting rooms
+          schema:
+            type: string
+      summary: Get all rooms for a user
+      tags:
+      - rooms
+  /rooms/{roomID}:
+    get:
+      consumes:
+      - application/json
+      description: Get all messages for a room in order
+      parameters:
+      - description: ID of the room
+        in: path
+        name: roomID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: messages for the room
+          schema:
+            items:
+              $ref: '#/definitions/models.Message'
+            type: array
+        "400":
+          description: room ID is required
+          schema:
+            type: string
+        "404":
+          description: room not found
+          schema:
+            type: string
+        "500":
+          description: error getting messages
+          schema:
+            type: string
+      summary: Get all messages for a room in order
+      tags:
+      - rooms
   /users:
     get:
       description: Retrieve a list of all users
@@ -1157,7 +1607,10 @@ paths:
       tags:
       - users
     get:
-      description: Retrieve the details of a user by their ID
+      consumes:
+      - application/json
+      description: Retrieve a user by the provided ID
+      operationId: get-user-by-id
       parameters:
       - description: User ID
         in: path
@@ -1185,9 +1638,7 @@ paths:
             type: string
       security:
       - ApiKeyAuth: []
-      summary: Get user by ID
-      tags:
-      - users
+      summary: Retrieve a user by ID
   /users/annonces/{id}:
     get:
       description: Retrieve all annonces for a specific user from the database
@@ -1236,4 +1687,31 @@ paths:
       summary: Get current user
       tags:
       - users
+  /ws/{roomID}:
+    get:
+      description: Establishes a WebSocket connection to a specified chat room for
+        real-time communication.
+      parameters:
+      - description: The ID of the chat room to connect to
+        in: path
+        name: roomID
+        required: true
+        type: integer
+      - description: Bearer token for authentication
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        "101":
+          description: Switching Protocols
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Connect to WebSocket for real-time chat
 swagger: "2.0"

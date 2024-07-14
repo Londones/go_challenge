@@ -55,5 +55,37 @@ func CreateUserFixtures(db *gorm.DB, count int, userRole *models.Roles) ([]*mode
 		users = append(users, user)
 		fmt.Printf("Created user %d\n", i)
 	}
+
+	var adminRole models.Roles
+	if err := db.Where("name = ?", models.AdminRole).First(&adminRole).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch admin role: %v", err)
+	}
+
+	hashedPassword, err := auth.HashPassword("adminpassword")
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash admin password: %v", err)
+	}
+
+	adminUser := &models.User{
+		ID:            uuid.New().String(),
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+		Name:          "admin",
+		Email:         "admin@gmail.com",
+		Password:      hashedPassword,
+		AddressRue:    "",
+		Cp:            "",
+		Ville:         "",
+		Associations:  []models.Association{},
+		Roles:         []models.Roles{adminRole},
+		GoogleID:      "",
+		ProfilePicURL: "default",
+	}
+	if err := db.Create(adminUser).Error; err != nil {
+		return nil, fmt.Errorf("failed to create admin user: %v", err)
+	}
+	users = append(users, adminUser)
+	fmt.Printf("Created admin user\n")
+
 	return users, nil
 }
