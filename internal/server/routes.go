@@ -70,7 +70,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/annonces", annonceHandler.GetAllAnnoncesHandler)
 		r.Get("/annonces/{id}", annonceHandler.GetAnnonceByIDHandler)
 		r.Post("/annonces", annonceHandler.AnnonceCreationHandler)
-		r.Put("/annonces/{id}", annonceHandler.ModifyDescriptionAnnonceHandler)
+		r.Put("/annonces/{id}", annonceHandler.ModifyAnnonceHandler)
 		r.Delete("/annonces/{id}", annonceHandler.DeleteAnnonceHandler)
 		r.Get("/annonces/cats/{catID}", annonceHandler.FetchAnnonceByCatIDHandler)
 
@@ -81,6 +81,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/cats", catHandler.CatCreationHandler)
 		r.Delete("/cats/{id}", catHandler.DeleteCatHandler)
 		r.Get("/cats/", catHandler.FindCatsByFilterHandler)
+		r.Get("/cats/user/{userID}", catHandler.GetCatsByUserHandler)
 
 		//** Race routes
 		r.Get("/races", raceHandler.GetAllRaceHandler)
