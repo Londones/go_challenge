@@ -33,32 +33,31 @@ type Config struct {
 }
 
 func New(config *Config) (*Service, error) {
+	var db *gorm.DB
+
+	config.Env = os.Getenv("APP_ENV")
 	// Get the root directory of the project.
 	var root string
 	var err error
 
-	root, err = filepath.Abs("./")
-	//root, err = filepath.Abs("../..")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Construct the path to the .env file.
-	envPath := filepath.Join(root, ".env")
-
-	// Load the .env file.
-	err = godotenv.Load(envPath)
-	if err != nil {
-		log.Fatal("Variable root: " + root)
-		//log.Fatal("Error loading .env file")
-	}
-
-	config.Env = os.Getenv("APP_ENV")
-
-	var db *gorm.DB
-
 	if config.Env == "local" {
+
+		root, err = filepath.Abs("./")
+		//root, err = filepath.Abs("../..")
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Construct the path to the .env file.
+		envPath := filepath.Join(root, ".env")
+
+		// Load the .env file.
+		err = godotenv.Load(envPath)
+		if err != nil {
+			log.Fatal("Variable root: " + root)
+			//log.Fatal("Error loading .env file")
+		}
 
 		if config.Username == "" {
 			config.Username = os.Getenv("DB_USERNAME")
