@@ -4,15 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
-	"go-challenge/internal/api"
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
 
@@ -28,153 +24,6 @@ type CatHandler struct {
 
 func NewCatHandler(catQueries *queries.DatabaseService, uploadcareClient ucare.Client) *CatHandler {
 	return &CatHandler{catQueries: catQueries, uploadcareClient: uploadcareClient}
-}
-
-// CatCreationHandler godoc
-// @Summary Create cat
-// @Description Create a new cat with the provided details
-// @Tags cats
-// @Accept multipart/form-data
-// @Produce json
-// @Param name formData string true "Name"
-// @Param BirthDate formData string true "Birth Date"
-// @Param sexe formData string true "Sexe"
-// @Param LastVaccine formData string false "Last Vaccine Date"
-// @Param LastVaccineName formData string false "Last Vaccine Name"
-// @Param Color formData string true "Color"
-// @Param Behavior formData string true "Behavior"
-// @Param Sterilized formData string true "Sterilized"
-// @Param Race formData string true "Race"
-// @Param Description formData string false "Description"
-// @Param Reserved formData string true "Reserved"
-// @Param AnnonceID formData string true "Annonce ID"
-// @Param UserID formData string true "User ID"
-// @Param uploaded_file formData file true "Image"
-// @Success 201 {object} models.Cats "cat created successfully"
-// @Failure 400 {string} string "all fields are required"
-// @Failure 500 {string} string "error creating cat"
-// @Router /cats [post]
-func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) {
-	fileURLs := make([]string, 0)
-
-	err := r.ParseMultipartForm(10 << 20) // 10 MB is the max memory size
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	name := r.FormValue("name")
-	birthDateStr := r.FormValue("BirthDate")
-	sexe := r.FormValue("sexe")
-	lastVaccineStr := r.FormValue("LastVaccine")
-	lastVaccineName := r.FormValue("LastVaccineName")
-	color := r.FormValue("Color")
-	behavior := r.FormValue("Behavior")
-	sterilizedStr := r.FormValue("Sterilized")
-	race := r.FormValue("Race")
-	description := r.FormValue("Description")
-	ReservedStr := r.FormValue("Reserved")
-	userID := r.FormValue("UserID")
-
-	if name == "" || birthDateStr == "" || sexe == "" || color == "" || behavior == "" || sterilizedStr == "" || race == "" || ReservedStr == "" || userID == "" {
-		http.Error(w, "all fields are required", http.StatusBadRequest)
-		return
-	}
-
-	layout := "02-01-2006"
-	var birthDate, lastVaccine *time.Time
-	if birthDateStr != "" {
-		parsedBirthDate, err := time.Parse(layout, birthDateStr)
-		if err != nil {
-			http.Error(w, "invalid BirthDate format", http.StatusBadRequest)
-			return
-		}
-		birthDate = &parsedBirthDate
-	}
-
-	if lastVaccineStr != "" {
-		parsedLastVaccine, err := time.Parse(layout, lastVaccineStr)
-		if err != nil {
-			http.Error(w, "invalid LastVaccine format", http.StatusBadRequest)
-			return
-		}
-		lastVaccine = &parsedLastVaccine
-	}
-
-	sterilized, err := strconv.ParseBool(sterilizedStr)
-	if err != nil {
-		http.Error(w, "invalid Sterilized format", http.StatusBadRequest)
-		return
-	}
-
-	Reserved, err := strconv.ParseBool(ReservedStr)
-	if err != nil {
-		http.Error(w, "invalid Reserved format", http.StatusBadRequest)
-		return
-	}
-
-	files := r.MultipartForm.File["uploaded_file"]
-	for _, header := range files {
-		file, err := header.Open()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer file.Close()
-
-		ext := filepath.Ext(header.Filename)
-
-		tempFile, err := os.CreateTemp(os.TempDir(), "upload-*"+ext)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer os.Remove(tempFile.Name()) // clean up
-
-		_, err = io.Copy(tempFile, file)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		FileURL, _, err := api.UploadImage(h.uploadcareClient, tempFile.Name())
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		fileURLs = append(fileURLs, FileURL)
-	}
-
-	cat := &models.Cats{
-		Name:            name,
-		BirthDate:       birthDate,
-		Sexe:            sexe,
-		LastVaccine:     lastVaccine,
-		LastVaccineName: lastVaccineName,
-		Color:           color,
-		Behavior:        behavior,
-		Sterilized:      sterilized,
-		PicturesURL:     fileURLs,
-		RaceID:          race,
-		Description:     &description,
-		Reserved:        Reserved,
-		UserID:          userID,
-	}
-
-	_, err = h.catQueries.CreateCat(cat)
-	if err != nil {
-		http.Error(w, "error creating cat", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(cat)
-	if err != nil {
-		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
-		return
-	}
 }
 
 // UpdateCatHandler godoc
@@ -193,7 +42,7 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 // @Param Color formData string false "Color"
 // @Param Behavior formData string false "Behavior"
 // @Param Sterilized formData string false "Sterilized"
-// @Param Race formData string false "Race"
+// @Param RaceID formData string false "RaceID"
 // @Param Description formData string false "Description"
 // @Param Reserved formData string false "Reserved"
 // @Param AnnonceID formData string false "Annonce ID"
@@ -257,8 +106,8 @@ func (h *CatHandler) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			updateData.Sterilized = sterilized
 		}
-		if race := r.FormValue("Race"); race != "" {
-			updateData.RaceID = race
+		if raceID := r.FormValue("RaceID"); raceID != "" {
+			updateData.RaceID = raceID
 		}
 		if description := r.FormValue("Description"); description != "" {
 			updateData.Description = &description
