@@ -48,9 +48,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 			// Protected routes for admin users
 			r.Use(AdminOnly)
 			// Admin specific routes
-			r.Put("/race/{id}", raceHandler.UpdateRaceHandler)
-			r.Post("/race", raceHandler.RaceCreationHandler)
-			r.Delete("/race/{id}", raceHandler.DeleteRaceHandler)
 		})
 		//** Race routes for admin
 
@@ -88,6 +85,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 		//** Race routes
 		r.Get("/races", raceHandler.GetAllRaceHandler)
 		r.Get("/race/{id}", raceHandler.GetRaceByIDHandler)
+		r.Post("/races", raceHandler.CreateRaceHandler)
+		r.Put("/races/{id}", raceHandler.UpdateRaceHandler)
+		r.Delete("/races/{id}", raceHandler.DeleteRaceHandler)
 
 		//** User routes
 		r.Get("/users", userHandler.GetAllUsersHandler)
