@@ -6,8 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	//"go-challenge/internal/fixtures"
-	// "go-challenge/internal/fixtures"
 	"go-challenge/internal/models"
 	"go-challenge/internal/utils"
 
@@ -31,60 +29,73 @@ type Config struct {
 	Host     string
 	Port     string
 	Database string
+	Env      string
 }
 
 func New(config *Config) (*Service, error) {
+	var db *gorm.DB
+
+	config.Env = os.Getenv("APP_ENV")
 	// Get the root directory of the project.
 	var root string
 	var err error
 
-	root, err = filepath.Abs("./")
-	//root, err = filepath.Abs("../..")
+	if config.Env == "local" {
 
-	if err != nil {
-		log.Fatal(err)
-	}
+		root, err = filepath.Abs("./")
+		//root, err = filepath.Abs("../..")
 
-	// Construct the path to the .env file.
-	envPath := filepath.Join(root, ".env")
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	// Load the .env file.
-	err = godotenv.Load(envPath)
-	if err != nil {
-		log.Fatal("Variable root: " + root)
-		//log.Fatal("Error loading .env file")
-	}
+		// Construct the path to the .env file.
+		envPath := filepath.Join(root, ".env")
 
-	if config.Username == "" {
-		config.Username = os.Getenv("DB_USERNAME")
-	}
-	if config.Password == "" {
-		config.Password = os.Getenv("DB_PASSWORD")
-	}
-	if config.Host == "" {
-		config.Host = os.Getenv("DB_HOST")
-	}
-	if config.Port == "" {
-		config.Port = os.Getenv("DB_PORT")
-	}
-	if config.Database == "" {
-		config.Database = os.Getenv("DB_DATABASE")
-	}
+		// Load the .env file.
+		err = godotenv.Load(envPath)
+		if err != nil {
+			log.Fatal("Variable root: " + root)
+			//log.Fatal("Error loading .env file")
+		}
 
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/?sslmode=disable", config.Username, config.Password, config.Host, config.Port)
-	dbTemp, err := gorm.Open("postgres", connStr)
-	if err != nil {
-		fmt.Printf("failed to connect to server: %v", err)
-	}
+		if config.Username == "" {
+			config.Username = os.Getenv("DB_USERNAME")
+		}
+		if config.Password == "" {
+			config.Password = os.Getenv("DB_PASSWORD")
+		}
+		if config.Host == "" {
+			config.Host = os.Getenv("DB_HOST")
+		}
+		if config.Port == "" {
+			config.Port = os.Getenv("DB_PORT")
+		}
+		if config.Database == "" {
+			config.Database = os.Getenv("DB_DATABASE")
+		}
 
-	err = createDbIfNotExists(dbTemp, config.Database)
-	if err != nil {
-		fmt.Printf("failed to create db: %v", err)
-	}
+		connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/?sslmode=disable", config.Username, config.Password, config.Host, config.Port)
+		dbTemp, err := gorm.Open("postgres", connStr)
+		if err != nil {
+			fmt.Printf("failed to connect to server: %v", err)
+		}
 
-	db, err := gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database))
-	if err != nil {
-		fmt.Printf("failed to connect to database: %v", err)
+		err = createDbIfNotExists(dbTemp, config.Database)
+		if err != nil {
+			fmt.Printf("failed to create db: %v", err)
+		}
+
+		db, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database))
+		if err != nil {
+			fmt.Printf("failed to connect to database: %v", err)
+		}
+	} else {
+		db, err = gorm.Open("postgres", os.Getenv("DATABASE_URL"))
+		if err != nil {
+			fmt.Printf("failed to connect to database: %v", err)
+		}
+		config.Database = os.Getenv("DATABASE_URL")
 	}
 
 	err = migrateAllModels(db)
@@ -96,44 +107,6 @@ func New(config *Config) (*Service, error) {
 
 	// Print that the database is connected
 	fmt.Printf("Connected to database %s\n", config.Database)
-
-	// Get the USER role
-	var userRole models.Roles
-	if err := db.Where("name = ?", models.UserRole).First(&userRole).Error; err != nil {
-		fmt.Printf("failed to find user role: %v", err)
-	}
-
-	// Create 5 users
-	// users, err := fixtures.CreateUserFixtures(db, 5, &userRole)
-	// if err != nil {
-	// 	fmt.Printf("failed to create user fixtures: %v", err)
-	// }
-
-	// Create 5 races
-	// err = fixtures.CreateRaceFixture(db)
-	// if err != nil {
-	// 	fmt.Printf("failed to create race fixture: %v", err)
-	// }
-
-	// For each user, create 5 cats and 5 corresponding annonces
-	// for _, user := range users {
-	// 	cats, err := fixtures.CreateCatFixturesForUser(db, 5, user.ID)
-	// 	if err != nil {
-	// 		fmt.Printf("failed to create cat fixtures for user %s: %v", user.ID, err)
-	// 	}
-
-	// 	if err := fixtures.CreateAnnonceFixtures(db, cats); err != nil {
-	// 		fmt.Printf("failed to create annonce fixtures for user %s: %v", user.ID, err)
-	// 	}
-	// }
-
-	// Création des fixtures pour les évaluations
-	// staticUserID := "38f5ca5d-0c87-425f-97fe-c84c3ee0997c"
-	// staticAuthorID := "5a7a8b69-6f8d-4818-ac15-b6a83b4fe518"
-	// err = fixtures.CreateRatingFixtures(db, staticUserID, staticAuthorID, 5)
-	// if err != nil {
-	// 	fmt.Printf("failed to create rating fixtures: %v", err)
-	// }
 
 	return s, nil
 }
