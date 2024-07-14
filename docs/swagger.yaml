@@ -250,37 +250,6 @@ info:
   title: GO-challenge-PurrfectMatch
   version: "1.0"
 paths:
-  /annonce/address/{userID}:
-    get:
-      description: Get the address from the user ID
-      parameters:
-      - description: ID of the annonce's user
-        in: path
-        name: userID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Address
-          schema:
-            type: string
-        "400":
-          description: Invalid annonce ID format
-          schema:
-            type: string
-        "404":
-          description: Annonce not found
-          schema:
-            type: string
-        "500":
-          description: Internal server error
-          schema:
-            type: string
-      summary: Get the user address from user ID
-      tags:
-      - annonces
   /annonces:
     get:
       description: Retrieve all annonces from the database
@@ -340,20 +309,18 @@ paths:
       - annonces
   /annonces/{id}:
     delete:
-      description: Delete an existing annonce
+      description: Delete an annonce by its ID
       parameters:
-      - description: ID of the annonce to delete
+      - description: Annonce ID
         in: path
         name: id
         required: true
         type: string
       responses:
         "204":
-          description: Annonce deleted successfully
-          schema:
-            type: string
-        "403":
-          description: User is not authorized to delete this annonce
+          description: No Content
+        "400":
+          description: Annonce ID is required
           schema:
             type: string
         "404":
@@ -361,10 +328,10 @@ paths:
           schema:
             type: string
         "500":
-          description: Internal server error
+          description: Error deleting annonce
           schema:
             type: string
-      summary: Delete annonce
+      summary: Delete annonce by ID
       tags:
       - annonces
     get:
@@ -400,18 +367,41 @@ paths:
     put:
       consumes:
       - application/x-www-form-urlencoded
-      description: Modify the description of an existing annonce
+      - application/json
+      description: Modify the title, description, and cat ID of an existing annonce
       parameters:
       - description: ID of the annonce to modify
         in: path
         name: id
         required: true
         type: string
+      - description: New title of the annonce
+        in: formData
+        name: title
+        type: string
       - description: New description of the annonce
         in: formData
         name: description
-        required: true
         type: string
+      - description: New cat ID of the annonce
+        in: formData
+        name: catID
+        type: string
+      - description: New title of the annonce
+        in: body
+        name: title
+        schema:
+          type: string
+      - description: New description of the annonce
+        in: body
+        name: description
+        schema:
+          type: string
+      - description: New cat ID of the annonce
+        in: body
+        name: catID
+        schema:
+          type: string
       produces:
       - application/json
       responses:
@@ -435,7 +425,7 @@ paths:
           description: Internal server error
           schema:
             type: string
-      summary: Modify annonce description
+      summary: Modify annonce
       tags:
       - annonces
   /annonces/cats/{catID}:
@@ -762,7 +752,7 @@ paths:
       description: Delete a cat by its ID
       parameters:
       - description: Cat ID
-        in: query
+        in: path
         name: id
         required: true
         type: string
@@ -817,6 +807,7 @@ paths:
     put:
       consumes:
       - application/x-www-form-urlencoded
+      - application/json
       description: Update the details of an existing cat
       parameters:
       - description: Cat ID
@@ -872,6 +863,11 @@ paths:
         in: formData
         name: AnnonceID
         type: string
+      - description: Cat object
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/models.Cats'
       produces:
       - application/json
       responses:
@@ -888,6 +884,35 @@ paths:
           schema:
             type: string
       summary: Update cat
+      tags:
+      - cats
+  /cats/user/{userID}:
+    get:
+      description: Retrieve all cats for a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of user's cats
+          schema:
+            items:
+              $ref: '#/definitions/models.Cats'
+            type: array
+        "400":
+          description: User ID is required
+          schema:
+            type: string
+        "500":
+          description: Error fetching cats
+          schema:
+            type: string
+      summary: Get cats by user ID
       tags:
       - cats
   /favorites:
@@ -1035,57 +1060,76 @@ paths:
       summary: Modify profile picture
       tags:
       - users
-  /race:
+  /races:
+    get:
+      description: Retrieve a list of all race
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of race
+          schema:
+            items:
+              $ref: '#/definitions/models.Races'
+            type: array
+        "500":
+          description: error fetching races
+          schema:
+            type: string
+      summary: Get all races
+      tags:
+      - race
     post:
       consumes:
-      - application/x-www-form-urlencoded
-      description: Create a new Race from a Form
+      - application/json
+      description: Create a new race with the input payload
       parameters:
-      - description: Name
-        in: formData
-        name: name
+      - description: Race object
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.Races'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully created race
+          schema:
+            $ref: '#/definitions/models.Races'
+        "400":
+          description: Invalid JSON body
+          schema:
+            type: string
+        "500":
+          description: Error creating race
+          schema:
+            type: string
+      summary: Create a new race
+      tags:
+      - race
+  /races/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a race by ID
+      parameters:
+      - description: Race ID
+        in: path
+        name: id
         required: true
         type: string
       produces:
       - application/json
       responses:
-        "201":
-          description: "Race created\tsuccessfully"
-          schema:
-            $ref: '#/definitions/models.Races'
-        "400":
-          description: all fields are required
-          schema:
-            type: string
-        "500":
-          description: error creating race
-          schema:
-            type: string
-      summary: Create a new Race
-      tags:
-      - race
-  /race/{id}:
-    delete:
-      description: Delete a race using its ID
-      parameters:
-      - description: ID
-        in: query
-        name: id
-        required: true
-        type: string
-      responses:
         "204":
-          description: No Content
+          description: Successfully deleted race
         "400":
-          description: race ID is required
-          schema:
-            type: string
-        "404":
-          description: race not found
+          description: Invalid ID supplied
           schema:
             type: string
         "500":
-          description: error deleting race
+          description: Error deleting race
           schema:
             type: string
       summary: Delete a race
@@ -1123,32 +1167,29 @@ paths:
       - race
     put:
       consumes:
-      - application/x-www-form-urlencoded
-      description: Update a race name
+      - application/json
+      description: Update a race by ID
       parameters:
-      - description: ID of the race to update
+      - description: Race ID
         in: path
         name: id
         required: true
         type: string
-      - description: New race name
-        in: query
-        name: raceName
+      - description: Race object
+        in: body
+        name: body
         required: true
-        type: string
+        schema:
+          $ref: '#/definitions/models.Races'
       produces:
       - application/json
       responses:
         "200":
-          description: Race updated successfully
+          description: Successfully updated race
           schema:
             $ref: '#/definitions/models.Races'
         "400":
-          description: Missing or invalid fields in the request
-          schema:
-            type: string
-        "403":
-          description: User is not authorized to update this race
+          description: Invalid JSON body
           schema:
             type: string
         "404":
@@ -1156,31 +1197,10 @@ paths:
           schema:
             type: string
         "500":
-          description: Internal server error
+          description: Error updating race
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
-      summary: Search then update a race using its ID
-      tags:
-      - race
-  /races:
-    get:
-      description: Retrieve a list of all race
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of race
-          schema:
-            items:
-              $ref: '#/definitions/models.Races'
-            type: array
-        "500":
-          description: error fetching races
-          schema:
-            type: string
-      summary: Get all races
+      summary: Update a race
       tags:
       - race
   /ratings:

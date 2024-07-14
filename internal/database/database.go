@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	//"go-challenge/internal/fixtures"
-	"go-challenge/internal/fixtures"
 	"go-challenge/internal/models"
 	"go-challenge/internal/utils"
 

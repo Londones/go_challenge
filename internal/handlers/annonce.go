@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/jinzhu/gorm"
 )
 
 type AnnonceHandler struct {
@@ -219,50 +220,104 @@ func (h *AnnonceHandler) GetAnnonceByIDHandler(w http.ResponseWriter, r *http.Re
 	json.NewEncoder(w).Encode(annonce)
 }
 
-// ModifyDescriptionAnnonceHandler godoc
-// @Summary Modify annonce description
-// @Description Modify the description of an existing annonce
+// ModifyAnnonceHandler godoc
+// @Summary Modify annonce
+// @Description Modify the title, description, and cat ID of an existing annonce
 // @Tags annonces
 // @Accept  x-www-form-urlencoded
+// @Accept  application/json
 // @Produce json
 // @Param id path string true "ID of the annonce to modify"
-// @Param description formData string true "New description of the annonce"
+// @Param title formData string false "New title of the annonce"
+// @Param description formData string false "New description of the annonce"
+// @Param catID formData string false "New cat ID of the annonce"
+// @Param title body string false "New title of the annonce"
+// @Param description body string false "New description of the annonce"
+// @Param catID body string false "New cat ID of the annonce"
 // @Success 200 {object} models.Annonce "Annonce updated successfully"
 // @Failure 400 {string} string "Missing or invalid fields in the request"
 // @Failure 403 {string} string "User is not authorized to modify this annonce"
 // @Failure 404 {string} string "Annonce not found"
 // @Failure 500 {string} string "Internal server error"
 // @Router /annonces/{id} [put]
-func (h *AnnonceHandler) ModifyDescriptionAnnonceHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+func (h *AnnonceHandler) ModifyAnnonceHandler(w http.ResponseWriter, r *http.Request) {
+	var title, description, catID string
+
+	contentType := r.Header.Get("Content-Type")
+	if strings.Contains(contentType, "application/json") {
+		var data struct {
+			Title       string `json:"title"`
+			Description string `json:"description"`
+			CatID       string `json:"catID"`
+		}
+		err := json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+		title = data.Title
+		description = data.Description
+		catID = data.CatID
+	} else {
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Invalid form data", http.StatusBadRequest)
+			return
+		}
+		title = r.FormValue("title")
+		description = r.FormValue("description")
+		catID = r.FormValue("catID")
+	}
+
+	if title == "" && description == "" && catID == "" {
+		http.Error(w, "At least one of title, description, or catID is required", http.StatusBadRequest)
+		return
+	}
 
 	annonceID := chi.URLParam(r, "id")
-	description := r.FormValue("description")
-
-	if description == "" {
-		http.Error(w, "description is required", http.StatusBadRequest)
+	if annonceID == "" {
+		http.Error(w, "Annonce ID is required", http.StatusBadRequest)
 		return
 	}
 
 	_, claims, err := jwtauth.FromContext(r.Context())
 	if err != nil {
-		http.Error(w, "error getting claims", http.StatusInternalServerError)
+		http.Error(w, "Error getting claims", http.StatusInternalServerError)
 		return
 	}
-	userID := claims["id"].(string)
+	userID, ok := claims["id"].(string)
+	if !ok {
+		http.Error(w, "Invalid user ID in claims", http.StatusInternalServerError)
+		return
+	}
 
 	existingAnnonce, err := h.annonceQueries.FindAnnonceByID(annonceID)
 	if err != nil {
-		http.Error(w, "error finding annonce", http.StatusNotFound)
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Annonce not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Error finding annonce", http.StatusInternalServerError)
+		}
 		return
 	}
 
 	if existingAnnonce.UserID != userID {
-		http.Error(w, "user is not authorized to modify this annonce", http.StatusForbidden)
+		http.Error(w, "User is not authorized to modify this annonce", http.StatusForbidden)
 		return
 	}
 
-	updatedAnnonce, err := h.annonceQueries.UpdateAnnonceDescription(annonceID, description)
+	// Update the fields if provided
+	if title != "" {
+		existingAnnonce.Title = title
+	}
+	if description != "" {
+		existingAnnonce.Description = &description
+	}
+	if catID != "" {
+		existingAnnonce.CatID = catID
+	}
+
+	err = h.annonceQueries.UpdateAnnonce(existingAnnonce)
 	if err != nil {
 		http.Error(w, "Error updating annonce", http.StatusInternalServerError)
 		return
@@ -270,45 +325,33 @@ func (h *AnnonceHandler) ModifyDescriptionAnnonceHandler(w http.ResponseWriter, 
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(updatedAnnonce)
+	json.NewEncoder(w).Encode(existingAnnonce)
 }
 
 // DeleteAnnonceHandler godoc
-// @Summary Delete annonce
-// @Description Delete an existing annonce
+// @Summary Delete annonce by ID
+// @Description Delete an annonce by its ID
 // @Tags annonces
-// @Param id path string true "ID of the annonce to delete"
-// @Success 204 {string} string "Annonce deleted successfully"
-// @Failure 403 {string} string "User is not authorized to delete this annonce"
+// @Param id path string true "Annonce ID"
+// @Success 204 "No Content"
+// @Failure 400 {string} string "Annonce ID is required"
 // @Failure 404 {string} string "Annonce not found"
-// @Failure 500 {string} string "Internal server error"
+// @Failure 500 {string} string "Error deleting annonce"
 // @Router /annonces/{id} [delete]
 func (h *AnnonceHandler) DeleteAnnonceHandler(w http.ResponseWriter, r *http.Request) {
-	annonceID := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "id")
 
-	annonce, err := h.annonceQueries.FindAnnonceByID(annonceID)
+	if id == "" {
+		http.Error(w, "annonce ID is required", http.StatusBadRequest)
+		return
+	}
+
+	err := h.annonceQueries.DeleteAnnonce(id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			http.Error(w, "annonce not found", http.StatusNotFound)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, fmt.Sprintf("annonce with ID %s not found", id), http.StatusNotFound)
 			return
 		}
-		http.Error(w, "error finding annonce", http.StatusInternalServerError)
-		return
-	}
-
-	_, claims, err := jwtauth.FromContext(r.Context())
-	if err != nil {
-		http.Error(w, "error getting claims", http.StatusInternalServerError)
-		return
-	}
-	userID := claims["id"].(string)
-
-	if annonce.UserID != userID {
-		http.Error(w, "user is not authorized to modify this annonce", http.StatusForbidden)
-		return
-	}
-
-	if err := h.annonceQueries.DeleteAnnonce(annonceID); err != nil {
 		http.Error(w, "error deleting annonce", http.StatusInternalServerError)
 		return
 	}
