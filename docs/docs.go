@@ -204,9 +204,10 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Modify the description of an existing annonce",
+                "description": "Modify the title, description, and cat ID of an existing annonce",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/x-www-form-urlencoded",
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -214,7 +215,7 @@ const docTemplate = `{
                 "tags": [
                     "annonces"
                 ],
-                "summary": "Modify annonce description",
+                "summary": "Modify annonce",
                 "parameters": [
                     {
                         "type": "string",
@@ -225,10 +226,45 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "New title of the annonce",
+                        "name": "title",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
                         "description": "New description of the annonce",
                         "name": "description",
-                        "in": "formData",
-                        "required": true
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "New cat ID of the annonce",
+                        "name": "catID",
+                        "in": "formData"
+                    },
+                    {
+                        "description": "New title of the annonce",
+                        "name": "title",
+                        "in": "body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "New description of the annonce",
+                        "name": "description",
+                        "in": "body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "New cat ID of the annonce",
+                        "name": "catID",
+                        "in": "body",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -265,15 +301,15 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete an existing annonce",
+                "description": "Delete an annonce by its ID",
                 "tags": [
                     "annonces"
                 ],
-                "summary": "Delete annonce",
+                "summary": "Delete annonce by ID",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID of the annonce to delete",
+                        "description": "Annonce ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -281,13 +317,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "Annonce deleted successfully",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": "No Content"
                     },
-                    "403": {
-                        "description": "User is not authorized to delete this annonce",
+                    "400": {
+                        "description": "Annonce ID is required",
                         "schema": {
                             "type": "string"
                         }
@@ -299,7 +332,140 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Error deleting annonce",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/associations": {
+            "get": {
+                "description": "Retrieve all associations from the database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "associations"
+                ],
+                "summary": "Get all associations",
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved all associations",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Association"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new association with the input payload and a PDF file",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "associations"
+                ],
+                "summary": "Create a new association",
+                "parameters": [
+                    {
+                        "description": "Association payload",
+                        "name": "association",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Association"
+                        }
+                    },
+                    {
+                        "type": "file",
+                        "description": "PDF file",
+                        "name": "kbisFile",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successfully created association",
+                        "schema": {
+                            "$ref": "#/definitions/models.Association"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request: Error uploading image 2/3, Invalid content type for kbisFile, expected application/pdf",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error: Error uploading image 1/4/5/6/7/8",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/associations/{id}": {
+            "put": {
+                "description": "Update the verify status of an association with the given ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "associations"
+                ],
+                "summary": "Update an association's verify status",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Association ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Verify status",
+                        "name": "verified",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully updated association",
+                        "schema": {
+                            "$ref": "#/definitions/models.Association"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request: Missing association ID, Invalid association ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "string"
                         }
@@ -542,6 +708,111 @@ const docTemplate = `{
                 }
             }
         },
+        "/cats/": {
+            "get": {
+                "description": "Retrieve cats using their sex, age or race",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Get cats by filters",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "RaceID",
+                        "name": "raceId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Age",
+                        "name": "age",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sexe",
+                        "name": "sexe",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Found cats",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Cats"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "An error has occured",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "No cats were found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error fetching cats",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cats/user/{userID}": {
+            "get": {
+                "description": "Retrieve all cats for a specific user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Get cats by user ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of user's cats",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Cats"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "User ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error fetching cats",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/cats/{id}": {
             "get": {
                 "description": "Retrieve a cat by its ID",
@@ -591,7 +862,8 @@ const docTemplate = `{
             "put": {
                 "description": "Update the details of an existing cat",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/x-www-form-urlencoded",
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -679,6 +951,14 @@ const docTemplate = `{
                         "description": "Annonce ID",
                         "name": "AnnonceID",
                         "in": "formData"
+                    },
+                    {
+                        "description": "Cat object",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/models.Cats"
+                        }
                     }
                 ],
                 "responses": {
@@ -713,7 +993,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Cat ID",
                         "name": "id",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -955,6 +1235,222 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "error updating user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/races": {
+            "get": {
+                "description": "Retrieve a list of all race",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "race"
+                ],
+                "summary": "Get all races",
+                "responses": {
+                    "200": {
+                        "description": "List of race",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Races"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error fetching races",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new race with the input payload",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "race"
+                ],
+                "summary": "Create a new race",
+                "parameters": [
+                    {
+                        "description": "Race object",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Races"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully created race",
+                        "schema": {
+                            "$ref": "#/definitions/models.Races"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error creating race",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/races/{id}": {
+            "get": {
+                "description": "Retrieve one specific race",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "race"
+                ],
+                "summary": "Get a specific race using its id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the race to retrieve",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Race detail",
+                        "schema": {
+                            "$ref": "#/definitions/models.Races"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Race not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update a race by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "race"
+                ],
+                "summary": "Update a race",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Race ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Race object",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Races"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully updated race",
+                        "schema": {
+                            "$ref": "#/definitions/models.Races"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Race not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error updating race",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a race by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "race"
+                ],
+                "summary": "Delete a race",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Race ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successfully deleted race"
+                    },
+                    "400": {
+                        "description": "Invalid ID supplied",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error deleting race",
                         "schema": {
                             "type": "string"
                         }
@@ -1361,6 +1857,91 @@ const docTemplate = `{
                 }
             }
         },
+        "/rooms": {
+            "get": {
+                "description": "Get all rooms for a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Get all rooms for a user",
+                "responses": {
+                    "200": {
+                        "description": "rooms for the user",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Room"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error getting rooms",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/{roomID}": {
+            "get": {
+                "description": "Get all messages for a room in order",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Get all messages for a room in order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the room",
+                        "name": "roomID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "messages for the room",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Message"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "room ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "room not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error getting messages",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "description": "Retrieve a list of all users",
@@ -1550,14 +2131,15 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Retrieve the details of a user by their ID",
+                "description": "Retrieve a user by the provided ID",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Get user by ID",
+                "summary": "Retrieve a user by ID",
+                "operationId": "get-user-by-id",
                 "parameters": [
                     {
                         "type": "string",
@@ -1638,6 +2220,47 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/ws/{roomID}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Establishes a WebSocket connection to a specified chat room for real-time communication.",
+                "summary": "Connect to WebSocket for real-time chat",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "The ID of the chat room to connect to",
+                        "name": "roomID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer token for authentication",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1670,12 +2293,62 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Association": {
+            "type": "object",
+            "properties": {
+                "addressRue": {
+                    "type": "string"
+                },
+                "cp": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "kbisFile": {
+                    "type": "string"
+                },
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.User"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "ownerID": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "verified": {
+                    "type": "boolean"
+                },
+                "ville": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Cats": {
             "type": "object",
             "properties": {
-                "annonceID": {
-                    "type": "string"
-                },
                 "behavior": {
                     "type": "string"
                 },
@@ -1712,7 +2385,7 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "race": {
+                "raceID": {
                     "type": "string"
                 },
                 "reserved": {
@@ -1751,6 +2424,58 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "userID": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Message": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "roomID": {
+                    "type": "integer"
+                },
+                "senderID": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Races": {
+            "type": "object",
+            "properties": {
+                "cats": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Cats"
+                    }
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "raceName": {
+                    "type": "string"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }
@@ -1817,14 +2542,43 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Room": {
+            "type": "object",
+            "properties": {
+                "annonceID": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "user1ID": {
+                    "type": "string"
+                },
+                "user2ID": {
+                    "type": "string"
+                }
+            }
+        },
         "models.User": {
             "type": "object",
             "properties": {
                 "addressRue": {
                     "type": "string"
                 },
-                "associationID": {
-                    "type": "integer"
+                "associations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Association"
+                    }
                 },
                 "cp": {
                     "type": "string"
