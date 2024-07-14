@@ -7,21 +7,42 @@ import (
 	"os"
 
 	"go-challenge/internal/auth"
+<<<<<<< HEAD
 
 	_ "go-challenge/docs"
+=======
+	"go-challenge/internal/handlers"
+>>>>>>> dev
 	"go-challenge/internal/utils"
+
+	_ "go-challenge/docs"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
+
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
 	r := chi.NewRouter()
+
 	r.Use(middleware.Logger)
 
 	r.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
+	r.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("/internal/uploads/"))))
+
+	authHandler := handlers.NewAuthHandler(s.dbService)
+	userHandler := handlers.NewUserHandler(s.dbService, s.uploadcareClient)
+	annonceHandler := handlers.NewAnnonceHandler(s.dbService, s.dbService, s.dbService)
+	catHandler := handlers.NewCatHandler(s.dbService, s.uploadcareClient)
+	favoriteHandler := handlers.NewFavoriteHandler(s.dbService, s.dbService)
+	raceHandler := handlers.NewRaceHandler(s.dbService, s.uploadcareClient)
+	associationHandler := handlers.NewAssociationHandler(s.dbService, s.uploadcareClient)
+	ratingHandler := handlers.NewRatingHandler(s.dbService, s.dbService)
+	roomHandler := handlers.NewRoomHandler(s.dbService)
+
+	roomHandler.LoadRooms()
 
 	r.Group(func(r chi.Router) {
 		// Apply JWT middleware to all routes within this group
@@ -31,43 +52,86 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Group(func(r chi.Router) {
 			// Protected routes for admin users
 			r.Use(AdminOnly)
+			// Admin specific routes
+			r.Put("/race/{id}", raceHandler.UpdateRaceHandler)
+			r.Post("/race", raceHandler.RaceCreationHandler)
+			r.Delete("/race/{id}", raceHandler.DeleteRaceHandler)
 		})
+		//** Race routes for admin
 
 		r.Group(func(r chi.Router) {
 			// Protected routes for personal user data
 			r.Use(UserOnly)
+			// User specific routes
 		})
 
+		//**	Rating routes
+		r.Get("/ratings", ratingHandler.FetchAllRatingsHandler)
+		r.Get("/ratings/{id}", ratingHandler.GetRatingByIDHandler)
+		r.Post("/ratings", ratingHandler.CreateRatingHandler)
+		r.Put("/ratings/{id}", ratingHandler.UpdateRatingHandler)
+		r.Delete("/ratings/{id}", ratingHandler.DeleteRatingHandler)
+		r.Get("/ratings/user/{userID}", ratingHandler.GetUserRatingsHandler)
+		r.Get("/ratings/author/{authorID}", ratingHandler.GetAuthorsRatingsHandler)
+
 		//**	Annonces routes
-		r.Get("/annonces", s.GetAllAnnoncesHandler)
-		r.Get("/annonces/{id}", s.GetAnnonceByIDHandler)
-		r.Post("/annonces", s.AnnonceCreationHandler)
-		r.Put("/annonces/{id}", s.ModifyDescriptionAnnonceHandler)
-		r.Delete("/annonces/{id}", s.DeleteAnnonceHandler)
+		r.Get("/annonces", annonceHandler.GetAllAnnoncesHandler)
+		r.Get("/annonces/{id}", annonceHandler.GetAnnonceByIDHandler)
+		r.Post("/annonces", annonceHandler.AnnonceCreationHandler)
+		r.Put("/annonces/{id}", annonceHandler.ModifyDescriptionAnnonceHandler)
+		r.Delete("/annonces/{id}", annonceHandler.DeleteAnnonceHandler)
+		r.Get("/annonces/cats/{catID}", annonceHandler.FetchAnnonceByCatIDHandler)
 
 		//**	Cats routes
-		r.Get("/cats", s.GetAllCatsHandler)
-		r.Get("/cats/{id}", s.GetCatByIDHandler)
-		r.Put("/cats/{id}", s.UpdateCatHandler)
-		r.Post("/cats", s.CatCreationHandler)
-		r.Delete("/cats/{id}", s.DeleteCatHandler)
+		r.Get("/cats", catHandler.GetAllCatsHandler)
+		r.Get("/cats/{id}", catHandler.GetCatByIDHandler)
+		r.Put("/cats/{id}", catHandler.UpdateCatHandler)
+		r.Post("/cats", catHandler.CatCreationHandler)
+		r.Delete("/cats/{id}", catHandler.DeleteCatHandler)
+		r.Get("/cats/", catHandler.FindCatsByFilterHandler)
+
+		//** Race routes
+		r.Get("/races", raceHandler.GetAllRaceHandler)
+		r.Get("/race/{id}", raceHandler.GetRaceByIDHandler)
 
 		//** User routes
-		r.Post("/profile/picture", s.ModifyProfilePictureHandler)
+		r.Get("/users", userHandler.GetAllUsersHandler)
+		r.Get("/users/annonces/{id}", annonceHandler.GetUserAnnoncesHandler)
+		r.Get("/users/{id}", userHandler.GetUserByIDHandler)
+		r.Get("/users/current", userHandler.GetCurrentUserHandler)
+		r.Post("/users", userHandler.CreateUserHandler)
+		r.Post("/profile/picture", userHandler.ModifyProfilePictureHandler)
+		r.Put("/users/{id}", userHandler.UpdateUserHandler)
+		r.Delete("/users/{id}", userHandler.DeleteUserHandler)
+
+		//** Favorite routes
+		r.Post("/favorites", favoriteHandler.FavoriteCreationHandler)
+		r.Get("/favorites/users/{userID}", favoriteHandler.GetFavoritesByUserHandler)
 
 		//** Auth routes
-		r.Get("/logout/{provider}", s.logoutProvider)
-		r.Get("/logout", s.basicLogout)
+		r.Get("/logout/{provider}", authHandler.LogoutProvider)
+		r.Get("/logout", authHandler.BasicLogout)
+
+		//** Association routes
+		r.Post("/associations", associationHandler.CreateAssociationHandler)
+		r.Get("/associations", associationHandler.GetAllAssociationsHandler)
+		r.Put("/associations/{id}/verify", associationHandler.UpdateAssociationVerifyStatusHandler)
+
+		//** Chat routes
+		r.Get("/rooms", roomHandler.GetUserRooms)
+		r.Get("/rooms/{roomID}", roomHandler.GetRoomMessages)
+		r.Get("/ws/{roomID}", roomHandler.HandleWebSocket)
+
 	})
 
 	// Public routes
-	r.Get("/auth/{provider}/callback", s.getAuthCallbackFunction)
-	r.Get("/auth/{provider}", s.beginAuthProviderCallback)
-	r.Post("/login", s.LoginHandler)
-	r.Post("/register", s.RegisterHandler)
+	r.Get("/auth/{provider}/callback", authHandler.GetAuthCallbackFunction)
+	r.Get("/auth/{provider}", authHandler.BeginAuthProviderCallback)
+	r.Post("/login", authHandler.LoginHandler)
+	r.Post("/register", userHandler.RegisterHandler)
 	r.Get("/", s.HelloWorldHandler)
 	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"), //The url pointing to API definition
+		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"),
 	))
 
 	return r

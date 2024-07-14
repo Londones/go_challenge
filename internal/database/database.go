@@ -6,7 +6,10 @@ import (
 	"os"
 	"path/filepath"
 
+	//"go-challenge/internal/fixtures"
+	"go-challenge/internal/fixtures"
 	"go-challenge/internal/models"
+	"go-challenge/internal/utils"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jinzhu/gorm"
@@ -104,8 +107,46 @@ func New(config *Config) (*Service, error) {
 
 	s := &Service{Db: db}
 
-	// print that the database is connected
+	// Print that the database is connected
 	fmt.Printf("Connected to database %s\n", config.Database)
+
+	// Get the USER role
+	var userRole models.Roles
+	if err := db.Where("name = ?", models.UserRole).First(&userRole).Error; err != nil {
+		fmt.Printf("failed to find user role: %v", err)
+	}
+
+	// Create 5 users
+	users, err := fixtures.CreateUserFixtures(db, 5, &userRole)
+	if err != nil {
+		fmt.Printf("failed to create user fixtures: %v", err)
+	}
+
+	// For each user, create 5 cats and 5 corresponding annonces
+	for _, user := range users {
+		cats, err := fixtures.CreateCatFixturesForUser(db, 5, user.ID)
+		if err != nil {
+			fmt.Printf("failed to create cat fixtures for user %s: %v", user.ID, err)
+		}
+
+		if err := fixtures.CreateAnnonceFixtures(db, cats); err != nil {
+			fmt.Printf("failed to create annonce fixtures for user %s: %v", user.ID, err)
+		}
+	}
+
+	// Create 5 races
+	err = fixtures.CreateRaceFixture(db)
+	if err != nil {
+		fmt.Printf("failed to create race fixture: %v", err)
+	}
+
+	// Création des fixtures pour les évaluations
+	staticUserID := "38f5ca5d-0c87-425f-97fe-c84c3ee0997c"
+	staticAuthorID := "5a7a8b69-6f8d-4818-ac15-b6a83b4fe518"
+	err = fixtures.CreateRatingFixtures(db, staticUserID, staticAuthorID, 5)
+	if err != nil {
+		fmt.Printf("failed to create rating fixtures: %v", err)
+	}
 
 	return s, nil
 }
@@ -131,17 +172,40 @@ func migrateAllModels(db *gorm.DB) error {
 		&models.Annonce{},
 		&models.Association{},
 		&models.Cats{},
+		&models.Races{},
 		&models.Favorite{},
 		&models.Rating{},
 		&models.Roles{},
 		&models.User{},
+		&models.Message{},
+		&models.Room{},
 	).Error
 	if err != nil {
+		utils.Logger("debug", "AutoMigrate:", "Failed to migrate models", fmt.Sprintf("Error: %v", err))
 		fmt.Printf("AutoMigrate error: %v\n", err)
-	} else {
-		fmt.Println("Migrated models successfully")
+		return err
 	}
-	return err
+
+	// Insert roles
+	roles := []models.Roles{
+		{Name: models.AdminRole},
+		{Name: models.UserRole},
+		{Name: models.AssoRole},
+	}
+
+	for _, role := range roles {
+		var existingRole models.Roles
+		if db.Where("name = ?", role.Name).First(&existingRole).RecordNotFound() {
+			if err := db.Create(&role).Error; err != nil {
+				utils.Logger("debug", "Create Role:", "Failed to create role", fmt.Sprintf("Error: %v", err))
+				fmt.Printf("Error creating role: %v\n", err)
+				return err
+			}
+		}
+	}
+
+	fmt.Println("Migrated models and inserted roles successfully")
+	return nil
 }
 
 func (s *Service) DB() *gorm.DB {

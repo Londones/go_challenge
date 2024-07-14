@@ -29,7 +29,7 @@ jobs:
               run: go install github.com/swaggo/swag/cmd/swag@latest
 
             - name: Generate Swagger documentation
-              run: swag init --parseDependency -d ./internal/server -g ../../cmd/api/main.go
+              run: swag init --parseDependency -d ./internal/handlers/ -g ../../cmd/api/main.go
 
             - name: Commit Swagger documentation
               run: |
