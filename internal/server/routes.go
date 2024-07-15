@@ -26,6 +26,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	r.Handle("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 	r.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("/internal/uploads/"))))
+	r.Handle("/.well-known/*", http.StripPrefix("/.well-known/", http.FileServer(http.Dir("assets"))))
 
 	authHandler := handlers.NewAuthHandler(s.dbService)
 	userHandler := handlers.NewUserHandler(s.dbService, s.uploadcareClient)
@@ -121,6 +122,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 	})
 
 	// Public routes
+	// r.Handle("/auth/success/", http.StripPrefix("/assets/", http.FileServer(http.Dir("/assets/success.html"))))
+	r.Handle("/auth/success", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "assets/success.html")
+	}))
 	r.Get("/auth/{provider}/callback", authHandler.GetAuthCallbackFunction)
 	r.Get("/auth/{provider}", authHandler.BeginAuthProviderCallback)
 	r.Post("/login", authHandler.LoginHandler)
