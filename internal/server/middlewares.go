@@ -4,9 +4,16 @@ import (
 	"fmt"
 	"net/http"
 
+	"go-challenge/internal/handlers"
+	"go-challenge/internal/models"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
 )
+
+type Middleware struct {
+	FeatureFlagHandler *handlers.FeatureFlagHandler
+}
 
 func AdminOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -43,3 +50,37 @@ func UserOnly(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func (m *Middleware) FeatureFlagMiddleware(featureName string, next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        featureFlags, err := m.FeatureFlagHandler.GetFeatureFlags()
+        if err != nil {
+            http.Error(w, "Error fetching feature flags", http.StatusInternalServerError)
+            return
+        }
+
+        enabled, err := IsFeatureEnabled(featureFlags, featureName)
+        if err != nil {
+            http.Error(w, "Error checking feature flag", http.StatusInternalServerError)
+            return
+        }
+        if !enabled {
+            http.Error(w, "Feature not enabled", http.StatusForbidden)
+            return
+        }
+        next.ServeHTTP(w, r)
+    })
+}
+
+func IsFeatureEnabled(featureFlags []models.FeatureFlag, featureName string) (bool, error) {
+    for _, featureFlag := range featureFlags {
+        if featureFlag.Name == featureName {
+            return featureFlag.IsEnabled, nil
+        }
+    }
+
+    return false, fmt.Errorf("feature flag not found: %s", featureName)
+}
+
+  
+
