@@ -580,8 +580,8 @@ const docTemplate = `{
             "post": {
                 "description": "Create a new cat with the provided details",
                 "consumes": [
-                    "multipart/form-data",
-                    "application/json"
+                    "application/json",
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -592,13 +592,85 @@ const docTemplate = `{
                 "summary": "Create cat",
                 "parameters": [
                     {
-                        "description": "Cat object",
-                        "name": "cat",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Cats"
-                        }
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Birth Date",
+                        "name": "BirthDate",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sexe",
+                        "name": "sexe",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Last Vaccine Date",
+                        "name": "LastVaccine",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Last Vaccine Name",
+                        "name": "LastVaccineName",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Color",
+                        "name": "Color",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Behavior",
+                        "name": "Behavior",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sterilized",
+                        "name": "Sterilized",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "RaceID",
+                        "name": "RaceID",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Description",
+                        "name": "Description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Reserved",
+                        "name": "Reserved",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "UserID",
+                        "in": "formData",
+                        "required": true
                     },
                     {
                         "type": "file",
@@ -784,8 +856,8 @@ const docTemplate = `{
             "put": {
                 "description": "Update the details of an existing cat",
                 "consumes": [
-                    "application/x-www-form-urlencoded",
-                    "application/json"
+                    "application/json",
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -870,17 +942,15 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Annonce ID",
-                        "name": "AnnonceID",
+                        "description": "User ID",
+                        "name": "UserID",
                         "in": "formData"
                     },
                     {
-                        "description": "Cat object",
-                        "name": "body",
-                        "in": "body",
-                        "schema": {
-                            "$ref": "#/definitions/models.Cats"
-                        }
+                        "type": "file",
+                        "description": "Image",
+                        "name": "uploaded_file",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
