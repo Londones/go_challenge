@@ -37,6 +37,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	associationHandler := handlers.NewAssociationHandler(s.dbService, s.uploadcareClient)
 	ratingHandler := handlers.NewRatingHandler(s.dbService, s.dbService)
 	roomHandler := handlers.NewRoomHandler(s.dbService)
+	notificationTokenHandler := handlers.NewNotificationTokenHandler(s.dbService)
 
 	roomHandler.LoadRooms()
 
@@ -118,6 +119,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/rooms", roomHandler.GetUserRooms)
 		r.Get("/rooms/{roomID}", roomHandler.GetRoomMessages)
 		r.Get("/ws/{roomID}", roomHandler.HandleWebSocket)
+
+		//** Notification routes
+		r.Post("/notifications", notificationTokenHandler.CreateNotificationTokenHandler)
+		r.Delete("/notifications/{id}", notificationTokenHandler.DeleteNotificationTokenHandler)
+		r.Post("/notifications/send", notificationTokenHandler.SendNotificationHandler)
 	})
 
 	// Public routes
@@ -133,6 +139,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"),
 	))
+
+	r.Get("/notifications/test", notificationTokenHandler.TestSendNotificationHandler)
 
 	return r
 }

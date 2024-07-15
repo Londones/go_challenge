@@ -30,25 +30,24 @@ func AdminOnly(next http.Handler) http.Handler {
 }
 
 func UserOnly(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, claims, err := jwtauth.FromContext(r.Context())
-		if err != nil || claims["id"] == nil {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        _, claims, err := jwtauth.FromContext(r.Context())
+        if err != nil || claims["id"] == nil {
+            http.Error(w, "Unauthorized", http.StatusUnauthorized)
+            return
+        }
 
-		userID := claims["id"].(string)
-		routeUserID := chi.URLParam(r, "id")
+        userID := claims["id"].(string)
+        routeUserID := chi.URLParam(r, "id")
 
-		fmt.Println(userID, routeUserID)
+        // Only check the route user ID if it exists
+        if routeUserID != "" && userID != routeUserID {
+            http.Error(w, "Forbidden", http.StatusForbidden)
+            return
+        }
 
-		if userID != routeUserID {
-			http.Error(w, "Forbidden", http.StatusForbidden)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
+        next.ServeHTTP(w, r)
+    })
 }
 
 func (m *Middleware) FeatureFlagMiddleware(featureName string, next http.Handler) http.Handler {

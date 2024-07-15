@@ -11,6 +11,7 @@ import (
 
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
+	"go-challenge/internal/config"
 	"go-challenge/internal/utils"
 
 	"github.com/go-chi/chi/v5"
@@ -218,6 +219,14 @@ func (c *Client) readPump(room *Room, h *RoomHandler) {
 			log.Printf("Error saving message: %v", error)
 			break
 		}
+		notificationToken, error := h.roomQueries.GetNotificationTokenByUserID(c.userID)
+		if error != nil {
+			log.Printf("Error getting notification token: %v", error)
+		} else if notificationToken.Token != "" {
+			fmt.Println("Sending notification....%v", notificationToken.Token)
+			SendToToken(config.GetFirebaseApp(), notificationToken.Token, createdMessage.Content, createdMessage.SenderID)
+		}
+		
 
 		/*jsonMessage := MessageJSON{
 			Content:   createdMessage.Content,

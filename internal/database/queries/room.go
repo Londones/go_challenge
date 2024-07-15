@@ -80,3 +80,12 @@ func (s *DatabaseService) GetRooms() ([]*models.Room, error) {
 	utils.Logger("info", "Get Rooms:", "Rooms retrieved successfully", fmt.Sprintf("Rooms: %v", rooms))
 	return rooms, nil
 }
+
+func (s *DatabaseService) GetNotificationTokenByUserIDOnRoom(userID string) (*models.NotificationToken, error) {
+	db := s.s.DB()
+	var notificationToken models.NotificationToken
+	if err := db.Where("user_id = ?", userID).First(&notificationToken).Error; err != nil {
+		return nil, err
+	}
+	return &notificationToken, nil
+}
