@@ -1,0 +1,1737 @@
+basePath: /
+definitions:
+  models.Annonce:
+    properties:
+      catID:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  models.Association:
+    properties:
+      addressRue:
+        type: string
+      cp:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      kbisFile:
+        type: string
+      members:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+      name:
+        type: string
+      owner:
+        $ref: '#/definitions/models.User'
+      ownerID:
+        type: string
+      phone:
+        type: string
+      updatedAt:
+        type: string
+      verified:
+        type: boolean
+      ville:
+        type: string
+    type: object
+  models.Cats:
+    properties:
+      behavior:
+        type: string
+      birthDate:
+        type: string
+      color:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      lastVaccine:
+        type: string
+      lastVaccineName:
+        type: string
+      name:
+        type: string
+      picturesURL:
+        items:
+          type: string
+        type: array
+      raceID:
+        type: string
+      reserved:
+        type: boolean
+      sexe:
+        type: string
+      sterilized:
+        type: boolean
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  models.Favorite:
+    properties:
+      annonceID:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  models.Message:
+    properties:
+      content:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      roomID:
+        type: integer
+      senderID:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.Races:
+    properties:
+      cats:
+        items:
+          $ref: '#/definitions/models.Cats'
+        type: array
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      raceName:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.Rating:
+    properties:
+      authorID:
+        type: string
+      comment:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      mark:
+        type: integer
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  models.RoleName:
+    enum:
+    - ADMIN
+    - USER
+    - ASSO
+    type: string
+    x-enum-varnames:
+    - AdminRole
+    - UserRole
+    - AssoRole
+  models.Roles:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      name:
+        $ref: '#/definitions/models.RoleName'
+      updatedAt:
+        type: string
+    type: object
+  models.Room:
+    properties:
+      annonceID:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      updatedAt:
+        type: string
+      user1ID:
+        type: string
+      user2ID:
+        type: string
+    type: object
+  models.User:
+    properties:
+      addressRue:
+        type: string
+      associations:
+        items:
+          $ref: '#/definitions/models.Association'
+        type: array
+      cp:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      email:
+        type: string
+      googleID:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      profilePicURL:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/models.Roles'
+        type: array
+      updatedAt:
+        type: string
+      ville:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Swagger de PurrfectMatch
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: GO-challenge-PurrfectMatch
+  version: "1.0"
+paths:
+  /annonces:
+    get:
+      description: Retrieve all annonces from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of annonces
+          schema:
+            items:
+              $ref: '#/definitions/models.Annonce'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get all annonces
+      tags:
+      - annonces
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new annonce with the provided details
+      parameters:
+      - description: Title of the annonce
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Description of the annonce
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Cat ID
+        in: formData
+        name: catID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Annonce created successfully
+          schema:
+            $ref: '#/definitions/models.Annonce'
+        "400":
+          description: Missing or invalid fields in the request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create annonces
+      tags:
+      - annonces
+  /annonces/{id}:
+    delete:
+      description: Delete an annonce by its ID
+      parameters:
+      - description: Annonce ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Annonce ID is required
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
+          schema:
+            type: string
+        "500":
+          description: Error deleting annonce
+          schema:
+            type: string
+      summary: Delete annonce by ID
+      tags:
+      - annonces
+    get:
+      description: Retrieve an annonce from the database by its ID
+      parameters:
+      - description: ID of the annonce to retrieve
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Annonce details
+          schema:
+            $ref: '#/definitions/models.Annonce'
+        "400":
+          description: Invalid ID format
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get an annonce by ID
+      tags:
+      - annonces
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      - application/json
+      description: Modify the title, description, and cat ID of an existing annonce
+      parameters:
+      - description: ID of the annonce to modify
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New title of the annonce
+        in: formData
+        name: title
+        type: string
+      - description: New description of the annonce
+        in: formData
+        name: description
+        type: string
+      - description: New cat ID of the annonce
+        in: formData
+        name: catID
+        type: string
+      - description: New title of the annonce
+        in: body
+        name: title
+        schema:
+          type: string
+      - description: New description of the annonce
+        in: body
+        name: description
+        schema:
+          type: string
+      - description: New cat ID of the annonce
+        in: body
+        name: catID
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Annonce updated successfully
+          schema:
+            $ref: '#/definitions/models.Annonce'
+        "400":
+          description: Missing or invalid fields in the request
+          schema:
+            type: string
+        "403":
+          description: User is not authorized to modify this annonce
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Modify annonce
+      tags:
+      - annonces
+  /annonces/cats/{catID}:
+    get:
+      description: Retrieve an annonce from the database by its Cat ID
+      parameters:
+      - description: Cat ID of the annonce to retrieve
+        in: path
+        name: catID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Annonce details
+          schema:
+            $ref: '#/definitions/models.Annonce'
+        "400":
+          description: Invalid Cat ID format
+          schema:
+            type: string
+        "404":
+          description: Annonce not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get an annonce by Cat ID
+      tags:
+      - annonces
+  /associations:
+    get:
+      description: Retrieve all associations from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved all associations
+          schema:
+            items:
+              $ref: '#/definitions/models.Association'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get all associations
+      tags:
+      - associations
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create a new association with the input payload and a PDF file
+      parameters:
+      - description: Association payload
+        in: body
+        name: association
+        required: true
+        schema:
+          $ref: '#/definitions/models.Association'
+      - description: PDF file
+        in: formData
+        name: kbisFile
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created association
+          schema:
+            $ref: '#/definitions/models.Association'
+        "400":
+          description: 'Bad Request: Error uploading image 2/3, Invalid content type
+            for kbisFile, expected application/pdf'
+          schema:
+            type: string
+        "500":
+          description: 'Internal Server Error: Error uploading image 1/4/5/6/7/8'
+          schema:
+            type: string
+      summary: Create a new association
+      tags:
+      - associations
+  /associations/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update the verify status of an association with the given ID
+      parameters:
+      - description: Association ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Verify status
+        in: body
+        name: verified
+        required: true
+        schema:
+          type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated association
+          schema:
+            $ref: '#/definitions/models.Association'
+        "400":
+          description: 'Bad Request: Missing association ID, Invalid association ID'
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Update an association's verify status
+      tags:
+      - associations
+  /auth/{provider}:
+    get:
+      consumes:
+      - application/json
+      description: Start the authentication process with the specified provider
+      parameters:
+      - description: Authentication Provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Authentication process started
+          schema:
+            type: string
+        "500":
+          description: Error message
+          schema:
+            type: string
+      summary: Begin authentication provider callback
+      tags:
+      - auth
+  /auth/{provider}/callback:
+    get:
+      consumes:
+      - application/json
+      description: Completes user authentication with the specified provider
+      parameters:
+      - description: Authentication Provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Authenticated user
+          schema:
+            $ref: '#/definitions/models.User'
+        "500":
+          description: Error message
+          schema:
+            type: string
+      summary: Authentication callback
+      tags:
+      - auth
+  /cats:
+    get:
+      description: Retrieve a list of all cats
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of cats
+          schema:
+            items:
+              $ref: '#/definitions/models.Cats'
+            type: array
+        "500":
+          description: error fetching cats
+          schema:
+            type: string
+      summary: Get all cats
+      tags:
+      - cats
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create a new cat with the provided details
+      parameters:
+      - description: Name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Birth Date
+        in: formData
+        name: BirthDate
+        required: true
+        type: string
+      - description: Sexe
+        in: formData
+        name: sexe
+        required: true
+        type: string
+      - description: Last Vaccine Date
+        in: formData
+        name: LastVaccine
+        type: string
+      - description: Last Vaccine Name
+        in: formData
+        name: LastVaccineName
+        type: string
+      - description: Color
+        in: formData
+        name: Color
+        required: true
+        type: string
+      - description: Behavior
+        in: formData
+        name: Behavior
+        required: true
+        type: string
+      - description: Sterilized
+        in: formData
+        name: Sterilized
+        required: true
+        type: string
+      - description: Race
+        in: formData
+        name: Race
+        required: true
+        type: string
+      - description: Description
+        in: formData
+        name: Description
+        type: string
+      - description: Reserved
+        in: formData
+        name: Reserved
+        required: true
+        type: string
+      - description: Annonce ID
+        in: formData
+        name: AnnonceID
+        required: true
+        type: string
+      - description: User ID
+        in: formData
+        name: UserID
+        required: true
+        type: string
+      - description: Image
+        in: formData
+        name: uploaded_file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: cat created successfully
+          schema:
+            $ref: '#/definitions/models.Cats'
+        "400":
+          description: all fields are required
+          schema:
+            type: string
+        "500":
+          description: error creating cat
+          schema:
+            type: string
+      summary: Create cat
+      tags:
+      - cats
+  /cats/:
+    get:
+      description: Retrieve cats using their sex, age or race
+      parameters:
+      - description: RaceID
+        in: query
+        name: raceId
+        type: string
+      - description: Age
+        in: query
+        name: age
+        type: integer
+      - description: Sexe
+        in: query
+        name: sexe
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Found cats
+          schema:
+            items:
+              $ref: '#/definitions/models.Cats'
+            type: array
+        "400":
+          description: An error has occured
+          schema:
+            type: string
+        "404":
+          description: No cats were found
+          schema:
+            type: string
+        "500":
+          description: error fetching cats
+          schema:
+            type: string
+      summary: Get cats by filters
+      tags:
+      - cats
+  /cats/{id}:
+    delete:
+      description: Delete a cat by its ID
+      parameters:
+      - description: Cat ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Cat ID is required
+          schema:
+            type: string
+        "404":
+          description: Cat not found
+          schema:
+            type: string
+        "500":
+          description: Error deleting cat
+          schema:
+            type: string
+      summary: Delete cat by ID
+      tags:
+      - cats
+    get:
+      description: Retrieve a cat by its ID
+      parameters:
+      - description: Cat ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Found cat
+          schema:
+            $ref: '#/definitions/models.Cats'
+        "400":
+          description: Cat ID is required
+          schema:
+            type: string
+        "404":
+          description: Cat not found
+          schema:
+            type: string
+        "500":
+          description: Error fetching cat
+          schema:
+            type: string
+      summary: Get cat by ID
+      tags:
+      - cats
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      - application/json
+      description: Update the details of an existing cat
+      parameters:
+      - description: Cat ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Name
+        in: formData
+        name: name
+        type: string
+      - description: Birth Date
+        in: formData
+        name: BirthDate
+        type: string
+      - description: Sexe
+        in: formData
+        name: sexe
+        type: string
+      - description: Last Vaccine Date
+        in: formData
+        name: LastVaccine
+        type: string
+      - description: Last Vaccine Name
+        in: formData
+        name: LastVaccineName
+        type: string
+      - description: Color
+        in: formData
+        name: Color
+        type: string
+      - description: Behavior
+        in: formData
+        name: Behavior
+        type: string
+      - description: Sterilized
+        in: formData
+        name: Sterilized
+        type: string
+      - description: Race
+        in: formData
+        name: Race
+        type: string
+      - description: Description
+        in: formData
+        name: Description
+        type: string
+      - description: Reserved
+        in: formData
+        name: Reserved
+        type: string
+      - description: Annonce ID
+        in: formData
+        name: AnnonceID
+        type: string
+      - description: Cat object
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/models.Cats'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cat updated successfully
+          schema:
+            $ref: '#/definitions/models.Cats'
+        "400":
+          description: Missing or invalid fields in the request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Update cat
+      tags:
+      - cats
+  /cats/user/{userID}:
+    get:
+      description: Retrieve all cats for a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of user's cats
+          schema:
+            items:
+              $ref: '#/definitions/models.Cats'
+            type: array
+        "400":
+          description: User ID is required
+          schema:
+            type: string
+        "500":
+          description: Error fetching cats
+          schema:
+            type: string
+      summary: Get cats by user ID
+      tags:
+      - cats
+  /favorites:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create a new favorite with the provided details
+      parameters:
+      - description: ID of the annonce
+        in: formData
+        name: annonceID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: favorite created successfully
+          schema:
+            $ref: '#/definitions/models.Favorite'
+        "400":
+          description: annonceID is required
+          schema:
+            type: string
+        "500":
+          description: error creating favorite
+          schema:
+            type: string
+      summary: Create favorites
+      tags:
+      - favorites
+  /favorites/users/{userID}:
+    get:
+      description: Get all favorites of the user
+      parameters:
+      - description: ID of the user
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of user favorites
+          schema:
+            items:
+              $ref: '#/definitions/models.Favorite'
+            type: array
+        "400":
+          description: user ID is required
+          schema:
+            type: string
+        "404":
+          description: favorites not found
+          schema:
+            type: string
+        "500":
+          description: error retrieving favorites
+          schema:
+            type: string
+      summary: Get user favorites
+      tags:
+      - favorites
+  /login:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Login with the given email and password
+      parameters:
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            type: string
+        "400":
+          description: Email and password are required
+          schema:
+            type: string
+        "401":
+          description: Invalid password
+          schema:
+            type: string
+        "404":
+          description: User not found
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - auth
+  /logout:
+    get:
+      description: Remove the JWT cookie and redirect to the success page
+      responses:
+        "302":
+          description: Redirect location
+          schema:
+            type: string
+      summary: Basic logout
+      tags:
+      - auth
+  /logout/{provider}:
+    get:
+      description: Logout from the authentication provider and remove the JWT cookie
+      responses:
+        "307":
+          description: Redirect location
+          schema:
+            type: string
+      summary: Logout from provider
+      tags:
+      - auth
+  /profile/picture:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Modify the profile picture of the authenticated user
+      parameters:
+      - description: Image
+        in: formData
+        name: uploaded_file
+        required: true
+        type: file
+      responses:
+        "200":
+          description: Profile picture updated successfully
+          schema:
+            type: string
+        "500":
+          description: error updating user
+          schema:
+            type: string
+      summary: Modify profile picture
+      tags:
+      - users
+  /races:
+    get:
+      description: Retrieve a list of all race
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of race
+          schema:
+            items:
+              $ref: '#/definitions/models.Races'
+            type: array
+        "500":
+          description: error fetching races
+          schema:
+            type: string
+      summary: Get all races
+      tags:
+      - race
+    post:
+      consumes:
+      - application/json
+      description: Create a new race with the input payload
+      parameters:
+      - description: Race object
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.Races'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully created race
+          schema:
+            $ref: '#/definitions/models.Races'
+        "400":
+          description: Invalid JSON body
+          schema:
+            type: string
+        "500":
+          description: Error creating race
+          schema:
+            type: string
+      summary: Create a new race
+      tags:
+      - race
+  /races/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a race by ID
+      parameters:
+      - description: Race ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Successfully deleted race
+        "400":
+          description: Invalid ID supplied
+          schema:
+            type: string
+        "500":
+          description: Error deleting race
+          schema:
+            type: string
+      summary: Delete a race
+      tags:
+      - race
+    get:
+      description: Retrieve one specific race
+      parameters:
+      - description: ID of the race to retrieve
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Race detail
+          schema:
+            $ref: '#/definitions/models.Races'
+        "400":
+          description: Invalid ID format
+          schema:
+            type: string
+        "404":
+          description: Race not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get a specific race using its id
+      tags:
+      - race
+    put:
+      consumes:
+      - application/json
+      description: Update a race by ID
+      parameters:
+      - description: Race ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Race object
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.Races'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated race
+          schema:
+            $ref: '#/definitions/models.Races'
+        "400":
+          description: Invalid JSON body
+          schema:
+            type: string
+        "404":
+          description: Race not found
+          schema:
+            type: string
+        "500":
+          description: Error updating race
+          schema:
+            type: string
+      summary: Update a race
+      tags:
+      - race
+  /ratings:
+    get:
+      description: Récupère toutes les Ratings de la base de données
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste de toutes les Ratings
+          schema:
+            items:
+              $ref: '#/definitions/models.Rating'
+            type: array
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Récupérer toutes les Ratings
+      tags:
+      - Ratings
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      - application/json
+      description: Crée une nouvelle évaluation avec les détails fournis
+      parameters:
+      - description: Note de l'évaluation
+        in: formData
+        name: mark
+        required: true
+        type: integer
+      - description: Commentaire sur l'évaluation
+        in: formData
+        name: comment
+        type: string
+      - description: ID de l'utilisateur évalué
+        in: formData
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Évaluation créée avec succès
+          schema:
+            $ref: '#/definitions/models.Rating'
+        "400":
+          description: Champs manquants ou invalides dans la requête
+          schema:
+            type: string
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Créer une évaluation
+      tags:
+      - Ratings
+  /ratings/{id}:
+    delete:
+      description: Supprime une évaluation existante
+      parameters:
+      - description: ID de l'évaluation à supprimer
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Évaluation supprimée avec succès
+          schema:
+            type: string
+        "403":
+          description: L'utilisateur n'est pas autorisé à supprimer cette évaluation
+          schema:
+            type: string
+        "404":
+          description: Évaluation non trouvée
+          schema:
+            type: string
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Supprimer une évaluation
+      tags:
+      - Ratings
+    get:
+      description: Récupère une évaluation par son ID
+      parameters:
+      - description: ID de l'évaluation à récupérer
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Évaluation récupérée avec succès
+          schema:
+            $ref: '#/definitions/models.Rating'
+        "404":
+          description: Évaluation non trouvée
+          schema:
+            type: string
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Récupérer une évaluation par ID
+      tags:
+      - Ratings
+    put:
+      consumes:
+      - application/x-www-form-urlencoded
+      - application/json
+      description: Met à jour les détails d'une évaluation existante
+      parameters:
+      - description: ID de l'évaluation à mettre à jour
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Note mise à jour
+        in: formData
+        name: mark
+        required: true
+        type: integer
+      - description: Commentaire mis à jour
+        in: formData
+        name: comment
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Évaluation mise à jour avec succès
+          schema:
+            $ref: '#/definitions/models.Rating'
+        "400":
+          description: Champs manquants ou invalides dans la requête
+          schema:
+            type: string
+        "403":
+          description: L'utilisateur n'est pas autorisé à modifier cette évaluation
+          schema:
+            type: string
+        "404":
+          description: Évaluation non trouvée
+          schema:
+            type: string
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Mettre à jour une évaluation
+      tags:
+      - Ratings
+  /ratings/author/{authorID}:
+    get:
+      description: Récupère toutes les Ratings créées par un auteur spécifique
+      parameters:
+      - description: ID de l'auteur
+        in: path
+        name: authorID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste des Ratings par l'auteur
+          schema:
+            items:
+              $ref: '#/definitions/models.Rating'
+            type: array
+        "404":
+          description: Auteur non trouvé
+          schema:
+            type: string
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Récupérer les Ratings d'un auteur
+      tags:
+      - Ratings
+  /ratings/user/{userID}:
+    get:
+      description: Récupère toutes les Ratings pour un utilisateur spécifique
+      parameters:
+      - description: ID de l'utilisateur
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liste des Ratings pour l'utilisateur
+          schema:
+            items:
+              $ref: '#/definitions/models.Rating'
+            type: array
+        "404":
+          description: Utilisateur non trouvé
+          schema:
+            type: string
+        "500":
+          description: Erreur interne du serveur
+          schema:
+            type: string
+      summary: Récupérer les Ratings d'un utilisateur
+      tags:
+      - Ratings
+  /register:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Register a new user with the given email, password, name, address,
+        cp, and ville
+      parameters:
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: Name
+        in: formData
+        name: name
+        type: string
+      - description: Address
+        in: formData
+        name: addressRue
+        type: string
+      - description: CP
+        in: formData
+        name: cp
+        type: string
+      - description: Ville
+        in: formData
+        name: ville
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+        "400":
+          description: email and password are required
+          schema:
+            type: string
+        "500":
+          description: error creating user
+          schema:
+            type: string
+      summary: Register a new user
+      tags:
+      - users
+  /rooms:
+    get:
+      consumes:
+      - application/json
+      description: Get all rooms for a user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: rooms for the user
+          schema:
+            items:
+              $ref: '#/definitions/models.Room'
+            type: array
+        "500":
+          description: error getting rooms
+          schema:
+            type: string
+      summary: Get all rooms for a user
+      tags:
+      - rooms
+  /rooms/{roomID}:
+    get:
+      consumes:
+      - application/json
+      description: Get all messages for a room in order
+      parameters:
+      - description: ID of the room
+        in: path
+        name: roomID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: messages for the room
+          schema:
+            items:
+              $ref: '#/definitions/models.Message'
+            type: array
+        "400":
+          description: room ID is required
+          schema:
+            type: string
+        "404":
+          description: room not found
+          schema:
+            type: string
+        "500":
+          description: error getting messages
+          schema:
+            type: string
+      summary: Get all messages for a room in order
+      tags:
+      - rooms
+  /users:
+    get:
+      description: Retrieve a list of all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of users
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "500":
+          description: Error fetching users
+          schema:
+            type: string
+      summary: Get all users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user with the given email, password, name, address,
+        cp, and ville
+      parameters:
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: Name
+        in: formData
+        name: name
+        type: string
+      - description: Address
+        in: formData
+        name: addressRue
+        type: string
+      - description: CP
+        in: formData
+        name: cp
+        type: string
+      - description: Ville
+        in: formData
+        name: ville
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User created successfully
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Invalid JSON body
+          schema:
+            type: string
+        "500":
+          description: Error creating user
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Create user
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      description: Delete an existing user
+      parameters:
+      - description: ID of the user to delete
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: User ID is required
+          schema:
+            type: string
+        "500":
+          description: Error deleting user
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Delete user
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a user by the provided ID
+      operationId: get-user-by-id
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: User ID is required
+          schema:
+            type: string
+        "404":
+          description: User not found
+          schema:
+            type: string
+        "500":
+          description: Error finding user
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieve a user by ID
+  /users/annonces/{id}:
+    get:
+      description: Retrieve all annonces for a specific user from the database
+      parameters:
+      - description: User ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of user's annonces
+          schema:
+            items:
+              $ref: '#/definitions/models.Annonce'
+            type: array
+        "400":
+          description: Bad request - missing userID parameter
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get user's annonces
+      tags:
+      - annonces
+  /users/current:
+    get:
+      description: Retrieve the details of the currently authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            $ref: '#/definitions/models.User'
+        "500":
+          description: error finding user
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get current user
+      tags:
+      - users
+  /ws/{roomID}:
+    get:
+      description: Establishes a WebSocket connection to a specified chat room for
+        real-time communication.
+      parameters:
+      - description: The ID of the chat room to connect to
+        in: path
+        name: roomID
+        required: true
+        type: integer
+      - description: Bearer token for authentication
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        "101":
+          description: Switching Protocols
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Connect to WebSocket for real-time chat
+swagger: "2.0"

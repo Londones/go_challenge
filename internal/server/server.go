@@ -8,32 +8,48 @@ import (
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/uploadcare/uploadcare-go/ucare"
 
+	"go-challenge/internal/api"
 	"go-challenge/internal/database"
+	"go-challenge/internal/database/queries"
 )
 
 type Server struct {
-	port int
-
-	db database.Service
+	port             int
+	db               *database.Service
+	uploadcareClient ucare.Client
+	dbService        *queries.DatabaseService
 }
 
-func NewServer() *http.Server {
+func NewServer() (*http.Server, error) {
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
-	NewServer := &Server{
-		port: port,
+	db, err := database.New(&database.Config{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create database: %v", err)
+	}
+	ucClient, err := api.CreateUCClient()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create uploadcare client: %v", err)
+	}
+	dbService := queries.NewQueriesService(db)
 
-		db: database.New(),
+	newServer := &Server{
+		port:             port,
+		db:               db,
+		uploadcareClient: ucClient,
+		dbService:        dbService,
 	}
 
-	// Declare Server config
 	server := &http.Server{
-		Addr:         fmt.Sprintf(":%d", NewServer.port),
-		Handler:      NewServer.RegisterRoutes(),
+		Addr:         fmt.Sprintf(":%d", newServer.port),
+		Handler:      newServer.RegisterRoutes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
 
-	return server
+	fmt.Printf("Server is running on port %s\n", server.Addr)
+
+	return server, nil
 }

@@ -1,35 +1,24 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
 	"time"
 )
 
+// User represents a user in the system.
+// swagger:model User
 type User struct {
-	gorm.Model
-	Name     string `gorm:"type:varchar(100);not null"`
-	Email    string `gorm:"type:varchar(100);unique_index;not null"`
-	Password string `gorm:"type:varchar(100);not null"`
-	Adress   *string
-	Roles    []Roles `gorm:"many2many:user_languages;"`
-	Annonce  []Annonce
-	Favorite []Annonce
-}
-
-type Annonce struct {
-	gorm.Model
-	UserID uint
-	Cats   []Cats `gorm:"foreignKey:CustomReferer"`
-}
-
-type Cats struct {
-	gorm.Model
-	Name      string `gorm:"type:varchar(100);not null"`
-	Color     string `gorm:"type:varchar(100);not null"`
-	BirthDate *time.Time
-}
-
-type Roles struct {
-	gorm.Model
-	Name string `gorm:"type:varchar(100);not null"`
+	ID            string `gorm:"type:uuid;primary_key;"`
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	DeletedAt     *time.Time    `sql:"index"`
+	Name          string        `gorm:"type:varchar(100);not null"`
+	Email         string        `gorm:"type:varchar(100);unique_index;not null"`
+	Password      string        `gorm:"type:varchar(100);not null"`
+	AddressRue    string        `gorm:"type:varchar(250)"`
+	Cp            string        `gorm:"type:char(5)"`
+	Ville         string        `gorm:"type:varchar(100)"`
+	Associations  []Association `gorm:"many2many:association_members;"`
+	Roles         []Roles       `gorm:"many2many:user_roles;"`
+	GoogleID      string
+	ProfilePicURL string `gorm:"type:varchar(500)"`
 }
