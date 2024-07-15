@@ -514,6 +514,65 @@ paths:
       tags:
       - associations
   /associations/{id}:
+    delete:
+      description: Delete an association by its ID
+      parameters:
+      - description: Association ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Successfully deleted association
+        "400":
+          description: 'Bad Request: Invalid association ID'
+          schema:
+            type: string
+        "404":
+          description: 'Not Found: Association not found'
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Delete an association
+      tags:
+      - associations
+    get:
+      description: Retrieve an association by its ID
+      parameters:
+      - description: Association ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved association
+          schema:
+            $ref: '#/definitions/models.Association'
+        "400":
+          description: 'Bad Request: Invalid association ID'
+          schema:
+            type: string
+        "404":
+          description: 'Not Found: Association not found'
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get association by ID
+      tags:
+      - associations
+  /associations/{id}/verify:
     put:
       consumes:
       - application/json
@@ -1654,6 +1713,35 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Retrieve a user by ID
+  /users/{userId}/associations:
+    get:
+      description: Retrieve all associations for a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved associations for user
+          schema:
+            items:
+              $ref: '#/definitions/models.Association'
+            type: array
+        "400":
+          description: 'Bad Request: Invalid user ID'
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get associations by user ID
+      tags:
+      - associations
   /users/annonces/{id}:
     get:
       description: Retrieve all annonces for a specific user from the database

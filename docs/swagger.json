@@ -414,6 +414,95 @@
             }
         },
         "/associations/{id}": {
+            "get": {
+                "description": "Retrieve an association by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "associations"
+                ],
+                "summary": "Get association by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Association ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved association",
+                        "schema": {
+                            "$ref": "#/definitions/models.Association"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request: Invalid association ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Association not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete an association by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "associations"
+                ],
+                "summary": "Delete an association",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Association ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successfully deleted association"
+                    },
+                    "400": {
+                        "description": "Bad Request: Invalid association ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Association not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/associations/{id}/verify": {
             "put": {
                 "description": "Update the verify status of an association with the given ID",
                 "consumes": [
@@ -2199,6 +2288,50 @@
                     },
                     "500": {
                         "description": "Error deleting user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{userId}/associations": {
+            "get": {
+                "description": "Retrieve all associations for a specific user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "associations"
+                ],
+                "summary": "Get associations by user ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved associations for user",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Association"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request: Invalid user ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "string"
                         }

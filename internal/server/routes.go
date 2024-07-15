@@ -112,7 +112,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 		//** Association routes
 		r.Post("/associations", associationHandler.CreateAssociationHandler)
 		r.Get("/associations", associationHandler.GetAllAssociationsHandler)
+		r.Get("/users/{userId}/associations", associationHandler.GetUserAssociationsHandler)
+		r.Get("/associations/{id}", associationHandler.GetAssociationByIdHandler)
 		r.Put("/associations/{id}/verify", associationHandler.UpdateAssociationVerifyStatusHandler)
+		r.Delete("/associations/{id}", associationHandler.DeleteAssociationHandler)
 
 		//** Chat routes
 		r.Get("/rooms", roomHandler.GetUserRooms)
