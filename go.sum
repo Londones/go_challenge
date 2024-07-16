@@ -130,6 +130,8 @@ github.com/swaggo/http-swagger v1.3.4 h1:q7t/XLx0n15H1Q9/tk3Y9L4n210XzJF5WtnDX64
 github.com/swaggo/http-swagger v1.3.4/go.mod h1:9dAh0unqMBAlbp1uE2Uc2mQTxNMU/ha4UbucIg1MFkQ=
 github.com/swaggo/swag v1.16.3 h1:PnCYjPCah8FK4I26l2F/KQ4yz3sILcVUN3cTlBFA9Pg=
 github.com/swaggo/swag v1.16.3/go.mod h1:DImHIuOFXKpMFAQjcC7FG4m3Dg4+QuUgUzJmKjI/gRk=
+github.com/synbioz/go_api v0.0.0-20150717075507-4fb3d9247c55 h1:gbz1gwVJmQAeXd7hvrzF1cB26QNi32ORL/KzEh8nJ8Y=
+github.com/synbioz/go_api v0.0.0-20150717075507-4fb3d9247c55/go.mod h1:dNyaT1YdVMOpVy5YHKWHIK9zPrmYRo8GrUYq/e2IgXY=
 github.com/uploadcare/uploadcare-go v1.2.5 h1:vDzYzm9aMj3HmEcxzzxq9YuVb9BdWWkK9fnGySdtF3w=
 github.com/uploadcare/uploadcare-go v1.2.5/go.mod h1:vVV76DlsRBWAalGSKOvhGkdxvZFBejrfOjD2mKS8LKY=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
