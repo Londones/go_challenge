@@ -136,6 +136,12 @@ func (h *RoomHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	utils.Logger("info", "Handle WebSocket:", "Client connected to room", fmt.Sprintf("Room ID: %v, User ID: %v", roomID, userID))
 
+	if err := h.roomQueries.MarkMessagesAsRead(uint(roomID), userID); err != nil {
+		utils.Logger("error", "Handle WebSocket:", "Failed to mark messages as read", fmt.Sprintf("Error: %v", err))
+		http.Error(w, "error marking messages as read", http.StatusInternalServerError)
+		return
+	}
+
 	go client.writePump()
 	go client.readPump(room, h)
 }
