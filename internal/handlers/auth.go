@@ -66,35 +66,50 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 		if err != nil {
 			// create user
 			newUser := &models.User{
-				ID:       uuid.New().String(),
-				Email:    user.Email,
-				Name:     user.Name,
-				GoogleID: user.UserID,
-				Roles:    []models.Roles{*userRole},
+				ID:            uuid.New().String(),
+				Email:         user.Email,
+				Name:          user.Email,
+				GoogleID: 	   user.UserID,
+				ProfilePicURL: "default",
 			}
-
-			err := h.userQueries.CreateUser(newUser, userRole)
+		
+			err = h.userQueries.CreateUser(newUser, userRole)
 			if err != nil {
-				http.Error(w, "error creating user", http.StatusInternalServerError)
+				http.Error(w, "Error creating user", http.StatusInternalServerError)
 				return
 			}
+
+			token := auth.MakeToken(newUser.ID, string(newUser.Email))
+			w.Header().Set("Location", "purrmatch://auth_success?token="+token)
+			w.WriteHeader(http.StatusTemporaryRedirect)
+			//fmt.Println("Redirected to purrmatch://auth_success?token=" + token)
+		} else if (existingUser != nil && existingUser.GoogleID == user.UserID) {
+			token := auth.MakeToken(existingUser.ID, string(existingUser.Email))
+			w.Header().Set("Location", "purrmatch://auth_success?token="+token)
+			w.WriteHeader(http.StatusTemporaryRedirect)
+			//fmt.Println("Redirected to purrmatch://auth_success?token=" + token)
 		} else {
 			http.Error(w, "An account has already been registered with this email", http.StatusConflict)
 			return
 		}
+	} else if existingUser != nil {
+		token := auth.MakeToken(existingUser.ID, string(existingUser.Email))
+		w.Header().Set("Location", "purrmatch://auth_success?token="+token)
+		w.WriteHeader(http.StatusTemporaryRedirect)
+		//fmt.Println("Redirected to purrmatch://auth_success?token=" + token)
 	}
 
-	token := auth.MakeToken(existingUser.ID, string(existingUser.Roles[0].Name))
-
-	http.SetCookie(w, &http.Cookie{
+	/*http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
 		Expires:  time.Now().Add(24 * time.Hour),
 		Name:     "jwt",
 		Value:    token,
 		SameSite: http.SameSiteLaxMode,
-	})
+	})*/
 
-	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusFound)
+	//http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/auth/success", http.StatusFound)
+
+	http.Error(w, "Cannot login with OAuth", http.StatusUnauthorized)
 }
 
 // LogoutProvider godoc
@@ -140,11 +155,16 @@ func (h *AuthHandler) BasicLogout(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {string} string "Error message"
 // @Router /auth/{provider} [get]
 func (h *AuthHandler) BeginAuthProviderCallback(w http.ResponseWriter, r *http.Request) {
-	type contextKey string
-
+	/*type contextKey string
+	fmt.Println("BeginAuthProviderCallback")
 	const providerKey contextKey = "provider"
 	provider := chi.URLParam(r, "provider")
-	r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
+	fmt.Println("Provider:", provider)*/	
+	//r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
+
+	q := r.URL.Query()
+	q.Add("provider", chi.URLParam(r, "provider"))
+	r.URL.RawQuery = q.Encode()
 
 	gothic.BeginAuthHandler(w, r)
 }
@@ -201,7 +221,7 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := auth.MakeToken(user.ID, "USER")
+	token := auth.MakeToken(user.ID, user.Email)
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
 		Expires:  time.Now().Add(24 * time.Hour),

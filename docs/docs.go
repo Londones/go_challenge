@@ -421,6 +421,95 @@ const docTemplate = `{
             }
         },
         "/associations/{id}": {
+            "get": {
+                "description": "Retrieve an association by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "associations"
+                ],
+                "summary": "Get association by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Association ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved association",
+                        "schema": {
+                            "$ref": "#/definitions/models.Association"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request: Invalid association ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Association not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete an association by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "associations"
+                ],
+                "summary": "Delete an association",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Association ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successfully deleted association"
+                    },
+                    "400": {
+                        "description": "Bad Request: Invalid association ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Association not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/associations/{id}/verify": {
             "put": {
                 "description": "Update the verify status of an association with the given ID",
                 "consumes": [
@@ -580,6 +669,7 @@ const docTemplate = `{
             "post": {
                 "description": "Create a new cat with the provided details",
                 "consumes": [
+                    "application/json",
                     "multipart/form-data"
                 ],
                 "produces": [
@@ -646,8 +736,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Race",
-                        "name": "Race",
+                        "description": "RaceID",
+                        "name": "RaceID",
                         "in": "formData",
                         "required": true
                     },
@@ -661,13 +751,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Reserved",
                         "name": "Reserved",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Annonce ID",
-                        "name": "AnnonceID",
                         "in": "formData",
                         "required": true
                     },
@@ -862,8 +945,8 @@ const docTemplate = `{
             "put": {
                 "description": "Update the details of an existing cat",
                 "consumes": [
-                    "application/x-www-form-urlencoded",
-                    "application/json"
+                    "application/json",
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -930,8 +1013,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Race",
-                        "name": "Race",
+                        "description": "RaceID",
+                        "name": "RaceID",
                         "in": "formData"
                     },
                     {
@@ -948,17 +1031,15 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Annonce ID",
-                        "name": "AnnonceID",
+                        "description": "User ID",
+                        "name": "UserID",
                         "in": "formData"
                     },
                     {
-                        "description": "Cat object",
-                        "name": "body",
-                        "in": "body",
-                        "schema": {
-                            "$ref": "#/definitions/models.Cats"
-                        }
+                        "type": "file",
+                        "description": "Image",
+                        "name": "uploaded_file",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -2214,6 +2295,50 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Error deleting user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{userId}/associations": {
+            "get": {
+                "description": "Retrieve all associations for a specific user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "associations"
+                ],
+                "summary": "Get associations by user ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved associations for user",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Association"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request: Invalid user ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "string"
                         }
