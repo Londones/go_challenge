@@ -230,7 +230,7 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	response := fmt.Sprintf(`{"success": true, "token": "%s"}`, token)
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(response))
