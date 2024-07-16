@@ -1,7 +1,11 @@
-package handlers
+package queries
 
 import (
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"go-challenge/internal/database"
+	queries "go-challenge/internal/database/queries/mocks"
+	"go-challenge/internal/models"
 	"go-challenge/internal/utils"
 	"testing"
 )
@@ -17,6 +21,7 @@ func TestHandlers(t *testing.T) {
 
 	// User
 	TestCreateUser(t)
+	TestFindUserByEmail(t)
 	TestUpdateUser(t)
 	TestDeleteUser(t)
 	TestGetUser(t)
@@ -75,9 +80,34 @@ func TestHandlers(t *testing.T) {
 // Auth
 
 // User
+var testUser = &models.User{
+	Email:    "test@example.com",
+	Name:     "Test User",
+	Password: "password123",
+}
+
 func TestCreateUser(t *testing.T) {
-	type User1 struct {
-	}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockService := queries.NewMockUserQueries(ctrl)
+	mockService.EXPECT().CreateUser(testUser).Return(nil)
+
+	err := mockService.CreateUser(testUser)
+	assert.NoError(t, err)
+}
+
+func TestFindUserByEmail(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockService := queries.NewMockUserQueries(ctrl)
+	mockService.EXPECT().FindUserByEmail("test@example.com").Return(testUser, nil)
+
+	user, err := mockService.FindUserByEmail("test@example.com")
+	assert.NoError(t, err)
+	assert.NotNil(t, user)
+	assert.Equal(t, testUser.Email, user.Email)
 }
 
 func TestUpdateUser(t *testing.T) {}
