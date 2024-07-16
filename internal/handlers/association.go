@@ -12,6 +12,7 @@ import (
 	"go-challenge/internal/api"
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
+	"go-challenge/internal/config"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/schema"
@@ -175,6 +176,25 @@ func (h *AssociationHandler) UpdateAssociationVerifyStatusHandler(w http.Respons
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	owner, err := h.associationQueries.FindUserByAssociationID(associationID)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	notificationToken, err := h.associationQueries.GetNotificationTokenByUserID(owner.ID)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	payload := make(map[string]string)
+	payload["AssociationID"] = strconv.Itoa(associationID)
+	payload["Verified"] = strconv.FormatBool(*association.Verified)
+	SendToToken(config.GetFirebaseApp(), notificationToken.Token, "Votre association a été vérifié", "Vérification Association", payload)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

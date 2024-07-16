@@ -93,7 +93,7 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 			return
 		}
 	} else if existingUser != nil {
-		token := auth.MakeToken(existingUser.ID, string(existingUser.Email))
+		token := auth.MakeToken(existingUser.ID, string(existingUser.Roles[0].Name))
 		w.Header().Set("Location", "purrmatch://auth_success?token="+token)
 		w.WriteHeader(http.StatusTemporaryRedirect)
 		//fmt.Println("Redirected to purrmatch://auth_success?token=" + token)
@@ -221,7 +221,11 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("User: ", user.Roles[0].Name)
+
 	token := auth.MakeToken(user.ID, string(user.Roles[0].Name))
+
+	print("Token: ", token)
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
 		Expires:  time.Now().Add(24 * time.Hour),

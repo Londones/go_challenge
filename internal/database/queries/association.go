@@ -49,3 +49,18 @@ func (s *DatabaseService) FindAssociationById(id int) (*models.Association, erro
 	}
 	return &association, nil
 }
+
+func (s *DatabaseService) FindUserByAssociationID(id int) (*models.User, error) {
+	db := s.s.DB()
+	var association models.Association
+	if err := db.Where("id = ?", id).First(&association).Error; err != nil {
+		return nil, err
+	}
+
+	var user models.User
+	if err := db.Where("id = ?", association.OwnerID).First(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}

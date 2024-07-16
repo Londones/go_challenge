@@ -214,7 +214,7 @@ func (c *Client) readPump(room *Room, h *RoomHandler) {
 			break
 		}
 
-		createdMessage, error := h.roomQueries.SaveMessage(room.roomID, c.userID, string(message))
+		createdMessage, userName, error := h.roomQueries.SaveMessage(room.roomID, c.userID, string(message))
 		if error != nil {
 			log.Printf("Error saving message: %v", error)
 			break
@@ -229,30 +229,10 @@ func (c *Client) readPump(room *Room, h *RoomHandler) {
 					fmt.Println("Sending notification....", notificationToken.Token)
 					payload := make(map[string]string)
 					payload["RoomID"] = strconv.FormatUint(uint64(room.roomID), 10)
-					SendToToken(config.GetFirebaseApp(), notificationToken.Token, createdMessage.Content, createdMessage.SenderID, payload)
+					SendToToken(config.GetFirebaseApp(), notificationToken.Token, createdMessage.Content, userName, payload)
 				}
 			}
 		}
-		
-		// disconnectedUserID, err := h.GetDisconnectedUser(room.roomID)
-		// if err != nil {
-		// 	log.Printf("Error getting disconnected user: %v", err)
-		// } else {
-		// 	notificationToken, error := h.roomQueries.GetNotificationTokenByUserID(disconnectedUserID)
-		// 	if error != nil {
-		// 		log.Printf("Error getting notification token: %v", error)
-		// 	} else if notificationToken.Token != "" {
-		// 		log.Printf("Sending notification....%v", notificationToken.Token)
-		// 		SendToToken(config.GetFirebaseApp(), notificationToken.Token, createdMessage.Content, createdMessage.SenderID)
-		// 	}
-		// }
-		
-
-		/*jsonMessage := MessageJSON{
-			Content:   createdMessage.Content,
-			SenderID:  createdMessage.SenderID,
-			CreatedAt: createdMessage.CreatedAt.Format(time.RFC3339),
-		}*/
 
 		message, err = json.Marshal(createdMessage)
 		if err != nil {

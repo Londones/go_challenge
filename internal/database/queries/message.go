@@ -6,7 +6,7 @@ import (
 	"go-challenge/internal/utils"
 )
 
-func (s *DatabaseService) SaveMessage(roomID uint, senderID string, content string) (*models.Message, error) {
+func (s *DatabaseService) SaveMessage(roomID uint, senderID string, content string) (*models.Message,string, error) {
 	db := s.s.DB()
 	message := models.Message{
 		RoomID:   roomID,
@@ -15,10 +15,19 @@ func (s *DatabaseService) SaveMessage(roomID uint, senderID string, content stri
 	}
 	if err := db.Create(&message).Error; err != nil {
 		utils.Logger("error", "Message Creation:", "Failed to create message", fmt.Sprintf("Error: %v", err))
-		return nil, err
+		return nil, "", err
 	}
 	utils.Logger("info", "Message Creation:", "Message created successfully", fmt.Sprintf("Message ID: %v", message.ID))
-	return &message, nil
+	
+
+	user, err := s.FindUserByID(senderID)
+	if err != nil {
+		utils.Logger("error", "Message Creation:", "Failed to get user by ID", fmt.Sprintf("Error: %v", err))
+		return nil, "", err
+	}
+	return &message, user.Name, nil
+
+
 }
 
 func (s *DatabaseService) GetMessagesByRoomID(roomID uint) ([]*models.Message, error) {
