@@ -1,4 +1,4 @@
-package database
+package main
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-func main() {
+func ExecuteFixtures() {
 	db, err := gorm.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)

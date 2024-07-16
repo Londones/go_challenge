@@ -138,7 +138,7 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	response := fmt.Sprintf(`{"success": true, "token": "%s"}`, token)
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(response))
@@ -216,7 +216,7 @@ func (h *UserHandler) ModifyProfilePictureHandler(w http.ResponseWriter, r *http
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Profile picture updated successfully"))
+	w.Write([]byte(fmt.Sprintf(`{"profilePicURL": "%s"}`, FileURL)))
 }
 
 // GetAllUsersHandler godoc
@@ -234,7 +234,7 @@ func (h *UserHandler) GetAllUsersHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err = json.NewEncoder(w).Encode(users)
 	if err != nil {
 		http.Error(w, "error encoding users to JSON", http.StatusInternalServerError)
@@ -289,7 +289,7 @@ func (h *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
 }
@@ -330,15 +330,6 @@ func (h *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if user.Password != "" {
-		hashedPassword, passwordError := auth.HashPassword(user.Password)
-		if passwordError != nil {
-			http.Error(w, "error hashing password", http.StatusInternalServerError)
-			return
-		}
-		user.Password = hashedPassword
-	}
-
 	userRole, err := h.userQueries.GetRoleByName(models.RoleName(user.Roles[0].Name))
 	if err != nil {
 		http.Error(w, "error fetching user role", http.StatusInternalServerError)
@@ -352,7 +343,7 @@ func (h *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
 }
@@ -403,13 +394,12 @@ func (h *UserHandler) GetCurrentUserHandler(w http.ResponseWriter, r *http.Reque
 
 	userID := claims["id"].(string)
 	user, err := h.userQueries.FindUserByID(userID)
-	fmt.Println(user)
 	if err != nil {
 		http.Error(w, "error finding user", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
 }
@@ -444,7 +434,7 @@ func (h *UserHandler) GetUserByIDHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
 }
