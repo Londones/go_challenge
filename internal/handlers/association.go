@@ -9,13 +9,13 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"go-challenge/internal/api"
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/gorilla/schema"
 	"github.com/uploadcare/uploadcare-go/ucare"
 )
 
@@ -32,39 +32,104 @@ func NewAssociationHandler(associationQueries *queries.DatabaseService, uploadca
 // @Description Create a new association with the input payload and a PDF file
 // @Tags associations
 // @Accept multipart/form-data
+// @Accept json
 // @Produce json
-// @Param association body models.Association true "Association payload"
+// @Param name formData string true "Name"
+// @Param addressRue formData string true "AddressRue"
+// @Param cp formData string true "CP"
+// @Param ville formData string true "Ville"
+// @Param phone formData string true "Phone"
+// @Param email formData string true "Email"
+// @Param ownerId formData string true "OwnerID"
+// @Param members formData string false "Comma-separated list of member IDs"
 // @Param kbisFile formData file true "PDF file"
 // @Success 201 {object} models.Association "Successfully created association"
-// @Failure 400 {object} string "Bad Request: Error uploading image 2/3, Invalid content type for kbisFile, expected application/pdf"
-// @Failure 500 {object} string "Internal Server Error: Error uploading image 1/4/5/6/7/8"
+// @Failure 400 {object} string "Bad Request"
+// @Failure 500 {object} string "Internal Server Error"
 // @Router /associations [post]
 func (h *AssociationHandler) CreateAssociationHandler(w http.ResponseWriter, r *http.Request) {
 	var association models.Association
+	var members []string
 
-	err := r.ParseMultipartForm(10 << 20) // 10 MB
-	if err != nil {
-		http.Error(w, "Error uploading image 1: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	fmt.Println("Starting CreateAssociationHandler")
 
-	formData := r.PostForm
-	decoder := schema.NewDecoder()
-	err = decoder.Decode(&association, formData)
-	if err != nil {
-		http.Error(w, "Error uploading image 2: "+err.Error(), http.StatusBadRequest)
-		return
-	}
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/json") {
+		fmt.Println("Processing JSON payload")
+		err := json.NewDecoder(r.Body).Decode(&association)
+		if err != nil {
+			fmt.Printf("Error decoding JSON: %v\n", err)
+			http.Error(w, "Error decoding JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		members = association.Members
+	} else if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+		fmt.Println("Processing multipart/form-data payload")
+		err := r.ParseMultipartForm(10 << 20) // 10 MB
+		if err != nil {
+			fmt.Printf("Error parsing multipart form: %v\n", err)
+			http.Error(w, "Error parsing multipart form: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	file, handler, err := r.FormFile("kbisFile")
-	if err != nil {
-		http.Error(w, "Error uploading image 3: "+err.Error(), http.StatusBadRequest)
-		return
-	}
-	defer file.Close()
+		formData := r.PostForm
+		// Decode form fields manually
+		association.Name = formData.Get("name")
+		association.AddressRue = formData.Get("addressRue")
+		association.Cp = formData.Get("cp")
+		association.Ville = formData.Get("ville")
+		association.Phone = formData.Get("phone")
+		association.Email = formData.Get("email")
+		association.OwnerID = formData.Get("ownerId")
 
-	if handler.Header.Get("Content-Type") != "application/pdf" {
-		http.Error(w, "Invalid content type for kbisFile, expected application/pdf", http.StatusBadRequest)
+		fmt.Printf("Received data: name=%s, addressRue=%s, cp=%s, ville=%s, phone=%s, email=%s, ownerId=%s\n",
+			association.Name, association.AddressRue, association.Cp, association.Ville, association.Phone, association.Email, association.OwnerID)
+
+		file, handler, err := r.FormFile("kbisFile")
+		if err != nil {
+			fmt.Printf("Error retrieving file: %v\n", err)
+			http.Error(w, "Error retrieving file: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		defer file.Close()
+
+		if handler.Header.Get("Content-Type") != "application/pdf" {
+			fmt.Println("Invalid content type for kbisFile, expected application/pdf")
+			http.Error(w, "Invalid content type for kbisFile, expected application/pdf", http.StatusBadRequest)
+			return
+		}
+
+		ext := filepath.Ext(handler.Filename)
+		tempFile, err := os.CreateTemp(os.TempDir(), "upload-*"+ext)
+		if err != nil {
+			fmt.Printf("Error creating temp file: %v\n", err)
+			http.Error(w, "Error creating temp file: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer os.Remove(tempFile.Name())
+
+		_, err = io.Copy(tempFile, file)
+		if err != nil {
+			fmt.Printf("Error copying file: %v\n", err)
+			http.Error(w, "Error copying file: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		FileURL, _, err := api.UploadFilePDF(h.uploadcareClient, tempFile.Name())
+		if err != nil {
+			fmt.Printf("Error uploading file: %v\n", err)
+			http.Error(w, "Error uploading file: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		association.KbisFile = FileURL
+
+		membersStr := formData.Get("members")
+		if membersStr != "" {
+			members = strings.Split(membersStr, ",")
+		}
+		association.Members = members
+	} else {
+		fmt.Println("Unsupported content type")
+		http.Error(w, "Unsupported content type", http.StatusBadRequest)
 		return
 	}
 
@@ -72,42 +137,16 @@ func (h *AssociationHandler) CreateAssociationHandler(w http.ResponseWriter, r *
 	association.Verified = &verified
 
 	if err := h.associationQueries.CreateAssociation(&association); err != nil {
-		http.Error(w, "Error uploading image 4: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Upload file to uploadcare
-	ext := filepath.Ext(handler.Filename)
-
-	tempFile, err := os.CreateTemp(os.TempDir(), "upload-*"+ext)
-	if err != nil {
-		http.Error(w, "Error uploading image 5: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer os.Remove(tempFile.Name())
-
-	_, err = io.Copy(tempFile, file)
-	if err != nil {
-		http.Error(w, "Error uploading image 6: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	FileURL, _, err := api.UploadFilePDF(h.uploadcareClient, tempFile.Name())
-	if err != nil {
-		http.Error(w, "Error uploading image 7: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	association.KbisFile = FileURL
-
-	if err := h.associationQueries.UpdateAssociation(&association); err != nil {
-		http.Error(w, "Error uploading image 8: "+err.Error(), http.StatusInternalServerError)
+		fmt.Printf("Error creating association: %v\n", err)
+		http.Error(w, "Error creating association: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(association)
+
+	fmt.Println("Association created successfully")
 }
 
 // @Summary Get all associations
@@ -277,4 +316,148 @@ func (h *AssociationHandler) DeleteAssociationHandler(w http.ResponseWriter, r *
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// @Summary Update an association
+// @Description Update all fields of an association with the given ID
+// @Tags associations
+// @Accept multipart/form-data
+// @Accept json
+// @Produce json
+// @Param id path int true "Association ID"
+// @Param name formData string false "Name"
+// @Param addressRue formData string false "AddressRue"
+// @Param cp formData string false "CP"
+// @Param ville formData string false "Ville"
+// @Param phone formData string false "Phone"
+// @Param email formData string false "Email"
+// @Param kbisFile formData file false "PDF file"
+// @Param members formData string false "Comma-separated list of member IDs"
+// @Param association body models.Association false "Association payload"
+// @Success 200 {object} models.Association "Successfully updated association"
+// @Failure 400 {object} string "Bad Request: Invalid association ID or Invalid content type for kbisFile, expected application/pdf"
+// @Failure 500 {object} string "Internal Server Error"
+// @Router /associations/{id} [put]
+func (h *AssociationHandler) UpdateAssociationHandler(w http.ResponseWriter, r *http.Request) {
+	associationIDStr := chi.URLParam(r, "id")
+	if associationIDStr == "" {
+		http.Error(w, "Missing association ID", http.StatusBadRequest)
+		return
+	}
+
+	associationID, err := strconv.Atoi(associationIDStr)
+	if err != nil {
+		http.Error(w, "Invalid association ID", http.StatusBadRequest)
+		return
+	}
+
+	var association models.Association
+	var members []string
+
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/json") {
+		err := json.NewDecoder(r.Body).Decode(&association)
+		if err != nil {
+			http.Error(w, "Error decoding JSON: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		members = association.Members
+	} else if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+		err := r.ParseMultipartForm(10 << 20) // 10 MB
+		if err != nil {
+			http.Error(w, "Error parsing multipart form: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		formData := r.PostForm
+		association.Name = formData.Get("name")
+		association.AddressRue = formData.Get("addressRue")
+		association.Cp = formData.Get("cp")
+		association.Ville = formData.Get("ville")
+		association.Phone = formData.Get("phone")
+		association.Email = formData.Get("email")
+		association.OwnerID = formData.Get("ownerId")
+
+		file, handler, err := r.FormFile("kbisFile")
+		if err == nil {
+			defer file.Close()
+
+			if handler.Header.Get("Content-Type") != "application/pdf" {
+				http.Error(w, "Invalid content type for kbisFile, expected application/pdf", http.StatusBadRequest)
+				return
+			}
+
+			ext := filepath.Ext(handler.Filename)
+			tempFile, err := os.CreateTemp(os.TempDir(), "upload-*"+ext)
+			if err != nil {
+				http.Error(w, "Error creating temp file: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+			defer os.Remove(tempFile.Name())
+
+			_, err = io.Copy(tempFile, file)
+			if err != nil {
+				http.Error(w, "Error copying file: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			FileURL, _, err := api.UploadFilePDF(h.uploadcareClient, tempFile.Name())
+			if err != nil {
+				http.Error(w, "Error uploading file: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+			association.KbisFile = FileURL
+		}
+
+		membersStr := formData.Get("members")
+		if membersStr != "" {
+			members = strings.Split(membersStr, ",")
+		}
+	} else {
+		http.Error(w, "Unsupported content type", http.StatusBadRequest)
+		return
+	}
+
+	existingAssociation, err := h.associationQueries.FindAssociationById(associationID)
+	if err != nil {
+		http.Error(w, "Error finding association: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if association.Name != "" {
+		existingAssociation.Name = association.Name
+	}
+	if association.AddressRue != "" {
+		existingAssociation.AddressRue = association.AddressRue
+	}
+	if association.Cp != "" {
+		existingAssociation.Cp = association.Cp
+	}
+	if association.Ville != "" {
+		existingAssociation.Ville = association.Ville
+	}
+	if association.Phone != "" {
+		existingAssociation.Phone = association.Phone
+	}
+	if association.Email != "" {
+		existingAssociation.Email = association.Email
+	}
+	if association.KbisFile != "" {
+		existingAssociation.KbisFile = association.KbisFile
+	}
+
+	if err := h.associationQueries.UpdateAssociation(existingAssociation); err != nil {
+		http.Error(w, "Error updating association: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if len(members) > 0 {
+		if err := h.associationQueries.UpdateAssociationMembers(existingAssociation.ID, members); err != nil {
+			http.Error(w, "Error updating members: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(existingAssociation)
 }

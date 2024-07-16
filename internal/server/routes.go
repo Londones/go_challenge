@@ -94,12 +94,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 		//** User routes
 		r.Get("/users", userHandler.GetAllUsersHandler)
 		r.Get("/users/annonces/{id}", annonceHandler.GetUserAnnoncesHandler)
-		r.Get("/users/{id}", userHandler.GetUserByIDHandler)
 		r.Get("/users/current", userHandler.GetCurrentUserHandler)
 		r.Post("/users", userHandler.CreateUserHandler)
 		r.Post("/profile/picture", userHandler.ModifyProfilePictureHandler)
 		r.Put("/users/{id}", userHandler.UpdateUserHandler)
 		r.Delete("/users/{id}", userHandler.DeleteUserHandler)
+		r.Get("/users/{id}", userHandler.GetUserByIDHandler)
 
 		//** Favorite routes
 		r.Post("/favorites", favoriteHandler.FavoriteCreationHandler)
@@ -116,6 +116,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/associations/{id}", associationHandler.GetAssociationByIdHandler)
 		r.Put("/associations/{id}/verify", associationHandler.UpdateAssociationVerifyStatusHandler)
 		r.Delete("/associations/{id}", associationHandler.DeleteAssociationHandler)
+		r.Put("/associations/{id}", associationHandler.UpdateAssociationHandler)
 
 		//** Chat routes
 		r.Get("/rooms", roomHandler.GetUserRooms)

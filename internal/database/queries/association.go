@@ -3,6 +3,8 @@ package queries
 import (
 	"go-challenge/internal/database"
 	"go-challenge/internal/models"
+
+	"github.com/jinzhu/gorm"
 )
 
 type DatabaseService struct {
@@ -29,7 +31,6 @@ func (s *DatabaseService) GetAllAssociations() ([]models.Association, error) {
 	if err := db.Preload("Owner").Order("verified ASC").Find(&associations).Error; err != nil {
 		return nil, err
 	}
-
 	return associations, nil
 }
 
@@ -56,6 +57,15 @@ func (s *DatabaseService) FindAssociationsByUserId(userId string) ([]models.Asso
 	if err := db.Preload("Owner").Where("owner_id = ?", userId).Find(&associations).Error; err != nil {
 		return nil, err
 	}
+
+	var memberAssociations []models.Association
+	if err := db.Joins("JOIN association_members ON association_members.association_id = associations.id").
+		Where("association_members.user_id = ?", userId).
+		Find(&memberAssociations).Error; err != nil {
+		return nil, err
+	}
+
+	associations = append(associations, memberAssociations...)
 	return associations, nil
 }
 
@@ -65,4 +75,28 @@ func (s *DatabaseService) DeleteAssociation(id int) error {
 		return err
 	}
 	return nil
+}
+
+func (s *DatabaseService) UpdateAssociationMembers(associationID uint, memberIDs []string) error {
+	db := s.s.DB()
+	tx := db.Begin()
+
+	if err := tx.Model(&models.Association{Model: gorm.Model{ID: associationID}}).Association("Members").Clear().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	for _, memberID := range memberIDs {
+		user := models.User{}
+		if err := tx.Where("id = ?", memberID).First(&user).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+		if err := tx.Model(&models.Association{Model: gorm.Model{ID: associationID}}).Association("Members").Append(&user).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit().Error
 }

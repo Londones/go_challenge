@@ -37,7 +37,7 @@ definitions:
         type: string
       members:
         items:
-          $ref: '#/definitions/models.User'
+          type: string
         type: array
       name:
         type: string
@@ -481,14 +481,48 @@ paths:
     post:
       consumes:
       - multipart/form-data
+      - application/json
       description: Create a new association with the input payload and a PDF file
       parameters:
-      - description: Association payload
-        in: body
-        name: association
+      - description: Name
+        in: formData
+        name: name
         required: true
-        schema:
-          $ref: '#/definitions/models.Association'
+        type: string
+      - description: AddressRue
+        in: formData
+        name: addressRue
+        required: true
+        type: string
+      - description: CP
+        in: formData
+        name: cp
+        required: true
+        type: string
+      - description: Ville
+        in: formData
+        name: ville
+        required: true
+        type: string
+      - description: Phone
+        in: formData
+        name: phone
+        required: true
+        type: string
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: OwnerID
+        in: formData
+        name: ownerId
+        required: true
+        type: string
+      - description: Comma-separated list of member IDs
+        in: formData
+        name: members
+        type: string
       - description: PDF file
         in: formData
         name: kbisFile
@@ -502,12 +536,11 @@ paths:
           schema:
             $ref: '#/definitions/models.Association'
         "400":
-          description: 'Bad Request: Error uploading image 2/3, Invalid content type
-            for kbisFile, expected application/pdf'
+          description: Bad Request
           schema:
             type: string
         "500":
-          description: 'Internal Server Error: Error uploading image 1/4/5/6/7/8'
+          description: Internal Server Error
           schema:
             type: string
       summary: Create a new association
@@ -570,6 +603,73 @@ paths:
           schema:
             type: string
       summary: Get association by ID
+      tags:
+      - associations
+    put:
+      consumes:
+      - multipart/form-data
+      - application/json
+      description: Update all fields of an association with the given ID
+      parameters:
+      - description: Association ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Name
+        in: formData
+        name: name
+        type: string
+      - description: AddressRue
+        in: formData
+        name: addressRue
+        type: string
+      - description: CP
+        in: formData
+        name: cp
+        type: string
+      - description: Ville
+        in: formData
+        name: ville
+        type: string
+      - description: Phone
+        in: formData
+        name: phone
+        type: string
+      - description: Email
+        in: formData
+        name: email
+        type: string
+      - description: PDF file
+        in: formData
+        name: kbisFile
+        type: file
+      - description: Comma-separated list of member IDs
+        in: formData
+        name: members
+        type: string
+      - description: Association payload
+        in: body
+        name: association
+        schema:
+          $ref: '#/definitions/models.Association'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated association
+          schema:
+            $ref: '#/definitions/models.Association'
+        "400":
+          description: 'Bad Request: Invalid association ID or Invalid content type
+            for kbisFile, expected application/pdf'
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Update an association
       tags:
       - associations
   /associations/{id}/verify:
