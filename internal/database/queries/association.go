@@ -49,3 +49,20 @@ func (s *DatabaseService) FindAssociationById(id int) (*models.Association, erro
 	}
 	return &association, nil
 }
+
+func (s *DatabaseService) FindAssociationsByUserId(userId string) ([]models.Association, error) {
+	db := s.s.DB()
+	var associations []models.Association
+	if err := db.Preload("Owner").Where("owner_id = ?", userId).Find(&associations).Error; err != nil {
+		return nil, err
+	}
+	return associations, nil
+}
+
+func (s *DatabaseService) DeleteAssociation(id int) error {
+	db := s.s.DB()
+	if err := db.Delete(&models.Association{}, id).Error; err != nil {
+		return err
+	}
+	return nil
+}

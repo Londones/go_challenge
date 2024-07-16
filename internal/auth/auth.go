@@ -25,15 +25,26 @@ var TokenAuth *jwtauth.JWTAuth
 var secret string
 
 func init() {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
+	appEnv := os.Getenv("APP_ENV")
+	if appEnv == "local" {
+		err := godotenv.Load()
+		if err != nil {
+			fmt.Println("Error loading .env file")
+		}
 	}
 	secret = os.Getenv("JWT_SECRET")
 }
 
-func MakeToken(id string, role string) string {
-	_, tokenString, _ := TokenAuth.Encode(map[string]interface{}{"id": id, "role": role})
+// func init() {
+// 	err := godotenv.Load()
+// 	if err != nil {
+// 		fmt.Println("Error loading .env file")
+// 	}
+// 	secret = os.Getenv("JWT_SECRET")
+// }
+
+func MakeToken(id string, email string) string {
+	_, tokenString, _ := TokenAuth.Encode(map[string]interface{}{"id": id, "email": email})
 	return tokenString
 }
 
