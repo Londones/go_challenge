@@ -6,7 +6,6 @@ import (
 	"go-challenge/internal/models"
 	"go-challenge/internal/config"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 
@@ -46,19 +45,13 @@ func (h *NotificationTokenHandler) CreateNotificationTokenHandler(w http.Respons
 }
 
 func (h *NotificationTokenHandler) DeleteNotificationTokenHandler(w http.ResponseWriter, r *http.Request) {
-    notificationTokenIDStr := chi.URLParam(r, "id")
-    if notificationTokenIDStr == "" {
-        http.Error(w, "notification ID is required", http.StatusBadRequest)
+    userID := chi.URLParam(r, "userID")
+    if userID == "" {
+        http.Error(w, "userID is required", http.StatusBadRequest)
         return
     }
 
-    notificationTokenID, err := strconv.Atoi(notificationTokenIDStr)
-    if err != nil {
-        http.Error(w, "notification ID must be an integer", http.StatusBadRequest)
-        return
-    }
-
-    err = h.notificationTokenQueries.DeleteNotificationToken(notificationTokenID)
+    err := h.notificationTokenQueries.DeleteNotificationTokenForUser(userID)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
@@ -75,7 +68,9 @@ func (h *NotificationTokenHandler) SendNotificationHandler(w http.ResponseWriter
 		return
 	}
 
-	SendToToken(config.GetFirebaseApp(), notification.Token, notification.Text, notification.Title)
+	payload := make(map[string]string)
+	payload["RoomID"] = notification.RoomID
+	SendToToken(config.GetFirebaseApp(), notification.Token, notification.Text, notification.Title, payload)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -92,20 +87,19 @@ func FindUserToken(notificationTokenQueries *queries.DatabaseService, userID str
 
 }
 
-func SendToToken(app *firebase.App, fcmToken string, text string, title string) {
+func SendToToken(app *firebase.App, fcmToken string, text string, title string, payload map[string]string) {
 	ctx := context.Background()
 	client, err := app.Messaging(ctx)
 	if err != nil {
 		log.Fatalf("error getting Messaging client: %v\n", err)
 	}
 
-	//fcmToken := "d3adVu0tMDyBUTPkgc_l-0:APA91bHjb6-wWkT1ABGSasFqxrsOR3AdfcTjLc8b7f7yukWLt32GS4UA5XdIwZ8p98oOLp-CBcyuYaCYdEPRji_f2WSXO9JKb7XPjotm_3bdkk-7hJyxJS8JuUHt82xzGGJ6Aacy0QWb"
-
 	message := &messaging.Message{
 		Notification: &messaging.Notification{
 			Title: title,
 			Body:  text,
 		},
+		Data: payload,
 		Token: fcmToken,
 	}
 
@@ -140,20 +134,4 @@ func (h *NotificationTokenHandler) TestSendNotificationHandler(w http.ResponseWr
 	}
 	fmt.Println("Successfully sent message:", response)
 }
-
-// func (h *NotificationTokenHandler) DeleteNotificationTokenHandler(w http.ResponseWriter, r *http.Request) {
-// 	notificationTokenID := chi.URLParam(r, "id")
-// 	if notificationTokenID == "" {
-// 		http.Error(w, "notification ID is required", http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	err := h.notificationTokenQueries.DeleteNotificationToken(notificationTokenID)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	w.WriteHeader(http.StatusNoContent)
-// }
 

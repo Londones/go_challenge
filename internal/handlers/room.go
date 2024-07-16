@@ -209,7 +209,7 @@ func (c *Client) readPump(room *Room, h *RoomHandler) {
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				utils.Logger("error", "Read Pump:", "Unexpected close error", fmt.Sprintf("Error: %v", err))
-				log.Printf("error: %v", err)
+				fmt.Println("error: ", err)
 			}
 			break
 		}
@@ -219,18 +219,33 @@ func (c *Client) readPump(room *Room, h *RoomHandler) {
 			log.Printf("Error saving message: %v", error)
 			break
 		}
-		disconnectedUserID, err := h.GetDisconnectedUser(room.roomID)
-		if err != nil {
-			log.Printf("Error getting disconnected user: %v", err)
-		} else {
-			notificationToken, error := h.roomQueries.GetNotificationTokenByUserID(disconnectedUserID)
-			if error != nil {
-				log.Printf("Error getting notification token: %v", error)
-			} else if notificationToken.Token != "" {
-				fmt.Println("Sending notification....%v", notificationToken.Token)
-				SendToToken(config.GetFirebaseApp(), notificationToken.Token, createdMessage.Content, createdMessage.SenderID)
+
+		for k, _ := range room.clients {
+			if k != c.userID {
+				notificationToken, error := h.roomQueries.GetNotificationTokenByUserID(k)
+				if error != nil {
+					fmt.Println("Error getting notification token: ", error)
+				} else if notificationToken.Token != "" {
+					fmt.Println("Sending notification....", notificationToken.Token)
+					payload := make(map[string]string)
+					payload["RoomID"] = strconv.FormatUint(uint64(room.roomID), 10)
+					SendToToken(config.GetFirebaseApp(), notificationToken.Token, createdMessage.Content, createdMessage.SenderID, payload)
+				}
 			}
 		}
+		
+		// disconnectedUserID, err := h.GetDisconnectedUser(room.roomID)
+		// if err != nil {
+		// 	log.Printf("Error getting disconnected user: %v", err)
+		// } else {
+		// 	notificationToken, error := h.roomQueries.GetNotificationTokenByUserID(disconnectedUserID)
+		// 	if error != nil {
+		// 		log.Printf("Error getting notification token: %v", error)
+		// 	} else if notificationToken.Token != "" {
+		// 		log.Printf("Sending notification....%v", notificationToken.Token)
+		// 		SendToToken(config.GetFirebaseApp(), notificationToken.Token, createdMessage.Content, createdMessage.SenderID)
+		// 	}
+		// }
 		
 
 		/*jsonMessage := MessageJSON{

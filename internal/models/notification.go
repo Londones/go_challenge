@@ -7,4 +7,5 @@ type Notification struct {
 	Token   string
 	Title   string
 	Text    string
+	RoomID  string
 }
