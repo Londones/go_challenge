@@ -104,7 +104,7 @@ func (h *AssociationHandler) CreateAssociationHandler(w http.ResponseWriter, r *
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(association)
 }
@@ -125,7 +125,7 @@ func (h *AssociationHandler) GetAllAssociationsHandler(w http.ResponseWriter, r 
 
 	fmt.Println(associations)
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(associations)
 }
@@ -176,7 +176,7 @@ func (h *AssociationHandler) UpdateAssociationVerifyStatusHandler(w http.Respons
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(association)
 }

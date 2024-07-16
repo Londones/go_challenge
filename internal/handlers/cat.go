@@ -168,7 +168,7 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
 	err = json.NewEncoder(w).Encode(cat)
 	if err != nil {
@@ -325,7 +325,7 @@ func (h *CatHandler) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if err := json.NewEncoder(w).Encode(cat); err != nil {
 		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
 	}
@@ -355,7 +355,7 @@ func (h *CatHandler) GetAllCatsHandler(w http.ResponseWriter, r *http.Request) {
 		cat.RaceID = currentRace.RaceName
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err = json.NewEncoder(w).Encode(cats)
 	if err != nil {
 		http.Error(w, "error encoding cats to JSON", http.StatusInternalServerError)
@@ -398,7 +398,7 @@ func (h *CatHandler) GetCatByIDHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	cat.RaceID = currentRace.RaceName
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if err := json.NewEncoder(w).Encode(cat); err != nil {
 		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
 	}
@@ -475,7 +475,7 @@ func (h *CatHandler) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Requ
 		data = append(data, annonce)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err = json.NewEncoder(w).Encode(data)
 
 	if len(data) == 0 {
@@ -512,7 +512,7 @@ func (h *CatHandler) GetCatsByUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err = json.NewEncoder(w).Encode(cats)
 	if err != nil {
 		http.Error(w, "error encoding cats to JSON", http.StatusInternalServerError)
