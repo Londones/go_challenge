@@ -123,6 +123,7 @@ func (h *NotificationTokenHandler) TestSendNotificationHandler(w http.ResponseWr
 		log.Fatalf("error getting Messaging client: %v\n", err)
 	}
 
+	// query token from database
 	fcmToken := "dqLX69OBQnexTV5QJEdRTj:APA91bHCmnH8MKNpYZuTaxONWwyAOs2mK1hUxOhKqS2MK5Nk-1WUCZdpC1BVQcFnbDGW6wcrBeS6c67nmOUuYdieXOCRp2_7zPYt8XTcYjTb8rZYmdn4EjSmh45VkYo9x8WgYw7BThxt"
 
 	message := &messaging.Message{

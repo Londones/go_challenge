@@ -219,12 +219,17 @@ func (c *Client) readPump(room *Room, h *RoomHandler) {
 			log.Printf("Error saving message: %v", error)
 			break
 		}
-		notificationToken, error := h.roomQueries.GetNotificationTokenByUserID(c.userID)
-		if error != nil {
-			log.Printf("Error getting notification token: %v", error)
-		} else if notificationToken.Token != "" {
-			fmt.Println("Sending notification....%v", notificationToken.Token)
-			SendToToken(config.GetFirebaseApp(), notificationToken.Token, createdMessage.Content, createdMessage.SenderID)
+		disconnectedUserID, err := h.GetDisconnectedUser(room.roomID)
+		if err != nil {
+			log.Printf("Error getting disconnected user: %v", err)
+		} else {
+			notificationToken, error := h.roomQueries.GetNotificationTokenByUserID(disconnectedUserID)
+			if error != nil {
+				log.Printf("Error getting notification token: %v", error)
+			} else if notificationToken.Token != "" {
+				fmt.Println("Sending notification....%v", notificationToken.Token)
+				SendToToken(config.GetFirebaseApp(), notificationToken.Token, createdMessage.Content, createdMessage.SenderID)
+			}
 		}
 		
 
@@ -245,6 +250,7 @@ func (c *Client) readPump(room *Room, h *RoomHandler) {
 		utils.Logger("info", "Read Pump:", "Message broadcasted", fmt.Sprintf("Room ID: %v, User ID: %v", room.roomID, c.userID))
 	}
 }
+
 
 func (c *Client) writePump() {
 	defer func() {
@@ -359,3 +365,30 @@ func (h *RoomHandler) GetRoomMessages(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(messages)
 	utils.Logger("info", "Get Room Messages:", "Messages retrieved successfully", fmt.Sprintf("Room ID: %v", roomID))
 }
+
+
+func (h *RoomHandler) GetDisconnectedUser(roomID uint) (string, error) {
+    room := h.Rooms.GetRoom(roomID)
+    if room == nil {
+        return "", fmt.Errorf("room not found")
+    }
+
+    room.mu.Lock()
+    defer room.mu.Unlock()
+
+    dbRoom, err := h.roomQueries.GetRoomByID(roomID)
+    if err != nil {
+        return "", err
+    }
+
+    // Check user not connected
+    if _, user1Connected := room.clients[dbRoom.User1ID]; !user1Connected {
+        return dbRoom.User1ID, nil
+    }
+    if _, user2Connected := room.clients[dbRoom.User2ID]; !user2Connected {
+        return dbRoom.User2ID, nil
+    }
+
+    return "", fmt.Errorf("both users are connected")
+}
+
