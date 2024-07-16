@@ -143,47 +143,22 @@ func New(config *Config) (*Service, error) {
 	return s, nil
 }
 
+// TestDatabaseInit DATABASE FOR TESTS
 func TestDatabaseInit() (*Service, error) {
 	var config Config
 	var db *gorm.DB
 
-	config.Env = os.Getenv("APP_ENV")
+	config.Username = "macbook"
+	config.Password = "postgres"
+	config.Host = "localhost"
+	config.Port = "5432"
+	config.Database = "go_purrfectmatch_test"
+	config.Env = "local"
+
 	// Get the root directory of the project.
-	var root string
 	var err error
 
 	if config.Env == "local" {
-
-		root, err = filepath.Abs("./")
-		//root, err = filepath.Abs("../..")
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// Construct the path to the .env file.
-		envPath := filepath.Join(root, ".env")
-
-		// Load the .env file.
-		err = godotenv.Load(envPath)
-		if err != nil {
-			log.Fatal("Variable root: " + root)
-			//log.Fatal("Error loading .env file")
-		}
-
-		if config.Username == "" {
-			config.Username = os.Getenv("DB_USERNAME")
-		}
-		if config.Password == "" {
-			config.Password = os.Getenv("DB_PASSWORD")
-		}
-		if config.Host == "" {
-			config.Host = os.Getenv("DB_HOST")
-		}
-		if config.Port == "" {
-			config.Port = os.Getenv("DB_PORT")
-		}
-
 		connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/?sslmode=disable", config.Username, config.Password, config.Host, config.Port)
 		dbTemp, err := gorm.Open("postgres", connStr)
 		if err != nil {
@@ -195,7 +170,7 @@ func TestDatabaseInit() (*Service, error) {
 			fmt.Printf("failed to create db: %v", err)
 		}
 
-		db, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, "go_purrfectmatch_test"))
+		db, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database))
 		if err != nil {
 			fmt.Printf("failed to connect to database: %v", err)
 		}
@@ -206,6 +181,8 @@ func TestDatabaseInit() (*Service, error) {
 		}
 		config.Database = os.Getenv("DATABASE_URL")
 	}
+	fmt.Println("ENV IS: ", config.Env)
+
 	err = migrateAllModels(db)
 	if err != nil {
 		fmt.Printf("failed to migrate models: %v", err)
@@ -247,7 +224,7 @@ func TestDatabaseInit() (*Service, error) {
 }
 
 func TestDatabaseDestroy(db *gorm.DB) (string, error) {
-
+	fmt.Println("attemp destroy")
 	db.Close()
 
 	connection, err := sql.Open("postgres", "user=postgres")

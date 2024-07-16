@@ -3,79 +3,77 @@ package queries
 import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"go-challenge/internal/database"
-	queries "go-challenge/internal/database/queries/mocks"
+	mocks "go-challenge/internal/database/queries/mocks"
 	"go-challenge/internal/models"
-	"go-challenge/internal/utils"
 	"testing"
 )
 
-func TestHandlers(t *testing.T) {
-	s, err := database.TestDatabaseInit()
-	if err != nil {
-		return
-	}
-	utils.Logger("debug", "GO-Tests", "Database", "Test database created")
-
-	// Auth
-
-	// User
-	TestCreateUser(t)
-	TestFindUserByEmail(t)
-	TestUpdateUser(t)
-	TestDeleteUser(t)
-	TestGetUser(t)
-	TestGetAllUsers(t)
-
-	// Annonce
-	TestCreateAnnonce(t)
-	TestUpdateAnnonce(t)
-	TestDeleteAnnonce(t)
-	TestGetAnnonce(t)
-	TestGetAllAnnonces(t)
-
-	// Association
-	TestCreateAssociation(t)
-	TestUpdateAssociation(t)
-	TestDeleteAssociation(t)
-	TestGetAssociation(t)
-	TestGetAllAssociations(t)
-
-	// Cat
-	TestCreateCat(t)
-	TestUpdateCat(t)
-	TestDeleteCat(t)
-	TestGetCat(t)
-	TestGetAllCats(t)
-
-	// Favorites
-	TestCreateFavorites(t)
-	TestGetFavorites(t)
-	TestGetAllFavorites(t)
-
-	// Race
-	TestCreateRace(t)
-	TestGetAllRaces(t)
-	TestUpdateRace(t)
-	TestDeleteRace(t)
-	TestGetRace(t)
-
-	// Rating
-	TestCreateRating(t)
-	TestUpdateRating(t)
-	TestGetRatings(t)
-	TestGetAllRatings(t)
-	TestDeleteRatings(t)
-
-	// Room
-
-	destroy, err := database.TestDatabaseDestroy(s.Db)
-	if err != nil {
-		return
-	}
-	utils.Logger("debug", "GO-Tests", "Database", destroy)
-	utils.Logger("debug", "GO-Tests", "General", "End of Tests")
-}
+//func TestHandlers(t *testing.T) {
+//	s, err := database.TestDatabaseInit()
+//	if err != nil {
+//		return
+//	}
+//	utils.Logger("debug", "GO-Tests", "Database", "Test database created")
+//
+//	// Auth
+//
+//	// User
+//	TestCreateUser(t)
+//	TestFindUserByEmail(t)
+//	TestUpdateUser(t)
+//	TestDeleteUser(t)
+//	TestGetUser(t)
+//	TestGetAllUsers(t)
+//
+//	// Annonce
+//	TestCreateAnnonce(t)
+//	TestUpdateAnnonce(t)
+//	TestDeleteAnnonce(t)
+//	TestGetAnnonce(t)
+//	TestGetAllAnnonces(t)
+//
+//	// Association
+//	TestCreateAssociation(t)
+//	TestUpdateAssociation(t)
+//	TestDeleteAssociation(t)
+//	TestGetAssociation(t)
+//	TestGetAllAssociations(t)
+//
+//	// Cat
+//	TestCreateCat(t)
+//	TestUpdateCat(t)
+//	TestDeleteCat(t)
+//	TestGetCat(t)
+//	TestGetAllCats(t)
+//
+//	// Favorites
+//	TestCreateFavorites(t)
+//	TestGetFavorites(t)
+//	TestGetAllFavorites(t)
+//
+//	// Race
+//	TestCreateRace(t)
+//	TestGetAllRaces(t)
+//	TestUpdateRace(t)
+//	TestDeleteRace(t)
+//	TestGetRace(t)
+//
+//	// Rating
+//	TestCreateRating(t)
+//	TestUpdateRating(t)
+//	TestGetRatings(t)
+//	TestGetAllRatings(t)
+//	TestDeleteRatings(t)
+//
+//	// Room
+//
+//	destroy, err := database.TestDatabaseDestroy(s.Db)
+//	if err != nil {
+//		return
+//	}
+//	utils.Logger("debug", "GO-Tests", "Database", destroy)
+//	utils.Logger("debug", "GO-Tests", "General", "End of Tests")
+//}
 
 // Auth
 
@@ -90,7 +88,7 @@ func TestCreateUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockService := queries.NewMockUserQueries(ctrl)
+	mockService := mocks.NewMockUserQueries(ctrl)
 	mockService.EXPECT().CreateUser(testUser).Return(nil)
 
 	err := mockService.CreateUser(testUser)
@@ -101,7 +99,7 @@ func TestFindUserByEmail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockService := queries.NewMockUserQueries(ctrl)
+	mockService := mocks.NewMockUserQueries(ctrl)
 	mockService.EXPECT().FindUserByEmail("test@example.com").Return(testUser, nil)
 
 	user, err := mockService.FindUserByEmail("test@example.com")
@@ -110,7 +108,12 @@ func TestFindUserByEmail(t *testing.T) {
 	assert.Equal(t, testUser.Email, user.Email)
 }
 
-func TestUpdateUser(t *testing.T) {}
+func TestUpdateUser(t *testing.T) {
+	//ctrl := gomock.NewController(t)
+	//defer ctrl.Finish()
+	//
+	//mockService := mocks.NewMockUserQueries(ctrl)
+}
 
 func TestDeleteUser(t *testing.T) {}
 

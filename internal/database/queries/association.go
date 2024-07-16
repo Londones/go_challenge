@@ -15,12 +15,12 @@ func NewQueriesService(s *database.Service) *DatabaseService {
 	}
 }
 
-func (s *DatabaseService) CreateAssociation(association *models.Association) error {
+func (s *DatabaseService) CreateAssociation(association *models.Association) (uint, error) {
 	db := s.s.DB()
-	if err := db.Create(association).Error; err != nil {
-		return err
+	if err := db.Create(&association).Error; err != nil {
+		return 0, err
 	}
-	return nil
+	return association.ID, nil
 }
 
 func (s *DatabaseService) GetAllAssociations() ([]models.Association, error) {

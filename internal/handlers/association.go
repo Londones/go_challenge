@@ -71,7 +71,7 @@ func (h *AssociationHandler) CreateAssociationHandler(w http.ResponseWriter, r *
 	verified := false
 	association.Verified = &verified
 
-	if err := h.associationQueries.CreateAssociation(&association); err != nil {
+	if _, err := h.associationQueries.CreateAssociation(&association); err != nil {
 		http.Error(w, "Error uploading image 4: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
