@@ -209,6 +209,8 @@ func TestDatabaseInit() (*Service, error) {
 		}
 
 		var count int
+		var dbFounded = dbTemp.Raw("SELECT count(*) FROM pg_database WHERE datname = ?", config.Database)
+		fmt.Println(dbFounded)
 		err = dbTemp.Raw("SELECT count(*) FROM pg_database WHERE datname = ?", config.Database).Count(&count).Error
 		if err != nil {
 			fmt.Errorf("failed to check if db exists: %w", err)
@@ -220,10 +222,10 @@ func TestDatabaseInit() (*Service, error) {
 			}
 		}
 
-		var errDB = createDbIfNotExists(dbTemp, config.Database)
-		if errDB != nil {
-			fmt.Printf("failed to create db: %v", errDB)
-		}
+		//var errDB = createDbIfNotExists(dbTemp, config.Database)
+		//if errDB != nil {
+		//	fmt.Printf("failed to create db: %v", errDB)
+		//}
 
 		db, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database))
 		if err != nil {
