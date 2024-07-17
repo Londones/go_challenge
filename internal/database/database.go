@@ -78,6 +78,7 @@ func New(config *Config) (*Service, error) {
 		}
 
 		connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/?sslmode=disable", config.Username, config.Password, config.Host, config.Port)
+		fmt.Println("Try to connect with:", connStr)
 		dbTemp, err := gorm.Open("postgres", connStr)
 		if err != nil {
 			fmt.Printf("failed to connect to server: %v", err)
@@ -174,24 +175,21 @@ func TestDatabaseInit() (*Service, error) {
 	// Get the root directory of the project.
 	var err error
 
-	config.Username = "postgres"
-	config.Password = "postgres"
-	config.Host = "postgres"
-	config.Port = "5432"
-	config.Database = "go_purrfectmatch_test"
-	config.Env = "local"
-
-	//config.Username = "macbook"
+	//config.Username = "postgres"
 	//config.Password = "postgres"
-	//config.Host = "localhost"
+	//config.Host = "postgres"
 	//config.Port = "5432"
 	//config.Database = "go_purrfectmatch_test"
 	//config.Env = "local"
 
+	config.Username = "macbook"
+	config.Password = "postgres"
+	config.Host = "localhost"
+	config.Port = "5432"
+	config.Database = "go_purrfectmatch_test"
+	config.Env = "local"
+
 	if config.Env == "local" {
-		if err != nil {
-			log.Fatal(err)
-		}
 
 		fmt.Println("Config Username:", config.Username)
 		fmt.Println("Config Password:", config.Password)
@@ -201,32 +199,32 @@ func TestDatabaseInit() (*Service, error) {
 		fmt.Println("Config Env:", config.Env)
 
 		connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/?sslmode=disable", config.Username, config.Password, config.Host, config.Port)
-		fmt.Println("Connected with:", connStr)
+		fmt.Println("Try to connect with:", connStr)
 		dbTemp, err := gorm.Open("postgres", connStr)
 		fmt.Printf("DBTemp: %v\n", dbTemp)
 		if err != nil {
 			fmt.Printf("failed to connect to server: %v", err)
 		}
-
-		var count int
-		var dbFounded = dbTemp.Raw("SELECT count(*) FROM pg_database WHERE datname = ?", config.Database)
-		fmt.Println("Founded DB is:", dbFounded.Count(&count))
-		fmt.Println("Nombre de DB:", count)
-		err = dbTemp.Raw("SELECT count(*) FROM pg_database WHERE datname = ?", config.Database).Count(&count).Error
-		if err != nil {
-			fmt.Errorf("failed to check if db exists: %w", err)
-		}
-		if count == 0 {
-			err = dbTemp.Exec(fmt.Sprintf("CREATE DATABASE %s", config.Database)).Error
-			if err != nil {
-				fmt.Errorf("failed to create db: %w", err)
-			}
-		}
-
-		//var errDB = createDbIfNotExists(dbTemp, config.Database)
-		//if errDB != nil {
-		//	fmt.Printf("failed to create db: %v", errDB)
+		//
+		//var count int
+		//var dbFounded = dbTemp.Raw("SELECT count(*) FROM pg_database WHERE datname = ?", config.Database)
+		//fmt.Println("Founded DB is:", dbFounded.Count(&count))
+		//fmt.Println("Nombre de DB:", count)
+		//err = dbTemp.Raw("SELECT count(*) FROM pg_database WHERE datname = ?", config.Database).Count(&count).Error
+		//if err != nil {
+		//	fmt.Errorf("failed to check if db exists: %w", err)
 		//}
+		//if count == 0 {
+		//	err = dbTemp.Exec(fmt.Sprintf("CREATE DATABASE %s", config.Database)).Error
+		//	if err != nil {
+		//		fmt.Errorf("failed to create db: %w", err)
+		//	}
+		//}
+
+		err = dbTemp.Exec(fmt.Sprintf("CREATE DATABASE %s", config.Database)).Error
+		if err != nil {
+			fmt.Printf("failed to create db: %w", err)
+		}
 
 		db, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database))
 		if err != nil {
