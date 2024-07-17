@@ -34,7 +34,7 @@ jobs:
       - name: Connect to PostgreSQL
         # Runs a script that creates a PostgreSQL table, populates
         # the table with data, and then retrieves the data
-        run: psql -h postgres
+        run: sudo -i -u postgres
 
         # Environment variables used by the `client.js` script to create
         # a new PostgreSQL table.
