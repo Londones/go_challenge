@@ -433,7 +433,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Comma-separated list of member IDs",
+                        "description": "Comma-separated list of members IDs",
                         "name": "members",
                         "in": "formData"
                     },
@@ -578,7 +578,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Comma-separated list of member IDs",
+                        "description": "Comma-separated list of members IDs",
                         "name": "members",
                         "in": "formData"
                     },
@@ -908,6 +908,13 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "Published As",
+                        "name": "PublishedAs",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
                         "type": "file",
                         "description": "Image",
                         "name": "uploaded_file",
@@ -1179,6 +1186,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "User ID",
                         "name": "UserID",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Published As",
+                        "name": "PublishedAs",
                         "in": "formData"
                     },
                     {
@@ -2169,6 +2182,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/rooms/{roomID}/latest": {
+            "get": {
+                "description": "Get the latest message for a room",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Get the latest message for a room",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the room",
+                        "name": "roomID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "latest message for the room",
+                        "schema": {
+                            "$ref": "#/definitions/models.Message"
+                        }
+                    },
+                    "400": {
+                        "description": "room ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "room not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error getting latest message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "description": "Retrieve a list of all users",
@@ -2450,7 +2513,7 @@ const docTemplate = `{
         },
         "/users/{userId}/associations": {
             "get": {
-                "description": "Retrieve all associations for a specific user",
+                "description": "Retrieve all associations for a specific user where the user is either the owner or a member",
                 "produces": [
                     "application/json"
                 ],
@@ -2597,9 +2660,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "owner": {
-                    "$ref": "#/definitions/models.User"
-                },
                 "ownerID": {
                     "type": "string"
                 },
@@ -2655,6 +2715,9 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "publishedAs": {
+                    "type": "string"
                 },
                 "raceID": {
                     "type": "string"
@@ -2713,6 +2776,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "isRead": {
+                    "type": "boolean"
                 },
                 "roomID": {
                     "type": "integer"
