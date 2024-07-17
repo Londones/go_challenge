@@ -141,7 +141,7 @@ func (h *RaceHandler) CreateRaceHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = h.raceQueries.CreateRace(&race)
+	_, err = h.raceQueries.CreateRace(&race)
 	if err != nil {
 		http.Error(w, "error creating race", http.StatusInternalServerError)
 		return

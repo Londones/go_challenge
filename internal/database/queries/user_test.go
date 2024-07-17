@@ -43,8 +43,66 @@ import (
 var dtb, dbErr = database.TestDatabaseInit()
 var db = DatabaseService{s: database.Service{Db: dtb.Db}}
 
-func TestDatabaseService_CreateAnnonce(t *testing.T) {
+// Mise en place d'objet globaux qui serviront aux tests
+var annonceDescription = "annonce de test"
+var associationIsVerified = true
+var descriptionCat string = "Il s'appel PABLO et c'est un chat de TEST"
+var dateCat = time.Time{}
 
+var users, _ = db.GetAllUsers()
+var raceUnique, _ = db.FindRaceByID("1")
+var annonces, _ = db.GetAllAnnonces()
+
+var annonce = models.Annonce{
+	Title:       "Annonce de test",
+	Description: &annonceDescription,
+	UserID:      users[1].ID,
+	CatID:       "1",
+}
+var association = models.Association{
+	Name:       "Assoc de TEST",
+	AddressRue: "10 rue du TEST",
+	Cp:         "12345",
+	Ville:      "TEST-CITY",
+	Phone:      "0101010101",
+	Email:      "emailDeTest@gmail.com",
+	OwnerID:    users[1].ID,
+	Verified:   &associationIsVerified,
+}
+var cat = models.Cats{
+	Name:            "PABLO",
+	BirthDate:       &dateCat,
+	Sexe:            "male",
+	LastVaccine:     &dateCat,
+	LastVaccineName: "ANTI-PABLO",
+	Color:           "VIOLET",
+	Behavior:        "PABLOCITO",
+	Sterilized:      false,
+	RaceID:          strconv.Itoa(int(raceUnique.ID)),
+	Description:     &descriptionCat,
+	Reserved:        false,
+	UserID:          users[1].ID,
+}
+var favorite = models.Favorite{
+	UserID:    users[1].ID,
+	AnnonceID: strconv.Itoa(int(annonces[1].ID)),
+}
+var race = models.Races{
+	RaceName: "TESTOSAURUS",
+}
+var rating = models.Rating{
+	Mark:     4,
+	Comment:  "Rating de test",
+	UserID:   users[1].ID,
+	AuthorID: users[2].ID,
+}
+var room = models.Room{
+	User1ID:   users[1].ID,
+	User2ID:   users[2].ID,
+	AnnonceID: strconv.Itoa(int(annonces[1].ID)),
+}
+
+func TestDatabaseService_CreateAnnonce(t *testing.T) {
 	if dbErr != nil {
 		return
 	}
@@ -66,22 +124,9 @@ func TestDatabaseService_CreateAnnonce(t *testing.T) {
 		s: annonceTest.fields.s,
 	}
 
-	users, _ := s.GetAllUsers()
-	cats, _ := s.GetAllCats()
-
-	var description string = "annonce de test"
-
-	annonce := models.Annonce{
-		Title:       "Annonce de test",
-		Description: &description,
-		UserID:      users[1].ID,
-		CatID:       strconv.Itoa(int(cats[1].ID)),
-	}
-
 	t.Run(annonceTest.name, func(t *testing.T) {
 
 		gotId, err := s.CreateAnnonce(&annonce)
-		fmt.Println("ici")
 		if !annonceTest.wantErr(t, err, fmt.Sprintf("CreateAnnonce(%v)", annonce)) {
 			return
 		}
@@ -107,28 +152,9 @@ func TestDatabaseService_CreateAssociation(t *testing.T) {
 	associationTest.wantId = 1
 	associationTest.wantErr = assert.NoError
 
-	s := &DatabaseService{
-		s: associationTest.fields.s,
-	}
-
-	var isVerified = true
-
-	users, _ := s.GetAllUsers()
-
-	association := models.Association{
-		Name:       "Assoc de TEST",
-		AddressRue: "10 rue du TEST",
-		Cp:         "12345",
-		Ville:      "TEST-CITY",
-		Phone:      "0101010101",
-		Email:      "emailDeTest@gmail.com",
-		OwnerID:    users[1].ID,
-		Verified:   &isVerified,
-	}
-
 	t.Run(associationTest.name, func(t *testing.T) {
 
-		gotId, err := s.CreateAssociation(&association)
+		gotId, err := db.CreateAssociation(&association)
 		if !associationTest.wantErr(t, err, fmt.Sprintf("CreateAssociation(%v)", association)) {
 			return
 		}
@@ -158,27 +184,6 @@ func TestDatabaseService_CreateCat(t *testing.T) {
 		s: catTest.fields.s,
 	}
 
-	var description string = "Il s'appel PABLO et c'est un chat de TEST"
-	var date = time.Time{}
-
-	users, _ := s.GetAllUsers()
-	races, _ := s.GetAllRace()
-
-	cat := models.Cats{
-		Name:            "PABLO",
-		BirthDate:       &date,
-		Sexe:            "male",
-		LastVaccine:     &date,
-		LastVaccineName: "ANTI-PABLO",
-		Color:           "VIOLET",
-		Behavior:        "PABLOCITO",
-		Sterilized:      false,
-		RaceID:          strconv.Itoa(int(races[1].ID)),
-		Description:     &description,
-		Reserved:        false,
-		UserID:          users[1].ID,
-	}
-
 	t.Run(catTest.name, func(t *testing.T) {
 
 		gotId, err := s.CreateCat(&cat)
@@ -189,844 +194,743 @@ func TestDatabaseService_CreateCat(t *testing.T) {
 	})
 }
 
-/*
 func TestDatabaseService_CreateFavorite(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		favorite *models.Favorite
-	}
-	tests := []struct {
+
+	type test struct {
 		name    string
-		fields  fields
-		args    args
+		fields  DatabaseService
+		wantId  uint
 		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			tt.wantErr(t, s.CreateFavorite(tt.args.favorite), fmt.Sprintf("CreateFavorite(%v)", tt.args.favorite))
-		})
+
+	var favoriteTest test
+	favoriteTest.name = "Test creation favorite"
+	favoriteTest.fields = db
+	favoriteTest.wantId = 1
+	favoriteTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: favoriteTest.fields.s,
 	}
+
+	t.Run(favoriteTest.name, func(t *testing.T) {
+
+		gotId, err := s.CreateFavorite(&favorite)
+		if !favoriteTest.wantErr(t, err, fmt.Sprintf("CreateFavorite(%v)", favorite)) {
+			return
+		}
+		assert.Equalf(t, favoriteTest.wantId, gotId, "CreateFavorite(%v)", favorite)
+	})
 }
 
 func TestDatabaseService_CreateRace(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		race *models.Races
-	}
-	tests := []struct {
+
+	type test struct {
 		name    string
-		fields  fields
-		args    args
+		fields  DatabaseService
+		wantId  uint
 		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			tt.wantErr(t, s.CreateRace(tt.args.race), fmt.Sprintf("CreateRace(%v)", tt.args.race))
-		})
+
+	var raceTest test
+	raceTest.name = "Test creation race"
+	raceTest.fields = db
+	raceTest.wantId = 6
+	raceTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: raceTest.fields.s,
 	}
+
+	t.Run(raceTest.name, func(t *testing.T) {
+
+		gotId, err := s.CreateRace(&race)
+		if !raceTest.wantErr(t, err, fmt.Sprintf("CreateRace(%v)", race)) {
+			return
+		}
+		assert.Equalf(t, raceTest.wantId, gotId, "CreateRace(%v)", race)
+	})
 }
 
 func TestDatabaseService_CreateRating(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		rating *models.Rating
-	}
-	tests := []struct {
+
+	type test struct {
 		name    string
-		fields  fields
-		args    args
+		fields  DatabaseService
+		wantId  uint
 		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			tt.wantErr(t, s.CreateRating(tt.args.rating), fmt.Sprintf("CreateRating(%v)", tt.args.rating))
-		})
+
+	var ratingTest test
+	ratingTest.name = "Test creation rating"
+	ratingTest.fields = db
+	ratingTest.wantId = 1
+	ratingTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: ratingTest.fields.s,
 	}
+
+	t.Run(ratingTest.name, func(t *testing.T) {
+
+		gotId, err := s.CreateRating(&rating)
+		if !ratingTest.wantErr(t, err, fmt.Sprintf("CreateRating(%v)", rating)) {
+			return
+		}
+		assert.Equalf(t, ratingTest.wantId, gotId, "CreateRating(%v)", rating)
+	})
 }
 
 func TestDatabaseService_CreateRoom(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		room *models.Room
-	}
-	tests := []struct {
+
+	type test struct {
 		name    string
-		fields  fields
-		args    args
+		fields  DatabaseService
 		wantId  uint
 		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			gotId, err := s.CreateRoom(tt.args.room)
-			if !tt.wantErr(t, err, fmt.Sprintf("CreateRoom(%v)", tt.args.room)) {
-				return
-			}
-			assert.Equalf(t, tt.wantId, gotId, "CreateRoom(%v)", tt.args.room)
-		})
+
+	var roomTest test
+	roomTest.name = "Test creation room"
+	roomTest.fields = db
+	roomTest.wantId = 1
+	roomTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: roomTest.fields.s,
 	}
+
+	t.Run(roomTest.name, func(t *testing.T) {
+
+		gotId, err := s.CreateRoom(&room)
+		if !roomTest.wantErr(t, err, fmt.Sprintf("CreateRoom(%v)", room)) {
+			return
+		}
+		assert.Equalf(t, roomTest.wantId, gotId, "CreateRoom(%v)", room)
+	})
 }
 
+/*
 func TestDatabaseService_CreateUser(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		user *models.User
-		role *models.Roles
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			tt.wantErr(t, s.CreateUser(tt.args.user, tt.args.role), fmt.Sprintf("CreateUser(%v, %v)", tt.args.user, tt.args.role))
-		})
-	}
-}
 
-func TestDatabaseService_DeleteAnnonce(t *testing.T) {
-	type fields struct {
-		s database.Service
-	}
-	type args struct {
-		id string
-	}
-	tests := []struct {
+	type test struct {
 		name    string
-		fields  fields
-		args    args
+		fields  DatabaseService
+		wantId  uint
 		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			tt.wantErr(t, s.DeleteAnnonce(tt.args.id), fmt.Sprintf("DeleteAnnonce(%v)", tt.args.id))
-		})
-	}
-}
 
-func TestDatabaseService_DeleteAssociation(t *testing.T) {
-	type fields struct {
-		s database.Service
-	}
-	type args struct {
-		id int
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			tt.wantErr(t, s.DeleteAssociation(tt.args.id), fmt.Sprintf("DeleteAssociation(%v)", tt.args.id))
-		})
-	}
-}
+	var userTest test
+	userTest.name = "Test creation user"
+	userTest.fields = db
+	userTest.wantId = 6
+	userTest.wantErr = assert.NoError
 
-func TestDatabaseService_DeleteCat(t *testing.T) {
-	type fields struct {
-		s database.Service
+	s := &DatabaseService{
+		s: userTest.fields.s,
 	}
-	type args struct {
-		id string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			tt.wantErr(t, s.DeleteCat(tt.args.id), fmt.Sprintf("DeleteCat(%v)", tt.args.id))
-		})
-	}
-}
 
-func TestDatabaseService_DeleteCatByID(t *testing.T) {
-	type fields struct {
-		s database.Service
-	}
-	type args struct {
-		id string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			tt.wantErr(t, s.DeleteCatByID(tt.args.id), fmt.Sprintf("DeleteCatByID(%v)", tt.args.id))
-		})
-	}
-}
+	var rolesName = models.UserRole
 
-func TestDatabaseService_DeleteFavorite(t *testing.T) {
-	type fields struct {
-		s database.Service
+	role, err := s.GetRoleByName(rolesName)
+	if err != nil {
+		return
 	}
-	type args struct {
-		favorite *models.Favorite
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			tt.wantErr(t, s.DeleteFavorite(tt.args.favorite), fmt.Sprintf("DeleteFavorite(%v)", tt.args.favorite))
-		})
-	}
-}
 
-func TestDatabaseService_DeleteRace(t *testing.T) {
-	type fields struct {
-		s database.Service
+	user := models.User{
+		Name:          "USER de TEST",
+		Email:         "emaildeTest@gmail.com",
+		Password:      "lepassword",
+		AddressRue:    "111 rue du 1",
+		Cp:            "12345",
+		Ville:         "ville de test",
+		GoogleID:      "32132132132",
+		ProfilePicURL: "",
 	}
-	type args struct {
-		id string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			tt.wantErr(t, s.DeleteRace(tt.args.id), fmt.Sprintf("DeleteRace(%v)", tt.args.id))
-		})
-	}
-}
 
-func TestDatabaseService_DeleteRating(t *testing.T) {
-	type fields struct {
-		s database.Service
-	}
-	type args struct {
-		id string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			tt.wantErr(t, s.DeleteRating(tt.args.id), fmt.Sprintf("DeleteRating(%v)", tt.args.id))
-		})
-	}
-}
+	t.Run(userTest.name, func(t *testing.T) {
 
-func TestDatabaseService_DeleteUser(t *testing.T) {
-	type fields struct {
-		s database.Service
-	}
-	type args struct {
-		id string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			tt.wantErr(t, s.DeleteUser(tt.args.id), fmt.Sprintf("DeleteUser(%v)", tt.args.id))
-		})
-	}
-}
+		gotId, err := s.CreateUser(&user, role)
+		if !userTest.wantErr(t, err, fmt.Sprintf("CreateUser(%v)", user)) {
+			return
+		}
+		assert.Equalf(t, userTest.wantId, gotId, "CreateUser(%v)", user)
+	})
+} */
 
+// FindBy
 func TestDatabaseService_FindAnnonceByCatID(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		catID string
+
+	type test struct {
+		name     string
+		fields   DatabaseService
+		toFindID uint
+		wantId   uint
+		wantErr  assert.ErrorAssertionFunc
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *models.Annonce
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
+
+	var catId int = 23
+
+	var annonceTest test
+	annonceTest.name = "Test trouver annonce avec id chat"
+	annonceTest.toFindID = 23
+	annonceTest.fields = db
+	annonceTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: annonceTest.fields.s,
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.FindAnnonceByCatID(tt.args.catID)
-			if !tt.wantErr(t, err, fmt.Sprintf("FindAnnonceByCatID(%v)", tt.args.catID)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "FindAnnonceByCatID(%v)", tt.args.catID)
-		})
-	}
+
+	fmt.Println(annonce.ID)
+	fmt.Println(annonce.CatID)
+
+	t.Run(annonceTest.name, func(t *testing.T) {
+		annonceFounded, err := s.FindAnnonceByCatID(strconv.Itoa(catId))
+		fmt.Println(annonceFounded.ID)
+		fmt.Println(annonceTest.toFindID)
+		assert.NotNil(t, annonceFounded)
+		assert.Equal(t, annonceTest.toFindID, annonceFounded.ID)
+		//assert.IsType(t, models.Annonce{}, annonceFounded)
+		annonceTest.wantErr(t, err, fmt.Sprintf("FindAnnonce(%v)", annonceTest.toFindID))
+	})
 }
 
 func TestDatabaseService_FindAnnonceByID(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		id string
+
+	type test struct {
+		name     string
+		fields   DatabaseService
+		toFindID uint
+		wantId   uint
+		wantErr  assert.ErrorAssertionFunc
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *models.Annonce
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
+
+	var annonceTest test
+	annonceTest.name = "Test trouver annonce avec ID"
+	annonceTest.toFindID = annonce.ID
+	annonceTest.fields = db
+	annonceTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: annonceTest.fields.s,
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.FindAnnonceByID(tt.args.id)
-			if !tt.wantErr(t, err, fmt.Sprintf("FindAnnonceByID(%v)", tt.args.id)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "FindAnnonceByID(%v)", tt.args.id)
-		})
-	}
+
+	t.Run(annonceTest.name, func(t *testing.T) {
+		annonceFounded, err := s.FindAnnonceByID(strconv.Itoa(int(annonceTest.toFindID)))
+		assert.NotNil(t, annonceFounded)
+		assert.Equal(t, annonceTest.toFindID, annonceFounded.ID)
+		//assert.IsType(t, models.Annonce{}, annonceFounded)
+		annonceTest.wantErr(t, err, fmt.Sprintf("FindAnnonce(%v)", annonceTest.toFindID))
+	})
 }
 
 func TestDatabaseService_FindAssociationById(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		id int
+
+	type test struct {
+		name     string
+		fields   DatabaseService
+		toFindID uint
+		wantId   uint
+		wantErr  assert.ErrorAssertionFunc
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *models.Association
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
+
+	var associationTest test
+	associationTest.name = "Test trouver association par ID"
+	associationTest.toFindID = association.ID
+	associationTest.fields = db
+	associationTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: associationTest.fields.s,
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.FindAssociationById(tt.args.id)
-			if !tt.wantErr(t, err, fmt.Sprintf("FindAssociationById(%v)", tt.args.id)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "FindAssociationById(%v)", tt.args.id)
-		})
-	}
+
+	t.Run(associationTest.name, func(t *testing.T) {
+		associationFounded, err := s.FindAssociationById(int(associationTest.toFindID))
+		assert.NotNil(t, associationFounded)
+		assert.Equal(t, associationTest.toFindID, associationFounded.ID)
+		//assert.IsType(t, models.Association{}, associationFounded)
+		associationTest.wantErr(t, err, fmt.Sprintf("FindAssociation(%v)", associationTest.toFindID))
+	})
 }
 
-func TestDatabaseService_FindAssociationsByUserId(t *testing.T) {
-	type fields struct {
-		s database.Service
-	}
-	type args struct {
-		userId string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []models.Association
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.FindAssociationsByUserId(tt.args.userId)
-			if !tt.wantErr(t, err, fmt.Sprintf("FindAssociationsByUserId(%v)", tt.args.userId)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "FindAssociationsByUserId(%v)", tt.args.userId)
-		})
-	}
-}
+//func TestDatabaseService_FindAssociationsByUserId(t *testing.T) {
+//	if dbErr != nil {
+//		return
+//	}
+//
+//	type test struct {
+//		name     string
+//		fields   DatabaseService
+//		toFindID string
+//		wantId   uint
+//		wantErr  assert.ErrorAssertionFunc
+//	}
+//
+//	var associationTest test
+//	associationTest.name = "Test trouver association par ID"
+//	associationTest.fields = db
+//	associationTest.wantErr = assert.NoError
+//
+//	asso, _ := db.FindAssociationById(1)
+//
+//	associationTest.toFindID = strconv.Itoa(int(asso.ID))
+//	var idAssociationFounded []uint
+//
+//	t.Run(associationTest.name, func(t *testing.T) {
+//		associationFounded, err := s.FindAssociationsByUserId(asso.Members[1].ID)
+//		assert.NotNil(t, associationFounded)
+//		for _, as := range associationFounded {
+//			append(idAssociationFounded, as)
+//		}
+//		//assert.IsType(t, models.Association{}, associationFounded)
+//		associationTest.wantErr(t, err, fmt.Sprintf("FindAssociation(%v)", associationTest.toFindID))
+//	})
+//}
 
 func TestDatabaseService_FindCatByID(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		id string
+
+	type test struct {
+		name     string
+		fields   DatabaseService
+		toFindID string
+		wantErr  assert.ErrorAssertionFunc
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *models.Cats
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
+
+	var catTest test
+	catTest.name = "Test trouver cat par ID"
+	catTest.toFindID = strconv.Itoa(int(cat.ID))
+	catTest.fields = db
+	catTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: catTest.fields.s,
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.FindCatByID(tt.args.id)
-			if !tt.wantErr(t, err, fmt.Sprintf("FindCatByID(%v)", tt.args.id)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "FindCatByID(%v)", tt.args.id)
-		})
-	}
+
+	t.Run(catTest.name, func(t *testing.T) {
+		catFounded, err := s.FindCatByID(catTest.toFindID)
+		assert.NotNil(t, catFounded)
+		assert.Equal(t, catTest.toFindID, strconv.Itoa(int(catFounded.ID)))
+		//assert.IsType(t, models.Cat{}, catFounded)
+		catTest.wantErr(t, err, fmt.Sprintf("FindCat(%v)", catTest.toFindID))
+	})
 }
 
 func TestDatabaseService_FindCatsByUserID(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		userID string
+
+	type test struct {
+		name     string
+		fields   DatabaseService
+		toFindID string
+		wantErr  assert.ErrorAssertionFunc
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []models.Cats
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
+
+	var catTest test
+	catTest.name = "Test trouver cat par userID"
+	catTest.toFindID = strconv.Itoa(int(cat.ID))
+	catTest.fields = db
+	catTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: catTest.fields.s,
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.FindCatsByUserID(tt.args.userID)
-			if !tt.wantErr(t, err, fmt.Sprintf("FindCatsByUserID(%v)", tt.args.userID)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "FindCatsByUserID(%v)", tt.args.userID)
-		})
-	}
+
+	var idCatsFounded []string
+
+	t.Run(catTest.name, func(t *testing.T) {
+		catsFounded, err := s.FindCatsByUserID(cat.UserID)
+		assert.NotNil(t, catsFounded)
+		for _, as := range catsFounded {
+			idCatsFounded = append(idCatsFounded, strconv.Itoa(int(as.ID)))
+		}
+		assert.Contains(t, idCatsFounded, catTest.toFindID)
+		//assert.IsType(t, models.Cat{}, catFounded)
+		catTest.wantErr(t, err, fmt.Sprintf("FindCat(%v)", catTest.toFindID))
+	})
 }
 
 func TestDatabaseService_FindFavoriteByID(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		id string
+
+	type test struct {
+		name     string
+		fields   DatabaseService
+		toFindID string
+		wantErr  assert.ErrorAssertionFunc
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *models.Favorite
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
+
+	var favoriteTest test
+	favoriteTest.name = "Test trouver favorite par ID"
+	favoriteTest.toFindID = strconv.Itoa(int(favorite.ID))
+	favoriteTest.fields = db
+	favoriteTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: favoriteTest.fields.s,
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.FindFavoriteByID(tt.args.id)
-			if !tt.wantErr(t, err, fmt.Sprintf("FindFavoriteByID(%v)", tt.args.id)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "FindFavoriteByID(%v)", tt.args.id)
-		})
-	}
+
+	t.Run(favoriteTest.name, func(t *testing.T) {
+		favoriteFounded, err := s.FindFavoriteByID(favoriteTest.toFindID)
+		assert.NotNil(t, favoriteFounded)
+		assert.Equal(t, favoriteTest.toFindID, strconv.Itoa(int(favoriteFounded.ID)))
+		//assert.IsType(t, models.Favorite{}, favoriteFounded)
+		favoriteTest.wantErr(t, err, fmt.Sprintf("FindFavorite(%v)", favoriteTest.toFindID))
+	})
 }
 
 func TestDatabaseService_FindFavoritesByAnnonceID(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		annonceID string
+
+	type test struct {
+		name     string
+		fields   DatabaseService
+		toFindID string
+		wantErr  assert.ErrorAssertionFunc
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []models.Favorite
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
+
+	var favoriteTest test
+	favoriteTest.name = "Test trouver favorite par userID"
+	favoriteTest.toFindID = strconv.Itoa(int(favorite.ID))
+	favoriteTest.fields = db
+	favoriteTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: favoriteTest.fields.s,
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.FindFavoritesByAnnonceID(tt.args.annonceID)
-			if !tt.wantErr(t, err, fmt.Sprintf("FindFavoritesByAnnonceID(%v)", tt.args.annonceID)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "FindFavoritesByAnnonceID(%v)", tt.args.annonceID)
-		})
-	}
+
+	var idFavoritesFounded []string
+
+	t.Run(favoriteTest.name, func(t *testing.T) {
+		favoritesFounded, err := s.FindFavoritesByAnnonceID(favorite.AnnonceID)
+		assert.NotNil(t, favoritesFounded)
+		for _, as := range favoritesFounded {
+			idFavoritesFounded = append(idFavoritesFounded, strconv.Itoa(int(as.ID)))
+		}
+		assert.Contains(t, idFavoritesFounded, favoriteTest.toFindID)
+		//assert.IsType(t, models.Favorite{}, favoriteFounded)
+		favoriteTest.wantErr(t, err, fmt.Sprintf("FindFavorite(%v)", favoriteTest.toFindID))
+	})
 }
 
 func TestDatabaseService_FindFavoritesByUserID(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		userID string
+
+	type test struct {
+		name     string
+		fields   DatabaseService
+		toFindID string
+		wantErr  assert.ErrorAssertionFunc
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []models.Favorite
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
+
+	var favoriteTest test
+	favoriteTest.name = "Test trouver favorite par userID"
+	favoriteTest.toFindID = strconv.Itoa(int(favorite.ID))
+	favoriteTest.fields = db
+	favoriteTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: favoriteTest.fields.s,
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.FindFavoritesByUserID(tt.args.userID)
-			if !tt.wantErr(t, err, fmt.Sprintf("FindFavoritesByUserID(%v)", tt.args.userID)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "FindFavoritesByUserID(%v)", tt.args.userID)
-		})
-	}
+
+	var idFavoritesFounded []string
+
+	t.Run(favoriteTest.name, func(t *testing.T) {
+		favoritesFounded, err := s.FindFavoritesByUserID(favorite.UserID)
+		assert.NotNil(t, favoritesFounded)
+		for _, as := range favoritesFounded {
+			idFavoritesFounded = append(idFavoritesFounded, strconv.Itoa(int(as.ID)))
+		}
+		assert.Contains(t, idFavoritesFounded, favoriteTest.toFindID)
+		//assert.IsType(t, models.Favorite{}, favoriteFounded)
+		favoriteTest.wantErr(t, err, fmt.Sprintf("FindFavorite(%v)", favoriteTest.toFindID))
+	})
 }
 
 func TestDatabaseService_FindRaceByID(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		id string
-	}
-	tests := []struct {
+
+	type test struct {
 		name     string
-		fields   fields
-		args     args
-		wantRace models.Races
+		fields   DatabaseService
+		toFindID string
 		wantErr  assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			gotRace, err := s.FindRaceByID(tt.args.id)
-			if !tt.wantErr(t, err, fmt.Sprintf("FindRaceByID(%v)", tt.args.id)) {
-				return
-			}
-			assert.Equalf(t, tt.wantRace, gotRace, "FindRaceByID(%v)", tt.args.id)
-		})
+
+	var raceTest test
+	raceTest.name = "Test trouver race par ID"
+	raceTest.toFindID = strconv.Itoa(int(race.ID))
+	raceTest.fields = db
+	raceTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: raceTest.fields.s,
 	}
+
+	t.Run(raceTest.name, func(t *testing.T) {
+		raceFounded, err := s.FindRaceByID(raceTest.toFindID)
+		assert.NotNil(t, raceFounded)
+		assert.Equal(t, raceTest.toFindID, strconv.Itoa(int(raceFounded.ID)))
+		//assert.IsType(t, models.Race{}, raceFounded)
+		raceTest.wantErr(t, err, fmt.Sprintf("FindRace(%v)", raceTest.toFindID))
+	})
 }
 
 func TestDatabaseService_FindRatingByID(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		id string
+
+	type test struct {
+		name     string
+		fields   DatabaseService
+		toFindID string
+		wantErr  assert.ErrorAssertionFunc
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *models.Rating
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
+
+	var ratingTest test
+	ratingTest.name = "Test trouver rating par ID"
+	ratingTest.toFindID = strconv.Itoa(int(rating.ID))
+	ratingTest.fields = db
+	ratingTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: ratingTest.fields.s,
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.FindRatingByID(tt.args.id)
-			if !tt.wantErr(t, err, fmt.Sprintf("FindRatingByID(%v)", tt.args.id)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "FindRatingByID(%v)", tt.args.id)
-		})
-	}
+
+	t.Run(ratingTest.name, func(t *testing.T) {
+		ratingFounded, err := s.FindRatingByID(ratingTest.toFindID)
+		assert.NotNil(t, ratingFounded)
+		assert.Equal(t, ratingTest.toFindID, strconv.Itoa(int(ratingFounded.ID)))
+		//assert.IsType(t, models.Rating{}, ratingFounded)
+		ratingTest.wantErr(t, err, fmt.Sprintf("FindRating(%v)", ratingTest.toFindID))
+	})
 }
 
 func TestDatabaseService_FindRoomsByUserID(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	type args struct {
-		userid string
+
+	type test struct {
+		name     string
+		fields   DatabaseService
+		toFindID string
+		wantErr  assert.ErrorAssertionFunc
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []*models.Room
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
+
+	var roomTest test
+	roomTest.name = "Test trouver room par userID"
+	roomTest.toFindID = strconv.Itoa(int(room.ID))
+	roomTest.fields = db
+	roomTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: roomTest.fields.s,
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.FindRoomsByUserID(tt.args.userid)
-			if !tt.wantErr(t, err, fmt.Sprintf("FindRoomsByUserID(%v)", tt.args.userid)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "FindRoomsByUserID(%v)", tt.args.userid)
-		})
-	}
+
+	var idRoomsFounded []string
+
+	t.Run(roomTest.name, func(t *testing.T) {
+		roomsFounded, err := s.FindRoomsByUserID(room.User1ID)
+		assert.NotNil(t, roomsFounded)
+		for _, as := range roomsFounded {
+			idRoomsFounded = append(idRoomsFounded, strconv.Itoa(int(as.ID)))
+		}
+		assert.Contains(t, idRoomsFounded, roomTest.toFindID)
+		//assert.IsType(t, models.Room{}, roomFounded)
+		roomTest.wantErr(t, err, fmt.Sprintf("FindRoom(%v)", roomTest.toFindID))
+	})
 }
 
-func TestDatabaseService_FindUserByEmail(t *testing.T) {
-	type fields struct {
-		s database.Service
-	}
-	type args struct {
-		email string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *models.User
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.FindUserByEmail(tt.args.email)
-			if !tt.wantErr(t, err, fmt.Sprintf("FindUserByEmail(%v)", tt.args.email)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "FindUserByEmail(%v)", tt.args.email)
-		})
-	}
-}
+//func TestDatabaseService_FindUserByEmail(t *testing.T) {
+//	type fields struct {
+//		s database.Service
+//	}
+//	type args struct {
+//		email string
+//	}
+//	tests := []struct {
+//		name    string
+//		fields  fields
+//		args    args
+//		want    *models.User
+//		wantErr assert.ErrorAssertionFunc
+//	}{
+//		// TODO: Add test cases.
+//	}
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			s := &DatabaseService{
+//				s: tt.fields.s,
+//			}
+//			got, err := s.FindUserByEmail(tt.args.email)
+//			if !tt.wantErr(t, err, fmt.Sprintf("FindUserByEmail(%v)", tt.args.email)) {
+//				return
+//			}
+//			assert.Equalf(t, tt.want, got, "FindUserByEmail(%v)", tt.args.email)
+//		})
+//	}
+//}
 
-func TestDatabaseService_FindUserByGoogleID(t *testing.T) {
-	type fields struct {
-		s database.Service
-	}
-	type args struct {
-		googleID string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *models.User
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.FindUserByGoogleID(tt.args.googleID)
-			if !tt.wantErr(t, err, fmt.Sprintf("FindUserByGoogleID(%v)", tt.args.googleID)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "FindUserByGoogleID(%v)", tt.args.googleID)
-		})
-	}
-}
+//func TestDatabaseService_FindUserByGoogleID(t *testing.T) {
+//	type fields struct {
+//		s database.Service
+//	}
+//	type args struct {
+//		googleID string
+//	}
+//	tests := []struct {
+//		name    string
+//		fields  fields
+//		args    args
+//		want    *models.User
+//		wantErr assert.ErrorAssertionFunc
+//	}{
+//		// TODO: Add test cases.
+//	}
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			s := &DatabaseService{
+//				s: tt.fields.s,
+//			}
+//			got, err := s.FindUserByGoogleID(tt.args.googleID)
+//			if !tt.wantErr(t, err, fmt.Sprintf("FindUserByGoogleID(%v)", tt.args.googleID)) {
+//				return
+//			}
+//			assert.Equalf(t, tt.want, got, "FindUserByGoogleID(%v)", tt.args.googleID)
+//		})
+//	}
+//}
 
-func TestDatabaseService_FindUserByID(t *testing.T) {
-	type fields struct {
-		s database.Service
-	}
-	type args struct {
-		id string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *models.User
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.FindUserByID(tt.args.id)
-			if !tt.wantErr(t, err, fmt.Sprintf("FindUserByID(%v)", tt.args.id)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "FindUserByID(%v)", tt.args.id)
-		})
-	}
-}
+//func TestDatabaseService_FindUserByID(t *testing.T) {
+//	type fields struct {
+//		s database.Service
+//	}
+//	type args struct {
+//		id string
+//	}
+//	tests := []struct {
+//		name    string
+//		fields  fields
+//		args    args
+//		want    *models.User
+//		wantErr assert.ErrorAssertionFunc
+//	}{
+//		// TODO: Add test cases.
+//	}
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			s := &DatabaseService{
+//				s: tt.fields.s,
+//			}
+//			got, err := s.FindUserByID(tt.args.id)
+//			if !tt.wantErr(t, err, fmt.Sprintf("FindUserByID(%v)", tt.args.id)) {
+//				return
+//			}
+//			assert.Equalf(t, tt.want, got, "FindUserByID(%v)", tt.args.id)
+//		})
+//	}
+//}
 
-func TestDatabaseService_GetAddressFromAnnonceID(t *testing.T) {
-	type fields struct {
-		s database.Service
-	}
-	type args struct {
-		userID string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    string
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.GetAddressFromAnnonceID(tt.args.userID)
-			if !tt.wantErr(t, err, fmt.Sprintf("GetAddressFromAnnonceID(%v)", tt.args.userID)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "GetAddressFromAnnonceID(%v)", tt.args.userID)
-		})
-	}
-}
+//func TestDatabaseService_GetAddressFromAnnonceID(t *testing.T) {
+//	type fields struct {
+//		s database.Service
+//	}
+//	type args struct {
+//		userID string
+//	}
+//	tests := []struct {
+//		name    string
+//		fields  fields
+//		args    args
+//		want    string
+//		wantErr assert.ErrorAssertionFunc
+//	}{
+//		// TODO: Add test cases.
+//	}
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			s := &DatabaseService{
+//				s: tt.fields.s,
+//			}
+//			got, err := s.GetAddressFromAnnonceID(tt.args.userID)
+//			if !tt.wantErr(t, err, fmt.Sprintf("GetAddressFromAnnonceID(%v)", tt.args.userID)) {
+//				return
+//			}
+//			assert.Equalf(t, tt.want, got, "GetAddressFromAnnonceID(%v)", tt.args.userID)
+//		})
+//	}
+//}
 
 func TestDatabaseService_GetAllAnnonces(t *testing.T) {
-	type fields struct {
-		s database.Service
+	if dbErr != nil {
+		return
 	}
-	tests := []struct {
+
+	type test struct {
 		name    string
-		fields  fields
-		want    []models.Annonce
+		fields  DatabaseService
+		toCount int
+		wantId  uint
 		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &DatabaseService{
-				s: tt.fields.s,
-			}
-			got, err := s.GetAllAnnonces()
-			if !tt.wantErr(t, err, fmt.Sprintf("GetAllAnnonces()")) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "GetAllAnnonces()")
-		})
+
+	var annonceTest test
+	annonceTest.name = "Test trouver toutes les annonces"
+	annonceTest.toCount = 31
+	annonceTest.fields = db
+	annonceTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: annonceTest.fields.s,
 	}
+
+	t.Run(annonceTest.name, func(t *testing.T) {
+		annonceFounded, err := s.GetAllAnnonces()
+		assert.NotNil(t, annonceFounded)
+		assert.Equal(t, annonceTest.toCount, len(annonceFounded))
+		annonceTest.wantErr(t, err, fmt.Sprintf("FindAnnonce(%v)", annonceTest.toCount))
+	})
 }
 
+/*
 func TestDatabaseService_GetAllAssociations(t *testing.T) {
 	type fields struct {
 		s database.Service
@@ -1764,6 +1668,220 @@ func TestNewQueriesService(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equalf(t, tt.want, NewQueriesService(tt.args.s), "NewQueriesService(%v)", tt.args.s)
+		})
+	}
+}
+*/
+
+// DELETION TESTS
+
+/*
+func TestDatabaseService_DeleteAnnonce(t *testing.T) {
+	if dbErr != nil {
+		return
+	}
+
+	type test struct {
+		name       string
+		fields     DatabaseService
+		toDeleteID uint
+		wantId     uint
+		wantErr    assert.ErrorAssertionFunc
+	}
+
+	var annonceTest test
+	annonceTest.name = "Test suppression annonce"
+	annonceTest.toDeleteID = 31
+	annonceTest.fields = db
+	annonceTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: annonceTest.fields.s,
+	}
+
+	t.Run(annonceTest.name, func(t *testing.T) {
+		annonceTest.wantErr(t, s.DeleteAnnonce(strconv.Itoa(int(annonceTest.toDeleteID))), fmt.Sprintf("DeleteAnnonce(%v)", annonceTest.toDeleteID))
+		annonce, _ := s.FindAnnonceByID(strconv.Itoa(int(annonceTest.toDeleteID)))
+		assert.Nil(t, annonce)
+	})
+}
+
+*/
+
+func TestDatabaseService_DeleteAssociation(t *testing.T) {
+	if dbErr != nil {
+		return
+	}
+
+	type test struct {
+		name       string
+		fields     DatabaseService
+		toDeleteID uint
+		wantId     uint
+		wantErr    assert.ErrorAssertionFunc
+	}
+
+	var associationTest test
+	associationTest.name = "Test suppression association"
+	associationTest.toDeleteID = 1
+	associationTest.fields = db
+	associationTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: associationTest.fields.s,
+	}
+
+	t.Run(associationTest.name, func(t *testing.T) {
+		associationTest.wantErr(t, s.DeleteAssociation(int(associationTest.toDeleteID)), fmt.Sprintf("DeleteAssociation(%v)", associationTest.toDeleteID))
+		association, _ := s.FindAssociationById(int(associationTest.toDeleteID))
+		assert.Nil(t, association)
+	})
+}
+
+func TestDatabaseService_DeleteCatByID(t *testing.T) {
+	if dbErr != nil {
+		return
+	}
+
+	type test struct {
+		name       string
+		fields     DatabaseService
+		toDeleteID uint
+		wantId     uint
+		wantErr    assert.ErrorAssertionFunc
+	}
+
+	var catTest test
+	catTest.name = "Test suppression cat"
+	catTest.toDeleteID = 31
+	catTest.fields = db
+	catTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: catTest.fields.s,
+	}
+
+	t.Run(catTest.name, func(t *testing.T) {
+		catTest.wantErr(t, s.DeleteCatByID(strconv.Itoa(int(catTest.toDeleteID))), fmt.Sprintf("DeleteCat(%v)", catTest.toDeleteID))
+		cat, _ := s.FindCatByID(strconv.Itoa(int(catTest.toDeleteID)))
+		assert.Nil(t, cat)
+	})
+}
+
+func TestDatabaseService_DeleteFavorite(t *testing.T) {
+	if dbErr != nil {
+		return
+	}
+
+	type test struct {
+		name       string
+		fields     DatabaseService
+		toDeleteID uint
+		wantId     uint
+		wantErr    assert.ErrorAssertionFunc
+	}
+
+	var favoriteTest test
+	favoriteTest.name = "Test suppression favorite"
+	favoriteTest.toDeleteID = 1
+	favoriteTest.fields = db
+	favoriteTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: favoriteTest.fields.s,
+	}
+
+	favorite, _ := s.FindFavoriteByID(strconv.Itoa(int(favoriteTest.toDeleteID)))
+
+	t.Run(favoriteTest.name, func(t *testing.T) {
+		favoriteTest.wantErr(t, s.DeleteFavorite(favorite), fmt.Sprintf("DeleteFavorite(%v)", favoriteTest.toDeleteID))
+		deletedFavorite, _ := s.FindFavoriteByID(strconv.Itoa(int(favoriteTest.toDeleteID)))
+		assert.Nil(t, deletedFavorite)
+	})
+}
+
+func TestDatabaseService_DeleteRace(t *testing.T) {
+	if dbErr != nil {
+		return
+	}
+
+	type test struct {
+		name       string
+		fields     DatabaseService
+		toDeleteID uint
+		wantId     uint
+		wantErr    assert.ErrorAssertionFunc
+	}
+
+	var raceTest test
+	raceTest.name = "Test suppression race"
+	raceTest.toDeleteID = 6
+	raceTest.fields = db
+	raceTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: raceTest.fields.s,
+	}
+
+	t.Run(raceTest.name, func(t *testing.T) {
+		raceTest.wantErr(t, s.DeleteRace(strconv.Itoa(int(raceTest.toDeleteID))), fmt.Sprintf("DeleteRace(%v)", raceTest.toDeleteID))
+		race, _ := s.FindRaceByID(strconv.Itoa(int(raceTest.toDeleteID)))
+		assert.Nil(t, race)
+	})
+}
+
+func TestDatabaseService_DeleteRating(t *testing.T) {
+	if dbErr != nil {
+		return
+	}
+
+	type test struct {
+		name       string
+		fields     DatabaseService
+		toDeleteID uint
+		wantId     uint
+		wantErr    assert.ErrorAssertionFunc
+	}
+
+	var ratingTest test
+	ratingTest.name = "Test suppression rating"
+	ratingTest.toDeleteID = 31
+	ratingTest.fields = db
+	ratingTest.wantErr = assert.NoError
+
+	s := &DatabaseService{
+		s: ratingTest.fields.s,
+	}
+
+	t.Run(ratingTest.name, func(t *testing.T) {
+		ratingTest.wantErr(t, s.DeleteRating(strconv.Itoa(int(ratingTest.toDeleteID))), fmt.Sprintf("DeleteRating(%v)", ratingTest.toDeleteID))
+		rating, _ := s.FindRatingByID(strconv.Itoa(int(ratingTest.toDeleteID)))
+		assert.Nil(t, rating)
+	})
+}
+
+/*
+func TestDatabaseService_DeleteUser(t *testing.T) {
+	type fields struct {
+		s database.Service
+	}
+	type args struct {
+		id string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr assert.ErrorAssertionFunc
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &DatabaseService{
+				s: tt.fields.s,
+			}
+			tt.wantErr(t, s.DeleteUser(tt.args.id), fmt.Sprintf("DeleteUser(%v)", tt.args.id))
 		})
 	}
 } */

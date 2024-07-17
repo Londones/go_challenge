@@ -4,9 +4,13 @@ import (
 	"go-challenge/internal/models"
 )
 
-func (s *DatabaseService) CreateFavorite(favorite *models.Favorite) error {
+func (s *DatabaseService) CreateFavorite(favorite *models.Favorite) (uint, error) {
 	db := s.s.DB()
-	return db.Create(favorite).Error
+	if err := db.Create(favorite).Error; err != nil {
+		return 0, err
+	}
+
+	return favorite.ID, nil
 }
 
 func (s *DatabaseService) UpdateFavorite(favorite *models.Favorite) error {

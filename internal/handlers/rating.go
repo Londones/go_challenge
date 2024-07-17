@@ -102,7 +102,7 @@ func (h *RatingHandler) CreateRatingHandler(w http.ResponseWriter, r *http.Reque
 		AuthorID: authorID,
 	}
 
-	if err := h.ratingQueries.CreateRating(rating); err != nil {
+	if _, err := h.ratingQueries.CreateRating(rating); err != nil {
 		http.Error(w, "Erreur lors de la création de l'évaluation", http.StatusInternalServerError)
 		return
 	}

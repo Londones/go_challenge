@@ -35,15 +35,15 @@ func (s *DatabaseService) FindUserByGoogleID(googleID string) (*models.User, err
 	return &user, nil
 }
 
-func (s *DatabaseService) CreateUser(user *models.User, role *models.Roles) error {
+func (s *DatabaseService) CreateUser(user *models.User, role *models.Roles) (string, error) {
 	db := s.s.DB()
 	if err := db.Create(user).Error; err != nil {
-		return err
+		return "", err
 	}
 	if err := db.Model(user).Association("Roles").Append(role).Error; err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return user.ID, nil
 }
 
 func (s *DatabaseService) GetUserFavorites(UserID string) ([]models.Favorite, error) {

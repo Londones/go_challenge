@@ -4,9 +4,12 @@ import (
 	"go-challenge/internal/models"
 )
 
-func (s *DatabaseService) CreateRating(rating *models.Rating) error {
+func (s *DatabaseService) CreateRating(rating *models.Rating) (uint, error) {
 	db := s.s.DB()
-	return db.Create(rating).Error
+	if err := db.Create(rating).Error; err != nil {
+		return 0, err
+	}
+	return rating.ID, nil
 }
 
 func (s *DatabaseService) UpdateRating(rating *models.Rating) error {

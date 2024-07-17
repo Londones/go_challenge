@@ -214,6 +214,18 @@ func TestDatabaseInit() (*Service, error) {
 		}
 	}
 
+	//asso, err := fixtures.CreateAssociationFixtures(db, users[1].ID)
+	//if err != nil {
+	//	fmt.Printf("failed to create association with owner: %v", users[1].ID)
+	//}
+	//
+	//var allUser = &users
+	//
+	//_, err = fixtures.AssociationAddMembers(db, asso, allUser)
+	//if err != nil {
+	//	fmt.Printf("failed to add member to association %c : %v", asso.ID, err)
+	//}
+
 	s := &Service{Db: db}
 
 	// Print that the database is connected

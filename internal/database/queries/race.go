@@ -9,12 +9,12 @@ import (
 	"gorm.io/gorm"
 )
 
-func (s *DatabaseService) CreateRace(race *models.Races) error {
+func (s *DatabaseService) CreateRace(race *models.Races) (uint, error) {
 	db := s.s.DB()
 	if err := db.Create(race).Error; err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+	return race.ID, nil
 }
 
 func (s *DatabaseService) DeleteRace(id string) error {
@@ -56,26 +56,28 @@ func (s *DatabaseService) GetAllRace() ([]models.Races, error) {
 	return races, nil
 }
 
-func (s *DatabaseService) FindRaceByID(id string) (race models.Races, err error) {
+func (s *DatabaseService) FindRaceByID(id string) (*models.Races, error) {
 	// Vérifiez si l'ID est vide
 	if id == "" {
-		return models.Races{}, fmt.Errorf("l'ID fourni est vide")
+		return nil, fmt.Errorf("l'ID fourni est vide")
 	}
+
+	var race models.Races
 
 	// Convertir l'ID en entier
 	raceID, err := strconv.Atoi(id)
 	if err != nil {
-		return models.Races{}, fmt.Errorf("conversion de l'ID en entier a échoué : %v", err)
+		return nil, fmt.Errorf("conversion de l'ID en entier a échoué : %v", err)
 	}
 
 	db := s.s.DB()
 	if err := db.Where("ID = ?", raceID).First(&race).Error; err != nil {
-		return models.Races{}, err
+		return nil, err
 	}
-	return race, nil
+	return &race, nil
 }
 
-func (s *DatabaseService) UpdateRace(race models.Races) error {
+func (s *DatabaseService) UpdateRace(race *models.Races) error {
 	db := s.s.DB()
 	if err := db.Save(race).Error; err != nil {
 		return err

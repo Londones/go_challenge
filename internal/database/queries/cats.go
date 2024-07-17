@@ -10,8 +10,6 @@ import (
 )
 
 func (s *DatabaseService) CreateCat(cat *models.Cats) (id uint, err error) {
-
-	fmt.Println("creation du chat")
 	db := s.s.DB()
 	if err := db.Create(cat).Error; err != nil {
 		return 0, err
@@ -27,24 +25,6 @@ func (s *DatabaseService) FindCatByID(id string) (*models.Cats, error) {
 		return nil, err
 	}
 	return &cat, nil
-}
-
-func (s *DatabaseService) DeleteCat(id string) error {
-	db := s.s.DB()
-
-	var cat models.Cats
-	if err := db.Where("id = ?", id).First(&cat).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("cat with ID %s not found", id)
-		}
-		return err
-	}
-
-	if err := db.Delete(&cat).Error; err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (s *DatabaseService) GetAllCats() ([]models.Cats, error) {

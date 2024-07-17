@@ -54,7 +54,8 @@ func (s *DatabaseService) DeleteAnnonce(id string) error {
 		return err
 	}
 
-	if err := db.Delete(&annonce).Error; err != nil {
+	if err := db.Delete(annonce).Error; err != nil {
+		fmt.Println("Error deleteting the annonce", err)
 		return err
 	}
 

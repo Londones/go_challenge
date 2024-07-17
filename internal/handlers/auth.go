@@ -73,7 +73,7 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 				ProfilePicURL: "default",
 			}
 
-			err = h.userQueries.CreateUser(newUser, userRole)
+			_, err = h.userQueries.CreateUser(newUser, userRole)
 			if err != nil {
 				http.Error(w, "Error creating user", http.StatusInternalServerError)
 				return
