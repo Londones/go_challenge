@@ -222,6 +222,7 @@ func TestDatabaseInit() (*Service, error) {
 		//}
 
 		err = dbTemp.Exec(fmt.Sprintf("CREATE DATABASE %s", config.Database)).Error
+		fmt.Println(err)
 		if err != nil {
 			fmt.Println("failed to create db:", err)
 		}
