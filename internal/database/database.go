@@ -223,7 +223,7 @@ func TestDatabaseInit() (*Service, error) {
 
 		err = dbTemp.Exec(fmt.Sprintf("CREATE DATABASE %s", config.Database)).Error
 		if err != nil {
-			fmt.Printf("failed to create db: %w", err)
+			fmt.Println("failed to create db:", err)
 		}
 
 		db, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database))
