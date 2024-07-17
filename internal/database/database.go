@@ -177,7 +177,7 @@ func TestDatabaseInit() (*Service, error) {
 
 	config.Username = "postgres"
 	config.Password = "postgres"
-	config.Host = "postgres"
+	config.Host = "127.0.0.1"
 	config.Port = "5432"
 	config.Database = "go_purrfectmatch_test"
 	config.Env = "local"
