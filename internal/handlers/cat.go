@@ -544,8 +544,16 @@ func (h *CatHandler) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Requ
 	raceId := params.Get("raceId")
 	sexe := params.Get("sexe")
 	age, _ := strconv.Atoi(params.Get("age"))
+	assoId, _ := strconv.Atoi(params.Get("assoID"))
 
-	cats, err := h.catQueries.GetCatByFilters(raceId, age, sexe)
+	var assoName string
+
+	if assoId != 0 {
+		asso, _ := h.catQueries.FindAssociationById(assoId)
+		assoName = asso.Name
+	}
+
+	cats, err := h.catQueries.GetCatByFilters(raceId, age, sexe, assoName)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, fmt.Sprintf("Error in parameters"), http.StatusNotFound)
