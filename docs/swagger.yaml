@@ -41,8 +41,6 @@ definitions:
         type: array
       name:
         type: string
-      owner:
-        $ref: '#/definitions/models.User'
       ownerID:
         type: string
       phone:
@@ -80,6 +78,8 @@ definitions:
         items:
           type: string
         type: array
+      publishedAs:
+        type: string
       raceID:
         type: string
       reserved:
@@ -118,6 +118,8 @@ definitions:
         type: string
       id:
         type: integer
+      isRead:
+        type: boolean
       roomID:
         type: integer
       senderID:
@@ -519,7 +521,7 @@ paths:
         name: ownerId
         required: true
         type: string
-      - description: Comma-separated list of member IDs
+      - description: Comma-separated list of members IDs
         in: formData
         name: members
         type: string
@@ -644,7 +646,7 @@ paths:
         in: formData
         name: kbisFile
         type: file
-      - description: Comma-separated list of member IDs
+      - description: Comma-separated list of members IDs
         in: formData
         name: members
         type: string
@@ -839,6 +841,11 @@ paths:
         name: UserID
         required: true
         type: string
+      - description: Published As
+        in: formData
+        name: PublishedAs
+        required: true
+        type: string
       - description: Image
         in: formData
         name: uploaded_file
@@ -1017,6 +1024,10 @@ paths:
       - description: User ID
         in: formData
         name: UserID
+        type: string
+      - description: Published As
+        in: formData
+        name: PublishedAs
         type: string
       - description: Image
         in: formData
@@ -1680,6 +1691,39 @@ paths:
       summary: Get all messages for a room in order
       tags:
       - rooms
+  /rooms/{roomID}/latest:
+    get:
+      consumes:
+      - application/json
+      description: Get the latest message for a room
+      parameters:
+      - description: ID of the room
+        in: path
+        name: roomID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: latest message for the room
+          schema:
+            $ref: '#/definitions/models.Message'
+        "400":
+          description: room ID is required
+          schema:
+            type: string
+        "404":
+          description: room not found
+          schema:
+            type: string
+        "500":
+          description: error getting latest message
+          schema:
+            type: string
+      summary: Get the latest message for a room
+      tags:
+      - rooms
   /users:
     get:
       description: Retrieve a list of all users
@@ -1815,7 +1859,8 @@ paths:
       summary: Retrieve a user by ID
   /users/{userId}/associations:
     get:
-      description: Retrieve all associations for a specific user
+      description: Retrieve all associations for a specific user where the user is
+        either the owner or a member
       parameters:
       - description: User ID
         in: path
