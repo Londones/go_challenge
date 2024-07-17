@@ -165,8 +165,6 @@ func (h *AssociationHandler) GetAllAssociationsHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	fmt.Println(associations)
-
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(associations)
