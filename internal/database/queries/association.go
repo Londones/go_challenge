@@ -28,7 +28,7 @@ func (s *DatabaseService) CreateAssociation(association *models.Association) (ui
 func (s *DatabaseService) GetAllAssociations() ([]models.Association, error) {
 	db := s.s.DB()
 	var associations []models.Association
-	if err := db.Preload("Owner").Order("verified ASC").Find(&associations).Error; err != nil {
+	if err := db.Order("verified ASC").Find(&associations).Error; err != nil {
 		return nil, err
 	}
 	return associations, nil
@@ -45,7 +45,7 @@ func (s *DatabaseService) UpdateAssociation(association *models.Association) err
 func (s *DatabaseService) FindAssociationById(id int) (*models.Association, error) {
 	db := s.s.DB()
 	var association models.Association
-	if err := db.Preload("Owner").First(&association, id).Error; err != nil {
+	if err := db.First(&association, id).Error; err != nil {
 		return nil, err
 	}
 	return &association, nil
@@ -54,18 +54,9 @@ func (s *DatabaseService) FindAssociationById(id int) (*models.Association, erro
 func (s *DatabaseService) FindAssociationsByUserId(userId string) ([]models.Association, error) {
 	db := s.s.DB()
 	var associations []models.Association
-	if err := db.Preload("Owner").Where("owner_id = ?", userId).Find(&associations).Error; err != nil {
+	if err := db.Where("owner_id = ? OR ? = ANY(members)", userId, userId).Find(&associations).Error; err != nil {
 		return nil, err
 	}
-
-	var memberAssociations []models.Association
-	if err := db.Joins("JOIN association_members ON association_members.association_id = associations.id").
-		Where("association_members.user_id = ?", userId).
-		Find(&memberAssociations).Error; err != nil {
-		return nil, err
-	}
-
-	associations = append(associations, memberAssociations...)
 	return associations, nil
 }
 
