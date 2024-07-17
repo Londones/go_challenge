@@ -1001,3 +1001,8 @@ func TestDatabaseService_DeleteRating(t *testing.T) {
 		assert.Nil(t, rating)
 	})
 }
+
+//func TestDatabaseService_DeleteDatabase(t *testing.T) {
+//	dtbDestroy, _ := database.TestDatabaseDestroy(dtb.Db)
+//	assert.True(t, dtbDestroy)
+//}

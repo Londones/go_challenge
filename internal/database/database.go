@@ -182,7 +182,6 @@ func TestDatabaseInit() (*Service, error) {
 	config.Database = "postgres"
 	config.Env = "local"
 
-	fmt.Printf("truc")
 	//config.Username = "macbook"
 	//config.Password = "postgres"
 	//config.Host = "localhost"
@@ -293,18 +292,18 @@ func TestDatabaseInit() (*Service, error) {
 
 }
 
-func TestDatabaseDestroy(db *gorm.DB) (string, error) {
+func TestDatabaseDestroy(db *gorm.DB) (bool, error) {
 	fmt.Println("attemp destroy")
-	db.Close()
+	defer db.Close()
 
 	connection, err := sql.Open("postgres", "user=macbook")
 	_, err = connection.Exec("DROP DATABASE go_purrfectmatch_test")
 
 	if err != nil {
 		log.Fatal(err)
-		return "", err
+		return false, err
 	}
-	return "Test Database Destroyed", nil
+	return true, nil
 }
 
 func createDbIfNotExists(db *gorm.DB, dbName string) error {
