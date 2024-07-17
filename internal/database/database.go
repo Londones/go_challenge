@@ -182,8 +182,6 @@ func TestDatabaseInit() (*Service, error) {
 	config.Database = "go_purrfectmatch_test"
 	config.Env = "local"
 
-	fmt.Println("Config ENV is:", config.Env)
-
 	//config.Username = "macbook"
 	//config.Password = "postgres"
 	//config.Host = "localhost"
@@ -198,6 +196,8 @@ func TestDatabaseInit() (*Service, error) {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		fmt.Println("Inside LOCAL")
 
 		// Construct the path to the .env file.
 		envPath := filepath.Join(root, ".env")
