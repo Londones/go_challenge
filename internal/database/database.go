@@ -208,8 +208,7 @@ func TestDatabaseInit() (*Service, error) {
 			fmt.Printf("failed to connect to server: %v", err)
 		}
 
-		var errDB = createDbIfNotExists(dbTemp, "go_purrfectmatch_test")
-		fmt.Println("Error creating DB ?:", errDB)
+		var errDB = createDbIfNotExists(dbTemp, config.Database)
 		if errDB != nil {
 			fmt.Printf("failed to create db: %v", errDB)
 		}
