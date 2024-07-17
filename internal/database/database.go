@@ -208,6 +208,18 @@ func TestDatabaseInit() (*Service, error) {
 			fmt.Printf("failed to connect to server: %v", err)
 		}
 
+		var count int
+		err = dbTemp.Raw("SELECT count(*) FROM pg_database WHERE datname = ?", config.Database).Count(&count).Error
+		if err != nil {
+			fmt.Errorf("failed to check if db exists: %w", err)
+		}
+		if count == 0 {
+			err = dbTemp.Exec(fmt.Sprintf("CREATE DATABASE %s", config.Database)).Error
+			if err != nil {
+				fmt.Errorf("failed to create db: %w", err)
+			}
+		}
+
 		var errDB = createDbIfNotExists(dbTemp, config.Database)
 		if errDB != nil {
 			fmt.Printf("failed to create db: %v", errDB)
