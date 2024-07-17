@@ -18,6 +18,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	// "github.com/gorilla/schema"
+	"github.com/lib/pq" // Ajout de l'importation du package pq
 	"github.com/uploadcare/uploadcare-go/ucare"
 )
 
@@ -43,7 +44,7 @@ func NewAssociationHandler(associationQueries *queries.DatabaseService, uploadca
 // @Param phone formData string true "Phone"
 // @Param email formData string true "Email"
 // @Param ownerId formData string true "OwnerID"
-// @Param members formData string false "Comma-separated list of member IDs"
+// @Param members formData string false "Comma-separated list of members IDs"
 // @Param kbisFile formData file true "PDF file"
 // @Success 201 {object} models.Association "Successfully created association"
 // @Failure 400 {object} string "Bad Request"
@@ -74,7 +75,6 @@ func (h *AssociationHandler) CreateAssociationHandler(w http.ResponseWriter, r *
 		}
 
 		formData := r.PostForm
-		// Decode form fields manually
 		association.Name = formData.Get("name")
 		association.AddressRue = formData.Get("addressRue")
 		association.Cp = formData.Get("cp")
@@ -128,7 +128,7 @@ func (h *AssociationHandler) CreateAssociationHandler(w http.ResponseWriter, r *
 		if membersStr != "" {
 			members = strings.Split(membersStr, ",")
 		}
-		association.Members = members
+		association.Members = pq.StringArray(members)
 	} else {
 		fmt.Println("Unsupported content type")
 		http.Error(w, "Unsupported content type", http.StatusBadRequest)
@@ -173,7 +173,7 @@ func (h *AssociationHandler) GetAllAssociationsHandler(w http.ResponseWriter, r 
 }
 
 // @Summary Get associations by user ID
-// @Description Retrieve all associations for a specific user
+// @Description Retrieve all associations for a specific user where the user is either the owner or a member
 // @Tags associations
 // @Produce json
 // @Param userId path string true "User ID"
@@ -354,7 +354,7 @@ func (h *AssociationHandler) DeleteAssociationHandler(w http.ResponseWriter, r *
 // @Param phone formData string false "Phone"
 // @Param email formData string false "Email"
 // @Param kbisFile formData file false "PDF file"
-// @Param members formData string false "Comma-separated list of member IDs"
+// @Param members formData string false "Comma-separated list of members IDs"
 // @Param association body models.Association false "Association payload"
 // @Success 200 {object} models.Association "Successfully updated association"
 // @Failure 400 {object} string "Bad Request: Invalid association ID or Invalid content type for kbisFile, expected application/pdf"
@@ -375,6 +375,12 @@ func (h *AssociationHandler) UpdateAssociationHandler(w http.ResponseWriter, r *
 
 	var association models.Association
 	var members []string
+
+	existingAssociation, err := h.associationQueries.FindAssociationById(associationID)
+	if err != nil {
+		http.Error(w, "Error finding association: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/json") {
 		err := json.NewDecoder(r.Body).Decode(&association)
@@ -439,12 +445,6 @@ func (h *AssociationHandler) UpdateAssociationHandler(w http.ResponseWriter, r *
 		return
 	}
 
-	existingAssociation, err := h.associationQueries.FindAssociationById(associationID)
-	if err != nil {
-		http.Error(w, "Error finding association: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	if association.Name != "" {
 		existingAssociation.Name = association.Name
 	}
@@ -466,17 +466,15 @@ func (h *AssociationHandler) UpdateAssociationHandler(w http.ResponseWriter, r *
 	if association.KbisFile != "" {
 		existingAssociation.KbisFile = association.KbisFile
 	}
+	if len(members) > 0 {
+		existingAssociation.Members = pq.StringArray(members)
+	} else {
+		existingAssociation.Members = nil
+	}
 
 	if err := h.associationQueries.UpdateAssociation(existingAssociation); err != nil {
 		http.Error(w, "Error updating association: "+err.Error(), http.StatusInternalServerError)
 		return
-	}
-
-	if len(members) > 0 {
-		if err := h.associationQueries.UpdateAssociationMembers(existingAssociation.ID, members); err != nil {
-			http.Error(w, "Error updating members: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
