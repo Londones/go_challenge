@@ -166,6 +166,7 @@ func New(config *Config) (*Service, error) {
 
 // TestDatabaseInit DATABASE FOR TESTS
 func TestDatabaseInit() (*Service, error) {
+
 	var config Config
 	var db *gorm.DB
 
@@ -174,18 +175,18 @@ func TestDatabaseInit() (*Service, error) {
 	var root string
 	var err error
 
-	//config.Username = "postgres"
-	//config.Password = "postgres"
-	//config.Host = "postgres"
-	//config.Port = "5432"
-	//config.Database = "go_purrfectmatch_test"
-
-	config.Username = "macbook"
+	config.Username = "postgres"
 	config.Password = "postgres"
-	config.Host = "localhost"
+	config.Host = "postgres"
 	config.Port = "5432"
 	config.Database = "go_purrfectmatch_test"
-	config.Env = "local"
+
+	//config.Username = "macbook"
+	//config.Password = "postgres"
+	//config.Host = "localhost"
+	//config.Port = "5432"
+	//config.Database = "go_purrfectmatch_test"
+	//config.Env = "local"
 
 	if config.Env == "local" {
 		root, err = filepath.Abs("./")

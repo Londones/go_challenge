@@ -27,6 +27,7 @@ import (
 
 // Pour lancer le swagger : swag init --parseDependency -d ./internal/server -g ../../cmd/api/main.go
 // puis supprimer les lignes
+
 func main() {
 	auth.NewAuth()
 	server, err := server.NewServer()
