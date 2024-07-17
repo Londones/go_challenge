@@ -16,7 +16,6 @@ import (
 	"go-challenge/internal/models"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/gorilla/schema"
 	"github.com/uploadcare/uploadcare-go/ucare"
 )
 
@@ -137,7 +136,7 @@ func (h *AssociationHandler) CreateAssociationHandler(w http.ResponseWriter, r *
 	verified := false
 	association.Verified = &verified
 
-	if err := h.associationQueries.CreateAssociation(&association); err != nil {
+	if _, err := h.associationQueries.CreateAssociation(&association); err != nil {
 		fmt.Printf("Error creating association: %v\n", err)
 		http.Error(w, "Error creating association: "+err.Error(), http.StatusInternalServerError)
 		return

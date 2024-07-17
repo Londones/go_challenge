@@ -260,7 +260,7 @@ func TestDatabaseDestroy(db *gorm.DB) (string, error) {
 	fmt.Println("attemp destroy")
 	db.Close()
 
-	connection, err := sql.Open("postgres", "user=postgres")
+	connection, err := sql.Open("postgres", "user=macbook")
 	_, err = connection.Exec("DROP DATABASE go_purrfectmatch_test")
 
 	if err != nil {
