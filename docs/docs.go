@@ -911,8 +911,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Published As",
                         "name": "PublishedAs",
-                        "in": "formData",
-                        "required": true
+                        "in": "formData"
                     },
                     {
                         "type": "file",

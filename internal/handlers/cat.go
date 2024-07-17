@@ -49,7 +49,7 @@ func NewCatHandler(catQueries *queries.DatabaseService, uploadcareClient ucare.C
 // @Param Description formData string false "Description"
 // @Param Reserved formData string true "Reserved"
 // @Param UserID formData string true "User ID"
-// @Param PublishedAs formData string true "Published As" // New parameter
+// @Param PublishedAs formData string false "Published As" // New parameter
 // @Param uploaded_file formData file true "Image"
 // @Success 201 {object} models.Cats "cat created successfully"
 // @Failure 400 {string} string "all fields are required"
@@ -141,7 +141,7 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Validation des champs obligatoires
-	if name == "" || birthDateStr == "" || sexe == "" || color == "" || behavior == "" || sterilizedStr == "" || race == "" || reservedStr == "" || userID == "" || publishedAs == "" {
+	if name == "" || birthDateStr == "" || sexe == "" || color == "" || behavior == "" || sterilizedStr == "" || race == "" || reservedStr == "" || userID == "" {
 		http.Error(w, "all fields are required", http.StatusBadRequest)
 		return
 	}

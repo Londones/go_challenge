@@ -844,7 +844,6 @@ paths:
       - description: Published As
         in: formData
         name: PublishedAs
-        required: true
         type: string
       - description: Image
         in: formData
