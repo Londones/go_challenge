@@ -31,8 +31,14 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
 
-      - name: Connect to PostgreSQL
-        run: sudo -i -u postgres
+      - name: Check if postgresSQL is active
+        run: systemctl status postgresql
+
+      - name: Launch postgresSQL server
+        run: |
+          sudo systemctl start postgresql
+          systemctl status postgresql
+
         # Environment variables used by the `client.js` script to create
         # a new PostgreSQL table.
       - name: Retrieve psql version
