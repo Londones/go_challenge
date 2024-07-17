@@ -392,6 +392,7 @@ func (h *AnnonceHandler) FetchAnnonceByCatIDHandler(w http.ResponseWriter, r *ht
 	json.NewEncoder(w).Encode(annonce)
 }
 
+/*
 // GetAddressFromUserID godoc
 // @Summary Get the user address from user ID
 // @Description Get the address from the user ID
@@ -411,3 +412,4 @@ func (h *AnnonceHandler) GetAddressFromUserID(w http.ResponseWriter, r *http.Req
 	}
 	address, err := h.annonceQueries.GetAddressFromAnnonceID(userID)
 }
+*/
