@@ -169,6 +169,11 @@ func TestDatabaseInit() (*Service, error) {
 	var config Config
 	var db *gorm.DB
 
+	config.Env = os.Getenv("APP_ENV")
+	// Get the root directory of the project.
+	var root string
+	var err error
+
 	config.Username = "postgres"
 	config.Password = "postgres"
 	config.Host = "postgres"
@@ -176,10 +181,40 @@ func TestDatabaseInit() (*Service, error) {
 	config.Database = "go_purrfectmatch_test"
 	config.Env = ""
 
-	// Get the root directory of the project.
-	var err error
-
 	if config.Env == "local" {
+		root, err = filepath.Abs("./")
+		//root, err = filepath.Abs("../..")
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Construct the path to the .env file.
+		envPath := filepath.Join(root, ".env")
+
+		// Load the .env file.
+		err = godotenv.Load(envPath)
+		if err != nil {
+			log.Fatal("Variable root: " + root)
+			//log.Fatal("Error loading .env file")
+		}
+
+		if config.Username == "" {
+			config.Username = os.Getenv("DB_USERNAME")
+		}
+		if config.Password == "" {
+			config.Password = os.Getenv("DB_PASSWORD")
+		}
+		if config.Host == "" {
+			config.Host = os.Getenv("DB_HOST")
+		}
+		if config.Port == "" {
+			config.Port = os.Getenv("DB_PORT")
+		}
+		if config.Database == "" {
+			config.Database = os.Getenv("DB_DATABASE")
+		}
+
 		connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/?sslmode=disable", config.Username, config.Password, config.Host, config.Port)
 		dbTemp, err := gorm.Open("postgres", connStr)
 		if err != nil {
