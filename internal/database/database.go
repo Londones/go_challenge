@@ -180,6 +180,7 @@ func TestDatabaseInit() (*Service, error) {
 	config.Host = "postgres"
 	config.Port = "5432"
 	config.Database = "go_purrfectmatch_test"
+	config.Env = "local"
 
 	fmt.Println("Config ENV is:", config.Env)
 
