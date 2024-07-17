@@ -31,9 +31,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
 
-      - name: Check if postgresSQL is active
-        run: systemctl status postgresql
-
       - name: Launch postgresSQL server
         run: |
           sudo systemctl start postgresql
