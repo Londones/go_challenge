@@ -105,3 +105,12 @@ func (s *DatabaseService) UpdateAnnonce(annonce *models.Annonce) error {
 	}
 	return nil
 }
+
+func (s *DatabaseService) GetAnnonceByID(id uint) (*models.Annonce, error) {
+	db := s.s.DB()
+	var annonce models.Annonce
+	if err := db.First(&annonce, id).Error; err != nil {
+		return nil, err
+	}
+	return &annonce, nil
+}

@@ -37,6 +37,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	associationHandler := handlers.NewAssociationHandler(s.dbService, s.uploadcareClient)
 	ratingHandler := handlers.NewRatingHandler(s.dbService, s.dbService)
 	roomHandler := handlers.NewRoomHandler(s.dbService)
+	reportsHandler := handlers.NewReportsHandler(s.dbService)
 
 	roomHandler.LoadRooms()
 
@@ -49,6 +50,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 			// Protected routes for admin users
 			r.Use(AdminOnly)
 			// Admin specific routes
+			r.Get("/reportSocket", reportsHandler.HandleWebSocket)
 		})
 		//** Race routes for admin
 
@@ -123,6 +125,14 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/rooms/{roomID}", roomHandler.GetRoomMessages)
 		r.Get("/ws/{roomID}", roomHandler.HandleWebSocket)
 		r.Get("/rooms/{roomID}/latest", roomHandler.GetLatestMessage)
+
+		//** Reports routes
+		r.Post("/reportMessage", reportsHandler.CreateReportedMessage)
+		r.Post("/reportAnnonce", reportsHandler.CreateReportedAnnonce)
+		r.Get("/reports", reportsHandler.GetAllReports)
+		r.Get("/reports/annonces", reportsHandler.GetReportedAnnonces)
+		r.Get("/reports/messages", reportsHandler.GetReportedMessages)
+		r.Get("/reasons", reportsHandler.GetReportReasons)
 
 	})
 

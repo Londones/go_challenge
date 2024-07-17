@@ -13,7 +13,7 @@ func AdminOnly(next http.Handler) http.Handler {
 		_, claims, _ := jwtauth.FromContext(r.Context())
 		role := claims["role"]
 
-		if role != "admin" {
+		if role != "ADMIN" {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
