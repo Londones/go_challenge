@@ -182,6 +182,7 @@ func TestDatabaseInit() (*Service, error) {
 	config.Database = "postgres"
 	config.Env = "local"
 
+	fmt.Printf("truc")
 	//config.Username = "macbook"
 	//config.Password = "postgres"
 	//config.Host = "localhost"
