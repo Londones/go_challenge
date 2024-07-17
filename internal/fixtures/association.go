@@ -29,10 +29,10 @@ func CreateAssociationFixtures(db *gorm.DB, userID string) (*models.Association,
 	return association, nil
 }
 
-func AssociationAddMembers(db *gorm.DB, asso *models.Association, users []models.User) (*models.Association, error) {
-	asso.Members = users
-	if err := db.Save(asso).Error; err != nil {
-		return nil, err
-	}
-	return asso, nil
-}
+//func AssociationAddMembers(db *gorm.DB, asso *models.Association, users []models.User) (*models.Association, error) {
+//	asso.Members = users
+//	if err := db.Save(asso).Error; err != nil {
+//		return nil, err
+//	}
+//	return asso, nil
+//}
