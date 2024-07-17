@@ -37,6 +37,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	associationHandler := handlers.NewAssociationHandler(s.dbService, s.uploadcareClient)
 	ratingHandler := handlers.NewRatingHandler(s.dbService, s.dbService)
 	roomHandler := handlers.NewRoomHandler(s.dbService)
+	notificationTokenHandler := handlers.NewNotificationTokenHandler(s.dbService)
 
 	roomHandler.LoadRooms()
 
@@ -94,12 +95,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 		//** User routes
 		r.Get("/users", userHandler.GetAllUsersHandler)
 		r.Get("/users/annonces/{id}", annonceHandler.GetUserAnnoncesHandler)
+		r.Get("/users/{id}", userHandler.GetUserByIDHandler)
 		r.Get("/users/current", userHandler.GetCurrentUserHandler)
 		r.Post("/users", userHandler.CreateUserHandler)
 		r.Post("/profile/picture", userHandler.ModifyProfilePictureHandler)
 		r.Put("/users/{id}", userHandler.UpdateUserHandler)
 		r.Delete("/users/{id}", userHandler.DeleteUserHandler)
-		r.Get("/users/{id}", userHandler.GetUserByIDHandler)
 
 		//** Favorite routes
 		r.Post("/favorites", favoriteHandler.FavoriteCreationHandler)
@@ -124,6 +125,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/ws/{roomID}", roomHandler.HandleWebSocket)
 		r.Get("/rooms/{roomID}/latest", roomHandler.GetLatestMessage)
 
+		//** Notification routes
+		r.Post("/notifications", notificationTokenHandler.CreateNotificationTokenHandler)
+		r.Delete("/notifications/{id}", notificationTokenHandler.DeleteNotificationTokenHandler)
+		r.Post("/notifications/send", notificationTokenHandler.SendNotificationHandler)
+
 	})
 
 	// Public routes
@@ -139,6 +145,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"),
 	))
+
+	r.Get("/notifications/test", notificationTokenHandler.TestSendNotificationHandler)
 
 	return r
 }

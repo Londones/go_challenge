@@ -626,3 +626,36 @@ func convertInterfaceSliceToStringSlice(input []interface{}) []string {
 	}
 	return output
 }
+
+// GetAnnoncesByCatIDHandler godoc
+// @Summary Get annonces by cat ID
+// @Description Retrieve all annonces for a specific cat
+// @Tags cats
+// @Produce json
+// @Param id path string true "Cat ID"
+// @Success 200 {array} models.Annonce "List of annonces for the cat"
+// @Failure 400 {string} string "Cat ID is required"
+// @Failure 500 {string} string "Error fetching annonces"
+// @Router /cats/{id}/annonces [get]
+func (h *CatHandler) GetAnnoncesByCatIDHandler(w http.ResponseWriter, r *http.Request) {
+	catID := chi.URLParam(r, "id")
+	if catID == "" {
+		http.Error(w, "Cat ID is required", http.StatusBadRequest)
+		return
+	}
+
+	annonces, err := h.catQueries.FindAnnoncesByCatID(catID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, fmt.Sprintf("No annonces found for cat ID %s", catID), http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error fetching annonces", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if err := json.NewEncoder(w).Encode(annonces); err != nil {
+		http.Error(w, "Error encoding annonces to JSON", http.StatusInternalServerError)
+	}
+}

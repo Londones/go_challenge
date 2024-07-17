@@ -118,3 +118,13 @@ func (s *DatabaseService) UpdateAnnonce(annonce *models.Annonce) error {
 	}
 	return nil
 }
+
+func (s *DatabaseService) FindAnnoncesByCatID(catID string) ([]models.Annonce, error) {
+	db := s.s.DB()
+	var annonces []models.Annonce
+	err := db.Where("cat_id = ?", catID).Find(&annonces).Error
+	if err != nil {
+		return nil, err
+	}
+	return annonces, nil
+}
