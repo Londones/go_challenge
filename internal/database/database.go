@@ -174,7 +174,7 @@ func TestDatabaseInit() (*Service, error) {
 	// Get the root directory of the project.
 	var err error
 
-	config.Username = "postgres"
+	config.Username = "root"
 	config.Password = "postgres"
 	config.Host = "postgres"
 	config.Port = "5432"
@@ -193,10 +193,10 @@ func TestDatabaseInit() (*Service, error) {
 			log.Fatal(err)
 		}
 
-		fmt.Println("Inside LOCAL")
-
 		connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/?sslmode=disable", config.Username, config.Password, config.Host, config.Port)
+		fmt.Println("Connected with:", connStr)
 		dbTemp, err := gorm.Open("postgres", connStr)
+		fmt.Printf("DBTemp: %v\n", dbTemp)
 		if err != nil {
 			fmt.Printf("failed to connect to server: %v", err)
 		}
