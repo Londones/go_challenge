@@ -115,7 +115,7 @@ func (h *AnnonceHandler) AnnonceCreationHandler(w http.ResponseWriter, r *http.R
 		Annonce: createdAnnonce,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(response)
 }
@@ -135,7 +135,7 @@ func (h *AnnonceHandler) GetAllAnnoncesHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(annonces)
 }
@@ -177,7 +177,7 @@ func (h *AnnonceHandler) GetUserAnnoncesHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err = json.NewEncoder(w).Encode(annonces)
 	if err != nil {
 		http.Error(w, "error encoding annonces to JSON", http.StatusInternalServerError)
@@ -215,7 +215,7 @@ func (h *AnnonceHandler) GetAnnonceByIDHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(annonce)
 }
@@ -323,7 +323,7 @@ func (h *AnnonceHandler) ModifyAnnonceHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(existingAnnonce)
 }
@@ -387,7 +387,7 @@ func (h *AnnonceHandler) FetchAnnonceByCatIDHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(annonce)
 }

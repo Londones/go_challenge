@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/uploadcare/uploadcare-go/ucare"
@@ -30,10 +29,10 @@ func CreateUCClient() (ucare.Client, error) {
 }
 
 func UploadImage(client ucare.Client, file string) (string, string, error) {
-	return uploadFile(client, file, []string{"image/jpeg", "image/png", "image/jpg"})
+	return uploadFile(client, file)
 }
 
-func uploadFile(client ucare.Client, file string, validContentTypes []string) (string, string, error) {
+func uploadFile(client ucare.Client, file string) (string, string, error) {
 	uploadService := upload.NewService(client)
 
 	f, err := os.Open(file)
@@ -48,19 +47,6 @@ func uploadFile(client ucare.Client, file string, validContentTypes []string) (s
 	_, err = f.Read(buffer)
 	if err != nil {
 		return "", "", fmt.Errorf("could not read file: %v", err)
-	}
-	contentType := http.DetectContentType(buffer)
-
-	// Check if the content type is in the list of valid content types
-	isValidContentType := false
-	for _, validContentType := range validContentTypes {
-		if contentType == validContentType {
-			isValidContentType = true
-			break
-		}
-	}
-	if !isValidContentType {
-		return "", "", fmt.Errorf("invalid content type: %s", contentType)
 	}
 
 	param := upload.FileParams{
@@ -79,7 +65,7 @@ func uploadFile(client ucare.Client, file string, validContentTypes []string) (s
 }
 
 func UploadFilePDF(client ucare.Client, file string) (string, string, error) {
-	return uploadFile(client, file, []string{"application/pdf"})
+	return uploadFile(client, file)
 }
 
 func constructFileURL(fileID string) string {

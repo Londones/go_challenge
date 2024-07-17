@@ -117,7 +117,7 @@ func (h *FavoriteHandler) FavoriteCreationHandler(w http.ResponseWriter, r *http
 		Favorite: favorite,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(response)
 }
@@ -151,7 +151,7 @@ func (h *FavoriteHandler) GetFavoritesByUserHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err = json.NewEncoder(w).Encode(favorites)
 	if err != nil {
 		http.Error(w, "error encoding favorites to JSON", http.StatusInternalServerError)
