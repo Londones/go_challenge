@@ -8,7 +8,7 @@ import (
 func (s *DatabaseService) FindUserByEmail(email string) (*models.User, error) {
 	db := s.s.DB()
 	var user models.User
-	if err := db.Where("email = ?", email).First(&user).Error; err != nil {
+	if err := db.Preload("Roles").Where("email = ?", email).First(&user).Error; err != nil {
 		utils.Logger("error", "Find User By Email:", "Failed to find user by email", err.Error())
 		return nil, err
 	}

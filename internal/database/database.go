@@ -179,6 +179,8 @@ func migrateAllModels(db *gorm.DB) error {
 		&models.User{},
 		&models.Message{},
 		&models.Room{},
+		&models.FeatureFlag{},
+		&models.NotificationToken{},
 	).Error
 	if err != nil {
 		utils.Logger("debug", "AutoMigrate:", "Failed to migrate models", fmt.Sprintf("Error: %v", err))
