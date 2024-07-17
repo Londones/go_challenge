@@ -174,7 +174,7 @@ func TestDatabaseInit() (*Service, error) {
 	// Get the root directory of the project.
 	var err error
 
-	config.Username = "root"
+	config.Username = "postgres"
 	config.Password = "postgres"
 	config.Host = "postgres"
 	config.Port = "5432"
@@ -209,7 +209,7 @@ func TestDatabaseInit() (*Service, error) {
 		}
 
 		var count int
-		var dbFounded = dbTemp.Raw("SELECT * FROM pg_database WHERE datname = ?", config.Database)
+		var dbFounded = dbTemp.Raw("SELECT count(*) FROM pg_database WHERE datname = ?", config.Database)
 		fmt.Println("Founded DB is:", dbFounded.Count(&count))
 		fmt.Println("Nombre de DB:", count)
 		err = dbTemp.Raw("SELECT count(*) FROM pg_database WHERE datname = ?", config.Database).Count(&count).Error
