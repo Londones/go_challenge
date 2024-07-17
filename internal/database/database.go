@@ -174,7 +174,7 @@ func TestDatabaseInit() (*Service, error) {
 	config.Host = "postgres"
 	config.Port = "5432"
 	config.Database = "go_purrfectmatch_test"
-	config.Env = "local"
+	config.Env = ""
 
 	// Get the root directory of the project.
 	var err error
@@ -202,7 +202,6 @@ func TestDatabaseInit() (*Service, error) {
 		}
 		config.Database = os.Getenv("DATABASE_URL")
 	}
-	fmt.Println("ENV IS: ", config.Env)
 
 	err = migrateAllModels(db)
 	if err != nil {
