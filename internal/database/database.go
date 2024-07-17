@@ -210,7 +210,8 @@ func TestDatabaseInit() (*Service, error) {
 
 		var count int
 		var dbFounded = dbTemp.Raw("SELECT count(*) FROM pg_database WHERE datname = ?", config.Database)
-		fmt.Println("Founded DB is:", dbFounded)
+		fmt.Println("Founded DB is:", dbFounded.Count(&count))
+		fmt.Println("Nombre de DB:", count)
 		err = dbTemp.Raw("SELECT count(*) FROM pg_database WHERE datname = ?", config.Database).Count(&count).Error
 		if err != nil {
 			fmt.Errorf("failed to check if db exists: %w", err)
