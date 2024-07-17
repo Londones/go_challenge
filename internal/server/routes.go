@@ -84,6 +84,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Delete("/cats/{id}", catHandler.DeleteCatHandler)
 		r.Get("/cats/", catHandler.FindCatsByFilterHandler)
 		r.Get("/cats/user/{userID}", catHandler.GetCatsByUserHandler)
+		r.Get("/cats/{id}/annonces", catHandler.GetAnnoncesByCatIDHandler)
 
 		//** Race routes
 		r.Get("/races", raceHandler.GetAllRaceHandler)
@@ -105,6 +106,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		//** Favorite routes
 		r.Post("/favorites", favoriteHandler.FavoriteCreationHandler)
 		r.Get("/favorites/users/{userID}", favoriteHandler.GetFavoritesByUserHandler)
+		r.Delete("/favorites/{favoriteID}", favoriteHandler.DeleteFavoriteByIDHandler) // Nouvelle ligne ajoutée
 
 		//** Auth routes
 		r.Get("/logout/{provider}", authHandler.LogoutProvider)
@@ -129,7 +131,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/notifications", notificationTokenHandler.CreateNotificationTokenHandler)
 		r.Delete("/notifications/{id}", notificationTokenHandler.DeleteNotificationTokenHandler)
 		r.Post("/notifications/send", notificationTokenHandler.SendNotificationHandler)
-		
 
 	})
 
