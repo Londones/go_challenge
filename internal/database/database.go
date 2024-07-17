@@ -175,7 +175,7 @@ func TestDatabaseInit() (*Service, error) {
 	// Get the root directory of the project.
 	var err error
 
-	config.Username = "postgres"
+	config.Username = "user"
 	config.Password = "postgres"
 	config.Host = "127.0.0.1"
 	config.Port = "5432"
