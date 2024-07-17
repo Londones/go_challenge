@@ -371,7 +371,8 @@ const docTemplate = `{
             "post": {
                 "description": "Create a new association with the input payload and a PDF file",
                 "consumes": [
-                    "multipart/form-data"
+                    "multipart/form-data",
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -382,13 +383,59 @@ const docTemplate = `{
                 "summary": "Create a new association",
                 "parameters": [
                     {
-                        "description": "Association payload",
-                        "name": "association",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Association"
-                        }
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "AddressRue",
+                        "name": "addressRue",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "CP",
+                        "name": "cp",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ville",
+                        "name": "ville",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Phone",
+                        "name": "phone",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Email",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "OwnerID",
+                        "name": "ownerId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of members IDs",
+                        "name": "members",
+                        "in": "formData"
                     },
                     {
                         "type": "file",
@@ -406,13 +453,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request: Error uploading image 2/3, Invalid content type for kbisFile, expected application/pdf",
+                        "description": "Bad Request",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error: Error uploading image 1/4/5/6/7/8",
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "string"
                         }
@@ -454,6 +501,105 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found: Association not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update all fields of an association with the given ID",
+                "consumes": [
+                    "multipart/form-data",
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "associations"
+                ],
+                "summary": "Update an association",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Association ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "AddressRue",
+                        "name": "addressRue",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "CP",
+                        "name": "cp",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ville",
+                        "name": "ville",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Phone",
+                        "name": "phone",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Email",
+                        "name": "email",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "PDF file",
+                        "name": "kbisFile",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of members IDs",
+                        "name": "members",
+                        "in": "formData"
+                    },
+                    {
+                        "description": "Association payload",
+                        "name": "association",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/models.Association"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully updated association",
+                        "schema": {
+                            "$ref": "#/definitions/models.Association"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request: Invalid association ID or Invalid content type for kbisFile, expected application/pdf",
                         "schema": {
                             "type": "string"
                         }
@@ -762,6 +908,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "Published As",
+                        "name": "PublishedAs",
+                        "in": "formData"
+                    },
+                    {
                         "type": "file",
                         "description": "Image",
                         "name": "uploaded_file",
@@ -1036,6 +1188,12 @@ const docTemplate = `{
                         "in": "formData"
                     },
                     {
+                        "type": "string",
+                        "description": "Published As",
+                        "name": "PublishedAs",
+                        "in": "formData"
+                    },
+                    {
                         "type": "file",
                         "description": "Image",
                         "name": "uploaded_file",
@@ -1096,6 +1254,50 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Error deleting cat",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cats/{id}/annonces": {
+            "get": {
+                "description": "Retrieve all annonces for a specific cat",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Get annonces by cat ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cat ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of annonces for the cat",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Annonce"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Cat ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error fetching annonces",
                         "schema": {
                             "type": "string"
                         }
@@ -1190,6 +1392,47 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "error retrieving favorites",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/favorites/{favoriteID}": {
+            "delete": {
+                "description": "Delete a favorite by its ID",
+                "tags": [
+                    "favorites"
+                ],
+                "summary": "Delete favorite by favorite ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Favorite ID",
+                        "name": "favoriteID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Favorite ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Favorite not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error deleting favorite",
                         "schema": {
                             "type": "string"
                         }
@@ -2023,6 +2266,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/rooms/{roomID}/latest": {
+            "get": {
+                "description": "Get the latest message for a room",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Get the latest message for a room",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the room",
+                        "name": "roomID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "latest message for the room",
+                        "schema": {
+                            "$ref": "#/definitions/models.Message"
+                        }
+                    },
+                    "400": {
+                        "description": "room ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "room not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "error getting latest message",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "description": "Retrieve a list of all users",
@@ -2304,7 +2597,7 @@ const docTemplate = `{
         },
         "/users/{userId}/associations": {
             "get": {
-                "description": "Retrieve all associations for a specific user",
+                "description": "Retrieve all associations for a specific user where the user is either the owner or a member",
                 "produces": [
                     "application/json"
                 ],
@@ -2445,14 +2738,11 @@ const docTemplate = `{
                 "members": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.User"
+                        "type": "string"
                     }
                 },
                 "name": {
                     "type": "string"
-                },
-                "owner": {
-                    "$ref": "#/definitions/models.User"
                 },
                 "ownerID": {
                     "type": "string"
@@ -2509,6 +2799,9 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "publishedAs": {
+                    "type": "string"
                 },
                 "raceID": {
                     "type": "string"
@@ -2567,6 +2860,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "isRead": {
+                    "type": "boolean"
                 },
                 "roomID": {
                     "type": "integer"

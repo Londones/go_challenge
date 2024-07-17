@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"go-challenge/internal/config"
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
 	"go-challenge/internal/utils"
@@ -136,6 +137,12 @@ func (h *RoomHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	utils.Logger("info", "Handle WebSocket:", "Client connected to room", fmt.Sprintf("Room ID: %v, User ID: %v", roomID, userID))
 
+	if err := h.roomQueries.MarkMessagesAsRead(uint(roomID), userID); err != nil {
+		utils.Logger("error", "Handle WebSocket:", "Failed to mark messages as read", fmt.Sprintf("Error: %v", err))
+		http.Error(w, "error marking messages as read", http.StatusInternalServerError)
+		return
+	}
+
 	go client.writePump()
 	go client.readPump(room, h)
 }
@@ -208,22 +215,30 @@ func (c *Client) readPump(room *Room, h *RoomHandler) {
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				utils.Logger("error", "Read Pump:", "Unexpected close error", fmt.Sprintf("Error: %v", err))
-				log.Printf("error: %v", err)
+				fmt.Println("error: ", err)
 			}
 			break
 		}
 
-		createdMessage, error := h.roomQueries.SaveMessage(room.roomID, c.userID, string(message))
+		createdMessage, userName, error := h.roomQueries.SaveMessage(room.roomID, c.userID, string(message))
 		if error != nil {
 			log.Printf("Error saving message: %v", error)
 			break
 		}
 
-		/*jsonMessage := MessageJSON{
-			Content:   createdMessage.Content,
-			SenderID:  createdMessage.SenderID,
-			CreatedAt: createdMessage.CreatedAt.Format(time.RFC3339),
-		}*/
+		for k, _ := range room.clients {
+			if k != c.userID {
+				notificationToken, error := h.roomQueries.GetNotificationTokenByUserID(k)
+				if error != nil {
+					fmt.Println("Error getting notification token: ", error)
+				} else if notificationToken.Token != "" {
+					fmt.Println("Sending notification....", notificationToken.Token)
+					payload := make(map[string]string)
+					payload["RoomID"] = strconv.FormatUint(uint64(room.roomID), 10)
+					SendToToken(config.GetFirebaseApp(), notificationToken.Token, createdMessage.Content, userName, payload)
+				}
+			}
+		}
 
 		message, err = json.Marshal(createdMessage)
 		if err != nil {
@@ -307,7 +322,7 @@ func (h *RoomHandler) GetUserRooms(w http.ResponseWriter, r *http.Request) {
 		modifiedRooms = append(modifiedRooms, modifiedRoom)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if err := json.NewEncoder(w).Encode(modifiedRooms); err != nil {
 		http.Error(w, "error encoding rooms to JSON", http.StatusInternalServerError)
 	}
@@ -346,7 +361,45 @@ func (h *RoomHandler) GetRoomMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(w).Encode(messages)
 	utils.Logger("info", "Get Room Messages:", "Messages retrieved successfully", fmt.Sprintf("Room ID: %v", roomID))
+}
+
+// GetLatestMessage godoc
+// @Summary Get the latest message for a room
+// @Description Get the latest message for a room
+// @Tags rooms
+// @Accept json
+// @Produce json
+// @Param roomID path string true "ID of the room"
+// @Success 200 {object} models.Message "latest message for the room"
+// @Failure 400 {string} string "room ID is required"
+// @Failure 404 {string} string "room not found"
+// @Failure 500 {string} string "error getting latest message"
+// @Router /rooms/{roomID}/latest [get]
+func (h *RoomHandler) GetLatestMessage(w http.ResponseWriter, r *http.Request) {
+	roomID := chi.URLParam(r, "roomID")
+	if roomID == "" {
+		utils.Logger("error", "Get Latest Message:", "Room ID is required", "")
+		http.Error(w, "room ID is required", http.StatusBadRequest)
+		return
+	}
+
+	roomIDToInt, err := strconv.ParseUint(roomID, 10, 64)
+	if err != nil {
+		utils.Logger("error", "Get Latest Message:", "Failed to parse room ID", fmt.Sprintf("Error: %v", err))
+		http.Error(w, "error parsing room ID", http.StatusBadRequest)
+		return
+	}
+
+	response, err := h.roomQueries.GetLatestMessageByRoomID(uint(roomIDToInt))
+	if err != nil {
+		http.Error(w, "error getting latest message %v", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	json.NewEncoder(w).Encode(response)
+	utils.Logger("info", "Get Latest Message:", "Latest message retrieved successfully", fmt.Sprintf("Room ID: %v", roomID))
 }

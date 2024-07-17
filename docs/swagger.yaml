@@ -37,12 +37,10 @@ definitions:
         type: string
       members:
         items:
-          $ref: '#/definitions/models.User'
+          type: string
         type: array
       name:
         type: string
-      owner:
-        $ref: '#/definitions/models.User'
       ownerID:
         type: string
       phone:
@@ -80,6 +78,8 @@ definitions:
         items:
           type: string
         type: array
+      publishedAs:
+        type: string
       raceID:
         type: string
       reserved:
@@ -118,6 +118,8 @@ definitions:
         type: string
       id:
         type: integer
+      isRead:
+        type: boolean
       roomID:
         type: integer
       senderID:
@@ -481,14 +483,48 @@ paths:
     post:
       consumes:
       - multipart/form-data
+      - application/json
       description: Create a new association with the input payload and a PDF file
       parameters:
-      - description: Association payload
-        in: body
-        name: association
+      - description: Name
+        in: formData
+        name: name
         required: true
-        schema:
-          $ref: '#/definitions/models.Association'
+        type: string
+      - description: AddressRue
+        in: formData
+        name: addressRue
+        required: true
+        type: string
+      - description: CP
+        in: formData
+        name: cp
+        required: true
+        type: string
+      - description: Ville
+        in: formData
+        name: ville
+        required: true
+        type: string
+      - description: Phone
+        in: formData
+        name: phone
+        required: true
+        type: string
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: OwnerID
+        in: formData
+        name: ownerId
+        required: true
+        type: string
+      - description: Comma-separated list of members IDs
+        in: formData
+        name: members
+        type: string
       - description: PDF file
         in: formData
         name: kbisFile
@@ -502,12 +538,11 @@ paths:
           schema:
             $ref: '#/definitions/models.Association'
         "400":
-          description: 'Bad Request: Error uploading image 2/3, Invalid content type
-            for kbisFile, expected application/pdf'
+          description: Bad Request
           schema:
             type: string
         "500":
-          description: 'Internal Server Error: Error uploading image 1/4/5/6/7/8'
+          description: Internal Server Error
           schema:
             type: string
       summary: Create a new association
@@ -570,6 +605,73 @@ paths:
           schema:
             type: string
       summary: Get association by ID
+      tags:
+      - associations
+    put:
+      consumes:
+      - multipart/form-data
+      - application/json
+      description: Update all fields of an association with the given ID
+      parameters:
+      - description: Association ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Name
+        in: formData
+        name: name
+        type: string
+      - description: AddressRue
+        in: formData
+        name: addressRue
+        type: string
+      - description: CP
+        in: formData
+        name: cp
+        type: string
+      - description: Ville
+        in: formData
+        name: ville
+        type: string
+      - description: Phone
+        in: formData
+        name: phone
+        type: string
+      - description: Email
+        in: formData
+        name: email
+        type: string
+      - description: PDF file
+        in: formData
+        name: kbisFile
+        type: file
+      - description: Comma-separated list of members IDs
+        in: formData
+        name: members
+        type: string
+      - description: Association payload
+        in: body
+        name: association
+        schema:
+          $ref: '#/definitions/models.Association'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated association
+          schema:
+            $ref: '#/definitions/models.Association'
+        "400":
+          description: 'Bad Request: Invalid association ID or Invalid content type
+            for kbisFile, expected application/pdf'
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Update an association
       tags:
       - associations
   /associations/{id}/verify:
@@ -738,6 +840,10 @@ paths:
         in: formData
         name: UserID
         required: true
+        type: string
+      - description: Published As
+        in: formData
+        name: PublishedAs
         type: string
       - description: Image
         in: formData
@@ -918,6 +1024,10 @@ paths:
         in: formData
         name: UserID
         type: string
+      - description: Published As
+        in: formData
+        name: PublishedAs
+        type: string
       - description: Image
         in: formData
         name: uploaded_file
@@ -938,6 +1048,35 @@ paths:
           schema:
             type: string
       summary: Update cat
+      tags:
+      - cats
+  /cats/{id}/annonces:
+    get:
+      description: Retrieve all annonces for a specific cat
+      parameters:
+      - description: Cat ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of annonces for the cat
+          schema:
+            items:
+              $ref: '#/definitions/models.Annonce'
+            type: array
+        "400":
+          description: Cat ID is required
+          schema:
+            type: string
+        "500":
+          description: Error fetching annonces
+          schema:
+            type: string
+      summary: Get annonces by cat ID
       tags:
       - cats
   /cats/user/{userID}:
@@ -996,6 +1135,33 @@ paths:
           schema:
             type: string
       summary: Create favorites
+      tags:
+      - favorites
+  /favorites/{favoriteID}:
+    delete:
+      description: Delete a favorite by its ID
+      parameters:
+      - description: Favorite ID
+        in: path
+        name: favoriteID
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Favorite ID is required
+          schema:
+            type: string
+        "404":
+          description: Favorite not found
+          schema:
+            type: string
+        "500":
+          description: Error deleting favorite
+          schema:
+            type: string
+      summary: Delete favorite by favorite ID
       tags:
       - favorites
   /favorites/users/{userID}:
@@ -1580,6 +1746,39 @@ paths:
       summary: Get all messages for a room in order
       tags:
       - rooms
+  /rooms/{roomID}/latest:
+    get:
+      consumes:
+      - application/json
+      description: Get the latest message for a room
+      parameters:
+      - description: ID of the room
+        in: path
+        name: roomID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: latest message for the room
+          schema:
+            $ref: '#/definitions/models.Message'
+        "400":
+          description: room ID is required
+          schema:
+            type: string
+        "404":
+          description: room not found
+          schema:
+            type: string
+        "500":
+          description: error getting latest message
+          schema:
+            type: string
+      summary: Get the latest message for a room
+      tags:
+      - rooms
   /users:
     get:
       description: Retrieve a list of all users
@@ -1715,7 +1914,8 @@ paths:
       summary: Retrieve a user by ID
   /users/{userId}/associations:
     get:
-      description: Retrieve all associations for a specific user
+      description: Retrieve all associations for a specific user where the user is
+        either the owner or a member
       parameters:
       - description: User ID
         in: path

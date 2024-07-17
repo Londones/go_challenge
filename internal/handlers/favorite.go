@@ -117,7 +117,7 @@ func (h *FavoriteHandler) FavoriteCreationHandler(w http.ResponseWriter, r *http
 		Favorite: favorite,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(response)
 }
@@ -151,10 +151,59 @@ func (h *FavoriteHandler) GetFavoritesByUserHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err = json.NewEncoder(w).Encode(favorites)
 	if err != nil {
 		http.Error(w, "error encoding favorites to JSON", http.StatusInternalServerError)
 		return
 	}
+}
+
+// DeleteFavoriteByIDHandler godoc
+// @Summary Delete favorite by favorite ID
+// @Description Delete a favorite by its ID
+// @Tags favorites
+// @Param favoriteID path string true "Favorite ID"
+// @Success 204 "No Content"
+// @Failure 400 {string} string "Favorite ID is required"
+// @Failure 404 {string} string "Favorite not found"
+// @Failure 500 {string} string "Error deleting favorite"
+// @Router /favorites/{favoriteID} [delete]
+func (h *FavoriteHandler) DeleteFavoriteByIDHandler(w http.ResponseWriter, r *http.Request) {
+	favoriteID := chi.URLParam(r, "favoriteID")
+	if favoriteID == "" {
+		http.Error(w, "favorite ID is required", http.StatusBadRequest)
+		return
+	}
+
+	_, claims, err := jwtauth.FromContext(r.Context())
+	if err != nil {
+		http.Error(w, "error getting claims", http.StatusInternalServerError)
+		return
+	}
+	userID := claims["id"].(string)
+
+	favorite, err := h.favoriteQueries.FindFavoriteByID(favoriteID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, fmt.Sprintf("favorite with ID %s not found", favoriteID), http.StatusNotFound)
+			return
+		}
+		http.Error(w, "error finding favorite", http.StatusInternalServerError)
+		return
+	}
+
+	// Vérifiez si le favori appartient à l'utilisateur
+	if favorite.UserID != userID {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	err = h.favoriteQueries.DeleteFavorite(favorite)
+	if err != nil {
+		http.Error(w, "error deleting favorite", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

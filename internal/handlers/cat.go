@@ -49,6 +49,7 @@ func NewCatHandler(catQueries *queries.DatabaseService, uploadcareClient ucare.C
 // @Param Description formData string false "Description"
 // @Param Reserved formData string true "Reserved"
 // @Param UserID formData string true "User ID"
+// @Param PublishedAs formData string false "Published As" // New parameter
 // @Param uploaded_file formData file true "Image"
 // @Success 201 {object} models.Cats "cat created successfully"
 // @Failure 400 {string} string "all fields are required"
@@ -56,8 +57,8 @@ func NewCatHandler(catQueries *queries.DatabaseService, uploadcareClient ucare.C
 // @Router /cats [post]
 func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) {
 	var (
-		name, birthDateStr, sexe, lastVaccineStr, lastVaccineName, color, behavior, sterilizedStr, race, description, reservedStr, userID string
-		pictures                                                                                                                          []string
+		name, birthDateStr, sexe, lastVaccineStr, lastVaccineName, color, behavior, sterilizedStr, race, description, reservedStr, userID, publishedAs string
+		pictures                                                                                                                                       []string
 	)
 
 	contentType := r.Header.Get("Content-Type")
@@ -82,6 +83,7 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 		description, _ = requestData["Description"].(string)
 		reservedStr, _ = requestData["Reserved"].(string)
 		userID, _ = requestData["UserID"].(string)
+		publishedAs, _ = requestData["PublishedAs"].(string) // New field
 		if uploadedFiles, ok := requestData["uploaded_file"].([]interface{}); ok {
 			pictures = convertInterfaceSliceToStringSlice(uploadedFiles)
 		}
@@ -103,6 +105,7 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 		description = r.FormValue("Description")
 		reservedStr = r.FormValue("Reserved")
 		userID = r.FormValue("UserID")
+		publishedAs = r.FormValue("PublishedAs") // New field
 		files := r.MultipartForm.File["uploaded_file"]
 		for _, header := range files {
 			file, err := header.Open()
@@ -189,6 +192,7 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 		Description:     &description,
 		Reserved:        reserved,
 		UserID:          userID,
+		PublishedAs:     publishedAs, // New field
 	}
 
 	_, err = h.catQueries.CreateCat(cat)
@@ -197,23 +201,13 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
 	err = json.NewEncoder(w).Encode(cat)
 	if err != nil {
 		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
 		return
 	}
-}
-
-func convertInterfaceSliceToStringSlice(input []interface{}) []string {
-	var output []string
-	for _, v := range input {
-		if str, ok := v.(string); ok {
-			output = append(output, str)
-		}
-	}
-	return output
 }
 
 // UpdateCatHandler godoc
@@ -236,6 +230,7 @@ func convertInterfaceSliceToStringSlice(input []interface{}) []string {
 // @Param Description formData string false "Description"
 // @Param Reserved formData string false "Reserved"
 // @Param UserID formData string false "User ID"
+// @Param PublishedAs formData string false "Published As" // New parameter
 // @Param uploaded_file formData file false "Image"
 // @Success 200 {object} models.Cats "Cat updated successfully"
 // @Failure 400 {string} string "Missing or invalid fields in the request"
@@ -243,8 +238,8 @@ func convertInterfaceSliceToStringSlice(input []interface{}) []string {
 // @Router /cats/{id} [put]
 func (h *CatHandler) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
 	var (
-		name, birthDateStr, sexe, lastVaccineStr, lastVaccineName, color, behavior, sterilizedStr, race, description, reservedStr, userID string
-		pictures                                                                                                                          []string
+		name, birthDateStr, sexe, lastVaccineStr, lastVaccineName, color, behavior, sterilizedStr, race, description, reservedStr, userID, publishedAs string
+		pictures                                                                                                                                       []string
 	)
 
 	contentType := r.Header.Get("Content-Type")
@@ -275,6 +270,7 @@ func (h *CatHandler) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
 		description, _ = requestData["Description"].(string)
 		reservedStr, _ = requestData["Reserved"].(string)
 		userID, _ = requestData["UserID"].(string)
+		publishedAs, _ = requestData["PublishedAs"].(string) // New field
 		if uploadedFiles, ok := requestData["uploaded_file"].([]interface{}); ok {
 			pictures = convertInterfaceSliceToStringSlice(uploadedFiles)
 		}
@@ -296,6 +292,7 @@ func (h *CatHandler) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
 		description = r.FormValue("Description")
 		reservedStr = r.FormValue("Reserved")
 		userID = r.FormValue("UserID")
+		publishedAs = r.FormValue("PublishedAs") // New field
 		files := r.MultipartForm.File["uploaded_file"]
 		for _, header := range files {
 			file, err := header.Open()
@@ -404,6 +401,9 @@ func (h *CatHandler) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
 	if userID != "" {
 		cat.UserID = userID
 	}
+	if publishedAs != "" {
+		cat.PublishedAs = publishedAs // New field
+	}
 	if len(pictures) > 0 {
 		cat.PicturesURL = pictures
 	}
@@ -414,7 +414,7 @@ func (h *CatHandler) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if err := json.NewEncoder(w).Encode(cat); err != nil {
 		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
 	}
@@ -444,7 +444,7 @@ func (h *CatHandler) GetAllCatsHandler(w http.ResponseWriter, r *http.Request) {
 		cat.RaceID = currentRace.RaceName
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err = json.NewEncoder(w).Encode(cats)
 	if err != nil {
 		http.Error(w, "error encoding cats to JSON", http.StatusInternalServerError)
@@ -487,7 +487,7 @@ func (h *CatHandler) GetCatByIDHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	cat.RaceID = currentRace.RaceName
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if err := json.NewEncoder(w).Encode(cat); err != nil {
 		http.Error(w, "error encoding cat to JSON", http.StatusInternalServerError)
 	}
@@ -544,8 +544,16 @@ func (h *CatHandler) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Requ
 	raceId := params.Get("raceId")
 	sexe := params.Get("sexe")
 	age, _ := strconv.Atoi(params.Get("age"))
+	assoId, _ := strconv.Atoi(params.Get("assoID"))
 
-	cats, err := h.catQueries.GetCatByFilters(raceId, age, sexe)
+	var assoName string
+
+	if assoId != 0 {
+		asso, _ := h.catQueries.FindAssociationById(assoId)
+		assoName = asso.Name
+	}
+
+	cats, err := h.catQueries.GetCatByFilters(raceId, age, sexe, assoName)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, fmt.Sprintf("Error in parameters"), http.StatusNotFound)
@@ -564,7 +572,7 @@ func (h *CatHandler) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Requ
 		data = append(data, annonce)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err = json.NewEncoder(w).Encode(data)
 
 	if len(data) == 0 {
@@ -601,10 +609,53 @@ func (h *CatHandler) GetCatsByUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err = json.NewEncoder(w).Encode(cats)
 	if err != nil {
 		http.Error(w, "error encoding cats to JSON", http.StatusInternalServerError)
 		return
+	}
+}
+
+func convertInterfaceSliceToStringSlice(input []interface{}) []string {
+	var output []string
+	for _, v := range input {
+		if str, ok := v.(string); ok {
+			output = append(output, str)
+		}
+	}
+	return output
+}
+
+// GetAnnoncesByCatIDHandler godoc
+// @Summary Get annonces by cat ID
+// @Description Retrieve all annonces for a specific cat
+// @Tags cats
+// @Produce json
+// @Param id path string true "Cat ID"
+// @Success 200 {array} models.Annonce "List of annonces for the cat"
+// @Failure 400 {string} string "Cat ID is required"
+// @Failure 500 {string} string "Error fetching annonces"
+// @Router /cats/{id}/annonces [get]
+func (h *CatHandler) GetAnnoncesByCatIDHandler(w http.ResponseWriter, r *http.Request) {
+	catID := chi.URLParam(r, "id")
+	if catID == "" {
+		http.Error(w, "Cat ID is required", http.StatusBadRequest)
+		return
+	}
+
+	annonces, err := h.catQueries.FindAnnoncesByCatID(catID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, fmt.Sprintf("No annonces found for cat ID %s", catID), http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error fetching annonces", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if err := json.NewEncoder(w).Encode(annonces); err != nil {
+		http.Error(w, "Error encoding annonces to JSON", http.StatusInternalServerError)
 	}
 }
