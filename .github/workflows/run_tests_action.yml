@@ -8,7 +8,7 @@ on:
 
 jobs:
   # Label of the runner job
-  postgres_launch:
+  test:
     # You must use a Linux environment when using service containers or container jobs
     runs-on: ubuntu-latest
 
@@ -46,20 +46,15 @@ jobs:
       - name: Check if postgres is active
         run: systemctl is-active postgresql
 
+      - name: Setup Go environment
+        uses: actions/setup-go@v5.0.0
+      - name: Get dependencies
+        run: go get -v -t -d ./...
+      - name: Run tests
+        run: go test -v ./...
+
         env:
           # The hostname used to communicate with the PostgreSQL service container
           POSTGRES_HOST: localhost
           # The default PostgreSQL port
           POSTGRES_PORT: 5432
-
-  test:
-      runs-on: ubuntu-latest
-      steps:
-          - name: Check out code
-            uses: actions/checkout@v4
-          - name: Setup Go environment
-            uses: actions/setup-go@v5.0.0
-          - name: Get dependencies
-            run: go get -v -t -d ./...
-          - name: Run tests
-            run: go test -v ./...
