@@ -16,6 +16,5 @@ type Association struct {
 	KbisFile   string         `gorm:"type:varchar(500)"`
 	Members    pq.StringArray `gorm:"type:text[]"`
 	OwnerID    string         `gorm:"type:uuid;not null"`
-	Owner      User           `gorm:"foreignkey:OwnerID;association_foreignkey:ID"`
 	Verified   *bool          `gorm:"type:boolean;default:false"`
 }
