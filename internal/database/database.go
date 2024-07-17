@@ -1,12 +1,12 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 
-	//"go-challenge/internal/fixtures"
 	"go-challenge/internal/fixtures"
 	"go-challenge/internal/models"
 	"go-challenge/internal/utils"
@@ -78,6 +78,7 @@ func New(config *Config) (*Service, error) {
 		}
 
 		connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/?sslmode=disable", config.Username, config.Password, config.Host, config.Port)
+		fmt.Println("Try to connect with:", connStr)
 		dbTemp, err := gorm.Open("postgres", connStr)
 		if err != nil {
 			fmt.Printf("failed to connect to server: %v", err)
@@ -106,7 +107,7 @@ func New(config *Config) (*Service, error) {
 	}
 
 	// Get the USER role
-	var userRole models.Roles
+	/*var userRole models.Roles
 	if err := db.Where("name = ?", models.UserRole).First(&userRole).Error; err != nil {
 		fmt.Printf("failed to find user role: %v", err)
 	}
@@ -141,7 +142,19 @@ func New(config *Config) (*Service, error) {
 	err = fixtures.CreateRatingFixtures(db, staticUserID, staticAuthorID, 5)
 	if err != nil {
 		fmt.Printf("failed to create rating fixtures: %v", err)
-	}
+	}*/
+
+	//asso, err := fixtures.CreateAssociationFixtures(db, users[1].ID)
+	//if err != nil {
+	//	fmt.Printf("failed to create association with owner: %v", users[1].ID)
+	//}
+	//
+	//var allUser = &users
+	//
+	//_, err = fixtures.AssociationAddMembers(db, asso, allUser)
+	//if err != nil {
+	//	fmt.Printf("failed to add member to association %c : %v", asso.ID, err)
+	//}
 
 	s := &Service{Db: db}
 
@@ -149,6 +162,157 @@ func New(config *Config) (*Service, error) {
 	fmt.Printf("Connected to database %s\n", config.Database)
 
 	return s, nil
+
+}
+
+// TestDatabaseInit DATABASE FOR TESTS
+func TestDatabaseInit() (*Service, error, func()) {
+
+	var config Config
+	var db *gorm.DB
+
+	var teardown func()
+	config.Env = os.Getenv("APP_ENV")
+	// Get the root directory of the project.
+	var err error
+
+	config.Username = "postgres"
+	config.Password = "postgres"
+	config.Host = "localhost"
+	config.Port = "5432"
+	config.Database = "postgres"
+	config.Env = "local"
+
+	//config.Username = "macbook"
+	//config.Password = "postgres"
+	//config.Host = "localhost"
+	//config.Port = "5432"
+	//config.Database = "go_purrfectmatch_test"
+	//config.Env = "local"
+
+	if config.Env == "local" {
+
+		fmt.Println("Config Username:", config.Username)
+		fmt.Println("Config Password:", config.Password)
+		fmt.Println("Config Host:", config.Host)
+		fmt.Println("Config Port:", config.Port)
+		fmt.Println("Config Database:", config.Database)
+		fmt.Println("Config Env:", config.Env)
+
+		//connStr, _ := fmt.Printf("postgres://", config.Username, ":", config.Password, "@", config.Host, ":", config.Port, "/?sslmode=disable")
+		connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/?sslmode=disable", config.Username, config.Password, config.Host, config.Port)
+		fmt.Println("Try to connect with:", connStr)
+		dbTemp, err := gorm.Open("postgres", connStr)
+		fmt.Printf("DBTemp: %v\n", dbTemp)
+		if err != nil {
+			fmt.Printf("failed to connect to server: %v", err)
+		}
+		//
+		//var count int
+		//var dbFounded = dbTemp.Raw("SELECT count(*) FROM pg_database WHERE datname = ?", config.Database)
+		//fmt.Println("Founded DB is:", dbFounded.Count(&count))
+		//fmt.Println("Nombre de DB:", count)
+		//err = dbTemp.Raw("SELECT count(*) FROM pg_database WHERE datname = ?", config.Database).Count(&count).Error
+		//if err != nil {
+		//	fmt.Errorf("failed to check if db exists: %w", err)
+		//}
+		//if count == 0 {
+		//	err = dbTemp.Exec(fmt.Sprintf("CREATE DATABASE %s", config.Database)).Error
+		//	if err != nil {
+		//		fmt.Errorf("failed to create db: %w", err)
+		//	}
+		//}
+
+		// teardown = func() {
+		err = dbTemp.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", config.Database)).Error
+		fmt.Println(err)
+		if err != nil {
+			fmt.Println("failed to drop db:", err)
+		}
+		//}
+
+		err = dbTemp.Exec(fmt.Sprintf("CREATE DATABASE %s", config.Database)).Error
+		fmt.Println(err)
+		if err != nil {
+			fmt.Println("failed to create db:", err)
+		}
+
+		db, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database))
+		if err != nil {
+			fmt.Printf("failed to connect to database: %v", err)
+		}
+	} else {
+		db, err = gorm.Open("postgres", os.Getenv("DATABASE_URL"))
+		if err != nil {
+			fmt.Printf("failed to connect to database: %v", err)
+		}
+		config.Database = os.Getenv("DATABASE_URL")
+	}
+
+	err = migrateAllModels(db)
+	if err != nil {
+		fmt.Printf("failed to migrate models: %v", err)
+	}
+
+	// Get the USER role
+	var userRole models.Roles
+	if err := db.Where("name = ?", models.UserRole).First(&userRole).Error; err != nil {
+		fmt.Printf("failed to find user role: %v", err)
+	}
+
+	users, err := fixtures.CreateUserFixtures(db, 5, &userRole)
+	if err != nil {
+		fmt.Printf("failed to create user fixtures: %v", err)
+	}
+	// Create 5 races
+	err = fixtures.CreateRaceFixture(db)
+	if err != nil {
+		fmt.Printf("failed to create race fixture: %v", err)
+	}
+	// For each user, create 5 cats and 5 corresponding annonces
+	for _, user := range users {
+		cats, err := fixtures.CreateCatFixturesForUser(db, 5, user.ID)
+		if err != nil {
+			fmt.Printf("failed to create cat fixtures for user %s: %v", user.ID, err)
+		}
+		if err := fixtures.CreateAnnonceFixtures(db, cats); err != nil {
+			fmt.Printf("failed to create annonce fixtures for user %s: %v", user.ID, err)
+		}
+	}
+
+	//asso, err := fixtures.CreateAssociationFixtures(db, users[1].ID)
+	//if err != nil {
+	//	fmt.Printf("failed to create association with owner: %v", users[1].ID)
+	//}
+	//
+	//var allUser = &users
+	//
+	//_, err = fixtures.AssociationAddMembers(db, asso, allUser)
+	//if err != nil {
+	//	fmt.Printf("failed to add member to association %c : %v", asso.ID, err)
+	//}
+
+	s := &Service{Db: db}
+
+	// Print that the database is connected
+	fmt.Printf("Connected to database %s\n", config.Database)
+
+	return s, nil, teardown
+
+}
+
+func TestDatabaseDestroy(db *gorm.DB) (bool, error) {
+	fmt.Println("attemp destroy")
+	defer db.Close()
+
+	connection, err := sql.Open("postgres", "user=macbook")
+	_, err = connection.Exec("DROP DATABASE go_purrfectmatch_test")
+
+	if err != nil {
+		log.Fatal(err)
+		return false, err
+	}
+	return true, nil
 }
 
 func createDbIfNotExists(db *gorm.DB, dbName string) error {
@@ -179,8 +343,6 @@ func migrateAllModels(db *gorm.DB) error {
 		&models.User{},
 		&models.Message{},
 		&models.Room{},
-		&models.FeatureFlag{},
-		&models.NotificationToken{},
 	).Error
 	if err != nil {
 		utils.Logger("debug", "AutoMigrate:", "Failed to migrate models", fmt.Sprintf("Error: %v", err))

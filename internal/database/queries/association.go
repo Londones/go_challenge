@@ -17,12 +17,12 @@ func NewQueriesService(s *database.Service) *DatabaseService {
 	}
 }
 
-func (s *DatabaseService) CreateAssociation(association *models.Association) error {
+func (s *DatabaseService) CreateAssociation(association *models.Association) (uint, error) {
 	db := s.s.DB()
-	if err := db.Create(association).Error; err != nil {
-		return err
+	if err := db.Create(&association).Error; err != nil {
+		return 0, err
 	}
-	return nil
+	return association.ID, nil
 }
 
 func (s *DatabaseService) GetAllAssociations() ([]models.Association, error) {
@@ -51,20 +51,6 @@ func (s *DatabaseService) FindAssociationById(id int) (*models.Association, erro
 	return &association, nil
 }
 
-func (s *DatabaseService) FindUserByAssociationID(id int) (*models.User, error) {
-	db := s.s.DB()
-	var association models.Association
-	if err := db.Where("id = ?", id).First(&association).Error; err != nil {
-		return nil, err
-	}
-
-	var user models.User
-	if err := db.Where("id = ?", association.OwnerID).First(&user).Error; err != nil {
-		return nil, err
-	}
-
-	return &user, nil
-}
 func (s *DatabaseService) FindAssociationsByUserId(userId string) ([]models.Association, error) {
 	db := s.s.DB()
 	var associations []models.Association

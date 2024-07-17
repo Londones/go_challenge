@@ -8,7 +8,7 @@ import (
 func (s *DatabaseService) FindUserByEmail(email string) (*models.User, error) {
 	db := s.s.DB()
 	var user models.User
-	if err := db.Preload("Roles").Where("email = ?", email).First(&user).Error; err != nil {
+	if err := db.Where("email = ?", email).First(&user).Error; err != nil {
 		utils.Logger("error", "Find User By Email:", "Failed to find user by email", err.Error())
 		return nil, err
 	}
@@ -35,15 +35,15 @@ func (s *DatabaseService) FindUserByGoogleID(googleID string) (*models.User, err
 	return &user, nil
 }
 
-func (s *DatabaseService) CreateUser(user *models.User, role *models.Roles) error {
+func (s *DatabaseService) CreateUser(user *models.User, role *models.Roles) (string, error) {
 	db := s.s.DB()
 	if err := db.Create(user).Error; err != nil {
-		return err
+		return "", err
 	}
 	if err := db.Model(user).Association("Roles").Append(role).Error; err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return user.ID, nil
 }
 
 func (s *DatabaseService) GetUserFavorites(UserID string) ([]models.Favorite, error) {

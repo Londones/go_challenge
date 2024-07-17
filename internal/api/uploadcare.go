@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"fmt"
-	// "net/http"
 	"os"
 
 	"github.com/uploadcare/uploadcare-go/ucare"

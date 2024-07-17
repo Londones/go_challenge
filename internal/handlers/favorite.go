@@ -85,7 +85,7 @@ func (h *FavoriteHandler) FavoriteCreationHandler(w http.ResponseWriter, r *http
 		AnnonceID: annonceID,
 	}
 
-	err = h.favoriteQueries.CreateFavorite(favorite)
+	_, err = h.favoriteQueries.CreateFavorite(favorite)
 	if err != nil {
 		http.Error(w, "error creating favorite", http.StatusInternalServerError)
 		return

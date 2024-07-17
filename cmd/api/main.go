@@ -27,6 +27,7 @@ import (
 
 // Pour lancer le swagger : swag init --parseDependency -d ./internal/server -g ../../cmd/api/main.go
 // puis supprimer les lignes
+
 func main() {
 	auth.NewAuth()
 	server, err := server.NewServer()
@@ -38,7 +39,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Gestion des CORS pour tout le ServeMux
-	handler := cors.AllowAll().Handler(mux)
+	handler := cors.Default().Handler(mux)
 
 	// Définir le gestionnaire pour la racine du ServeMux
 	mux.Handle("/", server.Handler)
@@ -48,8 +49,10 @@ func main() {
 		port = "8080"
 	}
 
+	fmt.Println(port)
+
 	// Lancement du serveur
-	fmt.Println("Server is running on port : " + port)
+	fmt.Println("Server is running on port" + port)
 	err = http.ListenAndServe(":"+port, handler)
 	if err != nil {
 		panic(fmt.Sprintf("cannot start server: %s", err))

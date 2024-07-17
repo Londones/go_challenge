@@ -45,6 +45,7 @@ func (s *DatabaseService) UpdateAnnonceDescription(id string, description string
 func (s *DatabaseService) DeleteAnnonce(id string) error {
 	db := s.s.DB()
 
+	// Vérifier si l'annonce existe avant de tenter de la supprimer
 	var annonce models.Annonce
 	if err := db.Where("id = ?", id).First(&annonce).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -53,7 +54,8 @@ func (s *DatabaseService) DeleteAnnonce(id string) error {
 		return err
 	}
 
-	if err := db.Delete(&annonce).Error; err != nil {
+	if err := db.Delete(annonce).Error; err != nil {
+		fmt.Println("Error deleteting the annonce", err)
 		return err
 	}
 
@@ -96,6 +98,17 @@ func (s *DatabaseService) GetUserIDByAnnonceID(annonceID string) (id string, err
 		return "", err
 	}
 	return user.ID, nil
+}
+
+func (s *DatabaseService) GetAddressFromAnnonceID(userID string) (string, error) {
+	db := s.s.DB()
+	var user models.User
+	if err := db.Where("ID = ?", userID).First(&user).Error; err != nil {
+		return "", err
+	}
+	var address = user.AddressRue + user.Cp + user.Ville
+	fmt.Println(address)
+	return address, nil
 }
 
 func (s *DatabaseService) UpdateAnnonce(annonce *models.Annonce) error {

@@ -122,13 +122,13 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		ProfilePicURL: "default",
 	}
 
-	err = h.userQueries.CreateUser(user, userRole)
+	_, err = h.userQueries.CreateUser(user, userRole)
 	if err != nil {
 		http.Error(w, "error creating user", http.StatusInternalServerError)
 		return
 	}
 
-	token := auth.MakeToken(user.ID, string(userRole.Name))
+	token := auth.MakeToken(user.ID, user.Email)
 
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
@@ -262,6 +262,7 @@ func (h *UserHandler) GetAllUsersHandler(w http.ResponseWriter, r *http.Request)
 func (h *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	err := json.NewDecoder(r.Body).Decode(&user)
+	fmt.Println(err)
 	if err != nil {
 		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
 		return
@@ -283,7 +284,7 @@ func (h *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) 
 	}
 	user.Roles = []models.Roles{*userRole}
 
-	err = h.userQueries.CreateUser(&user, userRole)
+	_, err = h.userQueries.CreateUser(&user, userRole)
 	if err != nil {
 		http.Error(w, "error creating user", http.StatusInternalServerError)
 		return
@@ -294,7 +295,7 @@ func (h *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(user)
 }
 
-// CreateUserHandler godoc
+// UpdateUserHandler godoc
 // @Summary Create user
 // @Description Create a new user with the given email, password, name, address, cp, and ville
 // @Tags users
@@ -345,7 +346,10 @@ func (h *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
+	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		return
+	}
 }
 
 // DeleteUserHandler godoc
@@ -394,7 +398,6 @@ func (h *UserHandler) GetCurrentUserHandler(w http.ResponseWriter, r *http.Reque
 
 	userID := claims["id"].(string)
 	user, err := h.userQueries.FindUserByID(userID)
-	fmt.Println(user)
 	if err != nil {
 		http.Error(w, "error finding user", http.StatusInternalServerError)
 		return
@@ -405,8 +408,10 @@ func (h *UserHandler) GetCurrentUserHandler(w http.ResponseWriter, r *http.Reque
 	json.NewEncoder(w).Encode(user)
 }
 
+// GetUserByIDHandler godoc
 // @Summary Retrieve a user by ID
 // @Description Retrieve a user by the provided ID
+// @Tags users
 // @ID get-user-by-id
 // @Accept json
 // @Produce json

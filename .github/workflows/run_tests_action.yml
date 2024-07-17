@@ -7,17 +7,57 @@ on:
             - dev
 
 jobs:
-    test:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Check out code
-              uses: actions/checkout@v4
+  # Label of the runner job
+  allTests:
+    # You must use a Linux environment when using service containers or container jobs
+    runs-on: ubuntu-latest
 
-            - name: Setup Go environment
-              uses: actions/setup-go@v5.0.0
+    # Service containers to run with `runner-job`
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
 
-            - name: Get dependencies
-              run: go get -v -t -d ./...
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
 
-            - name: Run tests
-              run: go test -v ./...
+    steps:
+      # Downloads a copy of the code in your repository before running CI tests
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Launch postgresSQL server
+        run: |
+          sudo systemctl start postgresql
+          systemctl status postgresql
+
+        # Environment variables used by the `client.js` script to create
+        # a new PostgreSQL table.
+      - name: Check if postgres is active
+        run: systemctl is-active postgresql
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v5.0.0
+      - name: Get dependencies
+        run: go get -v -t -d ./...
+      - name: Run tests
+        run: go test -v ./...
+
+        env:
+          # The hostname used to communicate with the PostgreSQL service container
+          POSTGRES_HOST: localhost
+          # The default PostgreSQL port
+          POSTGRES_PORT: 5432

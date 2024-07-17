@@ -30,5 +30,3 @@ tmp/
 
 # Project build
 main
-
-internal/config/serviceAccountKey.json
