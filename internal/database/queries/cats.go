@@ -103,6 +103,10 @@ func (s *DatabaseService) GetCatByFilters(raceId string, age int, sex string, as
 		return nil, err
 	}
 
+	if len(cats) == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+
 	return cats, nil
 }
 
