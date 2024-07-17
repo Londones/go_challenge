@@ -181,6 +181,8 @@ func TestDatabaseInit() (*Service, error) {
 	config.Port = "5432"
 	config.Database = "go_purrfectmatch_test"
 
+	fmt.Println(config.Env)
+
 	//config.Username = "macbook"
 	//config.Password = "postgres"
 	//config.Host = "localhost"
