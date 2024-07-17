@@ -171,24 +171,24 @@ func TestDatabaseInit() (*Service, error) {
 
 	config.Env = os.Getenv("APP_ENV")
 	// Get the root directory of the project.
-	//var root string
+	var root string
 	var err error
 
-	config.Username = "postgres"
-	config.Password = "postgres"
-	config.Host = "postgres"
-	config.Port = "5432"
-	config.Database = "go_purrfectmatch_test"
-
-	//config.Username = "macbook"
+	//config.Username = "postgres"
 	//config.Password = "postgres"
-	//config.Host = "localhost"
+	//config.Host = "postgres"
 	//config.Port = "5432"
 	//config.Database = "go_purrfectmatch_test"
-	//config.Env = "local"
+
+	config.Username = "macbook"
+	config.Password = "postgres"
+	config.Host = "localhost"
+	config.Port = "5432"
+	config.Database = "go_purrfectmatch_test"
+	config.Env = "local"
 
 	if config.Env == "local" {
-		_, err = filepath.Abs("./")
+		root, err = filepath.Abs("./")
 		//root, err = filepath.Abs("../..")
 
 		if err != nil {
@@ -196,14 +196,15 @@ func TestDatabaseInit() (*Service, error) {
 		}
 
 		// Construct the path to the .env file.
-		//envPath := filepath.Join(root, ".env")
+		envPath := filepath.Join(root, ".env")
 
 		// Load the .env file.
-		//err = godotenv.Load(envPath)
-		//if err != nil {
-		//	log.Fatal("Variable root: " + root)
-		//	//log.Fatal("Error loading .env file")
-		//}
+		err = godotenv.Load(envPath)
+		if err != nil {
+			log.Fatal("Variable root: " + root)
+			//log.Fatal("Error loading .env file")
+		}
+
 		fmt.Println("Init base de test")
 
 		if config.Username == "" {
