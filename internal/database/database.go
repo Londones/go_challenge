@@ -175,19 +175,19 @@ func TestDatabaseInit() (*Service, error) {
 	// Get the root directory of the project.
 	var err error
 
-	//config.Username = "postgres"
-	//config.Password = "postgres"
-	//config.Host = "postgres"
-	//config.Port = "5432"
-	//config.Database = "go_purrfectmatch_test"
-	//config.Env = "local"
-
-	config.Username = "macbook"
+	config.Username = "postgres"
 	config.Password = "postgres"
-	config.Host = "localhost"
+	config.Host = "postgres"
 	config.Port = "5432"
 	config.Database = "go_purrfectmatch_test"
 	config.Env = "local"
+
+	//config.Username = "macbook"
+	//config.Password = "postgres"
+	//config.Host = "localhost"
+	//config.Port = "5432"
+	//config.Database = "go_purrfectmatch_test"
+	//config.Env = "local"
 
 	if config.Env == "local" {
 
