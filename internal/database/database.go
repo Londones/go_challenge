@@ -208,9 +208,10 @@ func TestDatabaseInit() (*Service, error) {
 			fmt.Printf("failed to connect to server: %v", err)
 		}
 
-		err = createDbIfNotExists(dbTemp, "go_purrfectmatch_test")
-		if err != nil {
-			fmt.Printf("failed to create db: %v", err)
+		var errDB = createDbIfNotExists(dbTemp, "go_purrfectmatch_test")
+		fmt.Println("Error creating DB ?:", errDB)
+		if errDB != nil {
+			fmt.Printf("failed to create db: %v", errDB)
 		}
 
 		db, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", config.Username, config.Password, config.Host, config.Port, config.Database))
