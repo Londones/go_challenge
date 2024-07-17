@@ -322,57 +322,6 @@ func TestDatabaseService_CreateRoom(t *testing.T) {
 	})
 }
 
-/*
-func TestDatabaseService_CreateUser(t *testing.T) {
-	if dbErr != nil {
-		return
-	}
-
-	type test struct {
-		name    string
-		fields  DatabaseService
-		wantId  uint
-		wantErr assert.ErrorAssertionFunc
-	}
-
-	var userTest test
-	userTest.name = "Test creation user"
-	userTest.fields = db
-	userTest.wantId = 6
-	userTest.wantErr = assert.NoError
-
-	s := &DatabaseService{
-		s: userTest.fields.s,
-	}
-
-	var rolesName = models.UserRole
-
-	role, err := s.GetRoleByName(rolesName)
-	if err != nil {
-		return
-	}
-
-	user := models.User{
-		Name:          "USER de TEST",
-		Email:         "emaildeTest@gmail.com",
-		Password:      "lepassword",
-		AddressRue:    "111 rue du 1",
-		Cp:            "12345",
-		Ville:         "ville de test",
-		GoogleID:      "32132132132",
-		ProfilePicURL: "",
-	}
-
-	t.Run(userTest.name, func(t *testing.T) {
-
-		gotId, err := s.CreateUser(&user, role)
-		if !userTest.wantErr(t, err, fmt.Sprintf("CreateUser(%v)", user)) {
-			return
-		}
-		assert.Equalf(t, userTest.wantId, gotId, "CreateUser(%v)", user)
-	})
-} */
-
 // FindBy
 func TestDatabaseService_FindAnnonceByCatID(t *testing.T) {
 	if dbErr != nil {
@@ -476,40 +425,6 @@ func TestDatabaseService_FindAssociationById(t *testing.T) {
 		associationTest.wantErr(t, err, fmt.Sprintf("FindAssociation(%v)", associationTest.toFindID))
 	})
 }
-
-//func TestDatabaseService_FindAssociationsByUserId(t *testing.T) {
-//	if dbErr != nil {
-//		return
-//	}
-//
-//	type test struct {
-//		name     string
-//		fields   DatabaseService
-//		toFindID string
-//		wantId   uint
-//		wantErr  assert.ErrorAssertionFunc
-//	}
-//
-//	var associationTest test
-//	associationTest.name = "Test trouver association par ID"
-//	associationTest.fields = db
-//	associationTest.wantErr = assert.NoError
-//
-//	asso, _ := db.FindAssociationById(1)
-//
-//	associationTest.toFindID = strconv.Itoa(int(asso.ID))
-//	var idAssociationFounded []uint
-//
-//	t.Run(associationTest.name, func(t *testing.T) {
-//		associationFounded, err := s.FindAssociationsByUserId(asso.Members[1].ID)
-//		assert.NotNil(t, associationFounded)
-//		for _, as := range associationFounded {
-//			append(idAssociationFounded, as)
-//		}
-//		//assert.IsType(t, models.Association{}, associationFounded)
-//		associationTest.wantErr(t, err, fmt.Sprintf("FindAssociation(%v)", associationTest.toFindID))
-//	})
-//}
 
 func TestDatabaseService_FindCatByID(t *testing.T) {
 	if dbErr != nil {
