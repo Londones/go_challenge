@@ -32,11 +32,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Connect to PostgreSQL
-        # Runs a script that creates a PostgreSQL table, populates
-        # the table with data, and then retrieves the data
         run: sudo -i -u postgres
         # Environment variables used by the `client.js` script to create
         # a new PostgreSQL table.
+      - name: Retrieve psql version
+        run: psql
+
         env:
           # The hostname used to communicate with the PostgreSQL service container
           POSTGRES_HOST: localhost
