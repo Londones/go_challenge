@@ -198,8 +198,8 @@ func TestDatabaseInit() (*Service, error) {
 		fmt.Println("Config Database:", config.Database)
 		fmt.Println("Config Env:", config.Env)
 
-		connStr, _ := fmt.Println("postgres://", config.Username, ":", config.Password, "@", config.Host, ":", config.Port, "/?sslmode=disable")
-		//connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/?sslmode=disable", config.Username, config.Password, config.Host, config.Port)
+		//connStr, _ := fmt.Printf("postgres://", config.Username, ":", config.Password, "@", config.Host, ":", config.Port, "/?sslmode=disable")
+		connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/?sslmode=disable", config.Username, config.Password, config.Host, config.Port)
 		fmt.Println("Try to connect with:", connStr)
 		dbTemp, err := gorm.Open("postgres", connStr)
 		fmt.Printf("DBTemp: %v\n", dbTemp)
