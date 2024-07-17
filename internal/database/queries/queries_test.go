@@ -10,10 +10,10 @@ import (
 	"time"
 )
 
-var dtb, dbErr = database.TestDatabaseInit()
+var dtb, dbErr, _ = database.TestDatabaseInit()
 var db = DatabaseService{s: database.Service{Db: dtb.Db}}
 
-// Mise en place d'objet globaux qui serviront aux tests
+// Mise en place d'ob      jet globaux qui serviront aux tests
 var annonceDescription = "annonce de test"
 var associationIsVerified = true
 var descriptionCat string = "Il s'appel PABLO et c'est un chat de TEST"
@@ -72,10 +72,21 @@ var room = models.Room{
 	AnnonceID: strconv.Itoa(int(annonces[1].ID)),
 }
 
-func TestDatabaseService_CreateAnnonce(t *testing.T) {
+func SetUp() (DatabaseService, error, func()) {
+	var dtb, dbErr, teardown = database.TestDatabaseInit()
 	if dbErr != nil {
-		return
+		return DatabaseService{}, dbErr, nil
 	}
+	return DatabaseService{s: database.Service{Db: dtb.Db}}, nil, teardown
+}
+
+func TestDatabaseService_CreateAnnonce(t *testing.T) {
+	//db, err, teardown := SetUp()
+	//if err != nil {
+	//	t.Errorf("Db error: %s", err.Error())
+	//	return
+	//}
+	//defer teardown()
 
 	type test struct {
 		name    string
@@ -1002,7 +1013,9 @@ func TestDatabaseService_DeleteRating(t *testing.T) {
 	})
 }
 
-//func TestDatabaseService_DeleteDatabase(t *testing.T) {
-//	dtbDestroy, _ := database.TestDatabaseDestroy(dtb.Db)
-//	assert.True(t, dtbDestroy)
-//}
+/*
+func TestDatabaseService_DeleteDatabase(t *testing.T) {
+	dtbDestroy, _ := database.TestDatabaseDestroy(dtb.Db)
+	assert.True(t, dtbDestroy)
+}
+*/

@@ -166,11 +166,12 @@ func New(config *Config) (*Service, error) {
 }
 
 // TestDatabaseInit DATABASE FOR TESTS
-func TestDatabaseInit() (*Service, error) {
+func TestDatabaseInit() (*Service, error, func()) {
 
 	var config Config
 	var db *gorm.DB
 
+	var teardown func()
 	config.Env = os.Getenv("APP_ENV")
 	// Get the root directory of the project.
 	var err error
@@ -220,6 +221,14 @@ func TestDatabaseInit() (*Service, error) {
 		//	if err != nil {
 		//		fmt.Errorf("failed to create db: %w", err)
 		//	}
+		//}
+
+		// teardown = func() {
+		err = dbTemp.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", config.Database)).Error
+		fmt.Println(err)
+		if err != nil {
+			fmt.Println("failed to drop db:", err)
+		}
 		//}
 
 		err = dbTemp.Exec(fmt.Sprintf("CREATE DATABASE %s", config.Database)).Error
@@ -288,7 +297,7 @@ func TestDatabaseInit() (*Service, error) {
 	// Print that the database is connected
 	fmt.Printf("Connected to database %s\n", config.Database)
 
-	return s, nil
+	return s, nil, teardown
 
 }
 
