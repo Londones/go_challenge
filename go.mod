@@ -3,7 +3,8 @@ module go-challenge
 go 1.22
 
 require (
-	github.com/go-chi/chi/v5 v5.0.12
+	firebase.google.com/go v3.13.0+incompatible
+	github.com/go-chi/chi/v5 v5.1.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/schema v1.4.1
@@ -15,6 +16,7 @@ require (
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.3
 	github.com/uploadcare/uploadcare-go v1.2.5
+	google.golang.org/api v0.170.0
 	gorm.io/gorm v1.25.10
 )
 
@@ -24,7 +26,6 @@ require (
 	cloud.google.com/go/iam v1.1.7 // indirect
 	cloud.google.com/go/longrunning v0.5.5 // indirect
 	cloud.google.com/go/storage v1.40.0 // indirect
-	firebase.google.com/go v3.13.0+incompatible // indirect
 	firebase.google.com/go/v4 v4.14.1 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/MicahParks/keyfunc v1.9.0 // indirect
@@ -54,7 +55,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect
-	google.golang.org/api v0.170.0 // indirect
 	google.golang.org/appengine/v2 v2.0.2 // indirect
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240314234333-6e1732d8331c // indirect
@@ -73,7 +73,7 @@ require (
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
-	github.com/gorilla/sessions v1.2.2
+	github.com/gorilla/sessions v1.3.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
@@ -87,7 +87,7 @@ require (
 	github.com/lestrrat-go/iter v1.0.2 // indirect
 	github.com/lestrrat-go/jwx/v2 v2.0.21 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
-	github.com/markbates/goth v1.79.0
+	github.com/markbates/goth v1.80.0
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.24.0

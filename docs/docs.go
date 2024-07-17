@@ -371,7 +371,8 @@ const docTemplate = `{
             "post": {
                 "description": "Create a new association with the input payload and a PDF file",
                 "consumes": [
-                    "multipart/form-data"
+                    "multipart/form-data",
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -382,13 +383,59 @@ const docTemplate = `{
                 "summary": "Create a new association",
                 "parameters": [
                     {
-                        "description": "Association payload",
-                        "name": "association",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Association"
-                        }
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "AddressRue",
+                        "name": "addressRue",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "CP",
+                        "name": "cp",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ville",
+                        "name": "ville",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Phone",
+                        "name": "phone",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Email",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "OwnerID",
+                        "name": "ownerId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of member IDs",
+                        "name": "members",
+                        "in": "formData"
                     },
                     {
                         "type": "file",
@@ -406,13 +453,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request: Error uploading image 2/3, Invalid content type for kbisFile, expected application/pdf",
+                        "description": "Bad Request",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error: Error uploading image 1/4/5/6/7/8",
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "string"
                         }
@@ -421,6 +468,194 @@ const docTemplate = `{
             }
         },
         "/associations/{id}": {
+            "get": {
+                "description": "Retrieve an association by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "associations"
+                ],
+                "summary": "Get association by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Association ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved association",
+                        "schema": {
+                            "$ref": "#/definitions/models.Association"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request: Invalid association ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Association not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update all fields of an association with the given ID",
+                "consumes": [
+                    "multipart/form-data",
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "associations"
+                ],
+                "summary": "Update an association",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Association ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "AddressRue",
+                        "name": "addressRue",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "CP",
+                        "name": "cp",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ville",
+                        "name": "ville",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Phone",
+                        "name": "phone",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Email",
+                        "name": "email",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "PDF file",
+                        "name": "kbisFile",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of member IDs",
+                        "name": "members",
+                        "in": "formData"
+                    },
+                    {
+                        "description": "Association payload",
+                        "name": "association",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/models.Association"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully updated association",
+                        "schema": {
+                            "$ref": "#/definitions/models.Association"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request: Invalid association ID or Invalid content type for kbisFile, expected application/pdf",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete an association by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "associations"
+                ],
+                "summary": "Delete an association",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Association ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successfully deleted association"
+                    },
+                    "400": {
+                        "description": "Bad Request: Invalid association ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found: Association not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/associations/{id}/verify": {
             "put": {
                 "description": "Update the verify status of an association with the given ID",
                 "consumes": [
@@ -580,6 +815,7 @@ const docTemplate = `{
             "post": {
                 "description": "Create a new cat with the provided details",
                 "consumes": [
+                    "application/json",
                     "multipart/form-data"
                 ],
                 "produces": [
@@ -646,8 +882,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Race",
-                        "name": "Race",
+                        "description": "RaceID",
+                        "name": "RaceID",
                         "in": "formData",
                         "required": true
                     },
@@ -661,13 +897,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Reserved",
                         "name": "Reserved",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Annonce ID",
-                        "name": "AnnonceID",
                         "in": "formData",
                         "required": true
                     },
@@ -862,8 +1091,8 @@ const docTemplate = `{
             "put": {
                 "description": "Update the details of an existing cat",
                 "consumes": [
-                    "application/x-www-form-urlencoded",
-                    "application/json"
+                    "application/json",
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -930,8 +1159,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Race",
-                        "name": "Race",
+                        "description": "RaceID",
+                        "name": "RaceID",
                         "in": "formData"
                     },
                     {
@@ -948,17 +1177,15 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Annonce ID",
-                        "name": "AnnonceID",
+                        "description": "User ID",
+                        "name": "UserID",
                         "in": "formData"
                     },
                     {
-                        "description": "Cat object",
-                        "name": "body",
-                        "in": "body",
-                        "schema": {
-                            "$ref": "#/definitions/models.Cats"
-                        }
+                        "type": "file",
+                        "description": "Image",
+                        "name": "uploaded_file",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -2221,6 +2448,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/{userId}/associations": {
+            "get": {
+                "description": "Retrieve all associations for a specific user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "associations"
+                ],
+                "summary": "Get associations by user ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved associations for user",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Association"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request: Invalid user ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/ws/{roomID}": {
             "get": {
                 "security": [
@@ -2320,7 +2591,7 @@ const docTemplate = `{
                 "members": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.User"
+                        "type": "string"
                     }
                 },
                 "name": {

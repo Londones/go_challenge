@@ -113,17 +113,24 @@ func (s *Server) RegisterRoutes() http.Handler {
 		//** Association routes
 		r.Post("/associations", associationHandler.CreateAssociationHandler)
 		r.Get("/associations", associationHandler.GetAllAssociationsHandler)
+		r.Get("/users/{userId}/associations", associationHandler.GetUserAssociationsHandler)
+		r.Get("/associations/{id}", associationHandler.GetAssociationByIdHandler)
 		r.Put("/associations/{id}/verify", associationHandler.UpdateAssociationVerifyStatusHandler)
+		r.Delete("/associations/{id}", associationHandler.DeleteAssociationHandler)
+		r.Put("/associations/{id}", associationHandler.UpdateAssociationHandler)
 
 		//** Chat routes
 		r.Get("/rooms", roomHandler.GetUserRooms)
 		r.Get("/rooms/{roomID}", roomHandler.GetRoomMessages)
 		r.Get("/ws/{roomID}", roomHandler.HandleWebSocket)
+		r.Get("/rooms/{roomID}/latest", roomHandler.GetLatestMessage)
 
 		//** Notification routes
 		r.Post("/notifications", notificationTokenHandler.CreateNotificationTokenHandler)
 		r.Delete("/notifications/{id}", notificationTokenHandler.DeleteNotificationTokenHandler)
 		r.Post("/notifications/send", notificationTokenHandler.SendNotificationHandler)
+		
+
 	})
 
 	// Public routes

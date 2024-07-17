@@ -246,7 +246,6 @@ func (c *Client) readPump(room *Room, h *RoomHandler) {
 	}
 }
 
-
 func (c *Client) writePump() {
 	defer func() {
 		c.conn.Close()
@@ -317,7 +316,7 @@ func (h *RoomHandler) GetUserRooms(w http.ResponseWriter, r *http.Request) {
 		modifiedRooms = append(modifiedRooms, modifiedRoom)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if err := json.NewEncoder(w).Encode(modifiedRooms); err != nil {
 		http.Error(w, "error encoding rooms to JSON", http.StatusInternalServerError)
 	}
@@ -356,34 +355,45 @@ func (h *RoomHandler) GetRoomMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(w).Encode(messages)
 	utils.Logger("info", "Get Room Messages:", "Messages retrieved successfully", fmt.Sprintf("Room ID: %v", roomID))
 }
 
+// GetLatestMessage godoc
+// @Summary Get the latest message for a room
+// @Description Get the latest message for a room
+// @Tags rooms
+// @Accept json
+// @Produce json
+// @Param roomID path string true "ID of the room"
+// @Success 200 {object} models.Message "latest message for the room"
+// @Failure 400 {string} string "room ID is required"
+// @Failure 404 {string} string "room not found"
+// @Failure 500 {string} string "error getting latest message"
+// @Router /rooms/{roomID}/latest [get]
+func (h *RoomHandler) GetLatestMessage(w http.ResponseWriter, r *http.Request) {
+	roomID := chi.URLParam(r, "roomID")
+	if roomID == "" {
+		utils.Logger("error", "Get Latest Message:", "Room ID is required", "")
+		http.Error(w, "room ID is required", http.StatusBadRequest)
+		return
+	}
 
-func (h *RoomHandler) GetDisconnectedUser(roomID uint) (string, error) {
-    room := h.Rooms.GetRoom(roomID)
-    if room == nil {
-        return "", fmt.Errorf("room not found")
-    }
+	roomIDToInt, err := strconv.ParseUint(roomID, 10, 64)
+	if err != nil {
+		utils.Logger("error", "Get Latest Message:", "Failed to parse room ID", fmt.Sprintf("Error: %v", err))
+		http.Error(w, "error parsing room ID", http.StatusBadRequest)
+		return
+	}
 
-    room.mu.Lock()
-    defer room.mu.Unlock()
+	response, err := h.roomQueries.GetLatestMessageByRoomID(uint(roomIDToInt))
+	if err != nil {
+		http.Error(w, "error getting latest message %v", http.StatusInternalServerError)
+		return
+	}
 
-    dbRoom, err := h.roomQueries.GetRoomByID(roomID)
-    if err != nil {
-        return "", err
-    }
-
-    // Check user not connected
-    if _, user1Connected := room.clients[dbRoom.User1ID]; !user1Connected {
-        return dbRoom.User1ID, nil
-    }
-    if _, user2Connected := room.clients[dbRoom.User2ID]; !user2Connected {
-        return dbRoom.User2ID, nil
-    }
-
-    return "", fmt.Errorf("both users are connected")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	json.NewEncoder(w).Encode(response)
+	utils.Logger("info", "Get Latest Message:", "Latest message retrieved successfully", fmt.Sprintf("Room ID: %v", roomID))
 }
-
