@@ -38,6 +38,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	ratingHandler := handlers.NewRatingHandler(s.dbService, s.dbService)
 	roomHandler := handlers.NewRoomHandler(s.dbService)
 	notificationTokenHandler := handlers.NewNotificationTokenHandler(s.dbService)
+	featureFlagHandler := handlers.NewFeatureFlagHandler(s.dbService)
 
 	roomHandler.LoadRooms()
 
@@ -49,14 +50,23 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Group(func(r chi.Router) {
 			// Protected routes for admin users
 			r.Use(AdminOnly)
-			// Admin specific routes
 		})
-		//** Race routes for admin
 
 		r.Group(func(r chi.Router) {
 			// Protected routes for personal user data
 			r.Use(UserOnly)
 			// User specific routes
+		})
+
+		r.Group(func(r chi.Router) {
+			r.Use(FeatureFlagMiddleware(featureFlagHandler, "Association"))
+	
+			// Association routes
+			r.Get("/associations", associationHandler.GetAllAssociationsHandler)
+			r.Get("/users/{userId}/associations", associationHandler.GetUserAssociationsHandler)
+			r.Get("/associations/{id}", associationHandler.GetAssociationByIdHandler)
+			r.Delete("/associations/{id}", associationHandler.DeleteAssociationHandler)
+			r.Put("/associations/{id}", associationHandler.UpdateAssociationHandler)
 		})
 
 		//**	Rating routes
@@ -93,7 +103,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/races", raceHandler.CreateRaceHandler)
 		r.Put("/races/{id}", raceHandler.UpdateRaceHandler)
 		r.Delete("/races/{id}", raceHandler.DeleteRaceHandler)
-
+		
 		//** User routes
 		r.Get("/users", userHandler.GetAllUsersHandler)
 		r.Get("/users/annonces/{id}", annonceHandler.GetUserAnnoncesHandler)
@@ -118,9 +128,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/associations", associationHandler.GetAllAssociationsHandler)
 		r.Get("/users/{userId}/associations", associationHandler.GetUserAssociationsHandler)
 		r.Get("/associations/{id}", associationHandler.GetAssociationByIdHandler)
-		r.Put("/associations/{id}/verify", associationHandler.UpdateAssociationVerifyStatusHandler)
 		r.Delete("/associations/{id}", associationHandler.DeleteAssociationHandler)
 		r.Put("/associations/{id}", associationHandler.UpdateAssociationHandler)
+		r.Put("/associations/{id}/verify", associationHandler.UpdateAssociationVerifyStatusHandler)
 
 		//** Chat routes
 		r.Get("/rooms", roomHandler.GetUserRooms)
@@ -133,6 +143,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Delete("/notifications/{id}", notificationTokenHandler.DeleteNotificationTokenHandler)
 		r.Post("/notifications/send", notificationTokenHandler.SendNotificationHandler)
 
+		//** Feature flag routes
+		r.Put("/feature-flags/{id}", featureFlagHandler.UpdateFeatureFlagStatusHandler)
 	})
 
 	// Public routes
@@ -148,7 +160,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"),
 	))
-
+	r.Get("/feature-flags", featureFlagHandler.GetAllFeatureFlagsHandler)
 	r.Get("/notifications/test", notificationTokenHandler.TestSendNotificationHandler)
 
 	return r
