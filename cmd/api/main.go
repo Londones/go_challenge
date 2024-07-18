@@ -38,7 +38,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Gestion des CORS pour tout le ServeMux
-	handler := cors.Default().Handler(mux)
+	handler := cors.AllowAll().Handler(mux)
 
 	// Définir le gestionnaire pour la racine du ServeMux
 	mux.Handle("/", server.Handler)
