@@ -112,7 +112,7 @@ func New(config *Config) (*Service, error) {
 	}
 
 	// Create 5 races
-	err := fixtures.CreateRaceFixture(db)
+	err = fixtures.CreateRaceFixture(db)
 	if err != nil {
 		fmt.Printf("failed to create race fixture: %v", err)
 	}
