@@ -12,7 +12,7 @@ type LatestMessageResponse struct {
 	Message *models.Message `json:"message"`
 }
 
-func (s *DatabaseService) SaveMessage(roomID uint, senderID string, content string) (*models.Message, error) {
+func (s *DatabaseService) SaveMessage(roomID uint, senderID string, content string) (*models.Message, string, error) {
 	db := s.s.DB()
 	message := models.Message{
 		RoomID:   roomID,
