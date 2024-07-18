@@ -29,7 +29,7 @@ func (s *DatabaseService) FindUserByID(id string) (*models.User, error) {
 func (s *DatabaseService) FindUserByGoogleID(googleID string) (*models.User, error) {
 	db := s.s.DB()
 	var user models.User
-	if err := db.Where("googleID = ?", googleID).First(&user).Error; err != nil {
+	if err := db.Where("google_ID = ?", googleID).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
