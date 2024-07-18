@@ -153,7 +153,7 @@ func New(config *Config) (*Service, error) {
 	err = fixtures.CreateFeatureFlagFixture(db)
 	if err != nil {
 		fmt.Printf("failed to create feature flag fixture: %v", err)
-	}
+	}*/
 
 	s := &Service{Db: db}
 
