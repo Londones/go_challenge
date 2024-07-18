@@ -147,7 +147,13 @@ func New(config *Config) (*Service, error) {
 	err = fixtures.CreateRatingFixtures(db, staticUserID, staticAuthorID, 5)
 	if err != nil {
 		fmt.Printf("failed to create rating fixtures: %v", err)
-	}*/
+	}
+
+	// Fixtures for feature flags
+	err = fixtures.CreateFeatureFlagFixture(db)
+	if err != nil {
+		fmt.Printf("failed to create feature flag fixture: %v", err)
+	}
 
 	s := &Service{Db: db}
 

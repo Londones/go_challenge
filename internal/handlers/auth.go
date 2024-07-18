@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"context"
+	//"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -38,11 +38,15 @@ func NewAuthHandler(userQueries *queries.DatabaseService) *AuthHandler {
 // @Failure 500 {string} string "Error message"
 // @Router /auth/{provider}/callback [get]
 func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Request) {
-	type contextKey string
-
-	const providerKey contextKey = "provider"
-	provider := chi.URLParam(r, "provider")
-	r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
+	// type contextKey string
+	// fmt.Println("GetAuthCallbackFunction")
+	// const providerKey contextKey = "provider"
+	// provider := chi.URLParam(r, "provider")
+	//r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
+	q := r.URL.Query()
+	q.Add("provider", chi.URLParam(r, "provider"))
+	r.URL.RawQuery = q.Encode()
+	fmt.Println("Provider:", chi.URLParam(r, "provider"))
 
 	user, err := gothic.CompleteUserAuth(w, r)
 	utils.Logger("info", "User", fmt.Sprintf("%+v", user), "")

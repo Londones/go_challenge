@@ -299,7 +299,6 @@ func (h *AssociationHandler) UpdateAssociationVerifyStatusHandler(w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(association)
-
 }
 
 // @Summary Delete an association
