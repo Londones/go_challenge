@@ -69,10 +69,10 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 				ID:            uuid.New().String(),
 				Email:         user.Email,
 				Name:          user.Email,
-				GoogleID: 	   user.UserID,
+				GoogleID:      user.UserID,
 				ProfilePicURL: "default",
 			}
-		
+
 			err = h.userQueries.CreateUser(newUser, userRole)
 			if err != nil {
 				http.Error(w, "Error creating user", http.StatusInternalServerError)
@@ -83,7 +83,7 @@ func (h *AuthHandler) GetAuthCallbackFunction(w http.ResponseWriter, r *http.Req
 			w.Header().Set("Location", "purrmatch://auth_success?token="+token)
 			w.WriteHeader(http.StatusTemporaryRedirect)
 			//fmt.Println("Redirected to purrmatch://auth_success?token=" + token)
-		} else if (existingUser != nil && existingUser.GoogleID == user.UserID) {
+		} else if existingUser != nil && existingUser.GoogleID == user.UserID {
 			token := auth.MakeToken(existingUser.ID, string(userRole.Name))
 			w.Header().Set("Location", "purrmatch://auth_success?token="+token)
 			w.WriteHeader(http.StatusTemporaryRedirect)
@@ -159,7 +159,7 @@ func (h *AuthHandler) BeginAuthProviderCallback(w http.ResponseWriter, r *http.R
 	fmt.Println("BeginAuthProviderCallback")
 	const providerKey contextKey = "provider"
 	provider := chi.URLParam(r, "provider")
-	fmt.Println("Provider:", provider)*/	
+	fmt.Println("Provider:", provider)*/
 	//r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
 
 	q := r.URL.Query()

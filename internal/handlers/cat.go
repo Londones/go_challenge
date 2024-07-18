@@ -49,7 +49,7 @@ func NewCatHandler(catQueries *queries.DatabaseService, uploadcareClient ucare.C
 // @Param Description formData string false "Description"
 // @Param Reserved formData string true "Reserved"
 // @Param UserID formData string true "User ID"
-// @Param PublishedAs formData string true "Published As" // New parameter
+// @Param PublishedAs formData string false "Published As" // New parameter
 // @Param uploaded_file formData file true "Image"
 // @Success 201 {object} models.Cats "cat created successfully"
 // @Failure 400 {string} string "all fields are required"
@@ -141,7 +141,7 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Validation des champs obligatoires
-	if name == "" || birthDateStr == "" || sexe == "" || color == "" || behavior == "" || sterilizedStr == "" || race == "" || reservedStr == "" || userID == "" || publishedAs == "" {
+	if name == "" || birthDateStr == "" || sexe == "" || color == "" || behavior == "" || sterilizedStr == "" || race == "" || reservedStr == "" || userID == "" {
 		http.Error(w, "all fields are required", http.StatusBadRequest)
 		return
 	}
@@ -544,8 +544,16 @@ func (h *CatHandler) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Requ
 	raceId := params.Get("raceId")
 	sexe := params.Get("sexe")
 	age, _ := strconv.Atoi(params.Get("age"))
+	assoId, _ := strconv.Atoi(params.Get("assoID"))
 
-	cats, err := h.catQueries.GetCatByFilters(raceId, age, sexe)
+	var assoName string
+
+	if assoId != 0 {
+		asso, _ := h.catQueries.FindAssociationById(assoId)
+		assoName = asso.Name
+	}
+
+	cats, err := h.catQueries.GetCatByFilters(raceId, age, sexe, assoName)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, fmt.Sprintf("Error in parameters"), http.StatusNotFound)
@@ -568,7 +576,7 @@ func (h *CatHandler) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Requ
 	err = json.NewEncoder(w).Encode(data)
 
 	if len(data) == 0 {
-		http.Error(w, "No cats were found with using the filters.", http.StatusNotFound)
+		http.Error(w, "No cats were found using the filters.", http.StatusNotFound)
 		return
 	}
 
@@ -617,4 +625,37 @@ func convertInterfaceSliceToStringSlice(input []interface{}) []string {
 		}
 	}
 	return output
+}
+
+// GetAnnoncesByCatIDHandler godoc
+// @Summary Get annonces by cat ID
+// @Description Retrieve all annonces for a specific cat
+// @Tags cats
+// @Produce json
+// @Param id path string true "Cat ID"
+// @Success 200 {array} models.Annonce "List of annonces for the cat"
+// @Failure 400 {string} string "Cat ID is required"
+// @Failure 500 {string} string "Error fetching annonces"
+// @Router /cats/{id}/annonces [get]
+func (h *CatHandler) GetAnnoncesByCatIDHandler(w http.ResponseWriter, r *http.Request) {
+	catID := chi.URLParam(r, "id")
+	if catID == "" {
+		http.Error(w, "Cat ID is required", http.StatusBadRequest)
+		return
+	}
+
+	annonces, err := h.catQueries.FindAnnoncesByCatID(catID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, fmt.Sprintf("No annonces found for cat ID %s", catID), http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error fetching annonces", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if err := json.NewEncoder(w).Encode(annonces); err != nil {
+		http.Error(w, "Error encoding annonces to JSON", http.StatusInternalServerError)
+	}
 }

@@ -12,9 +12,9 @@ import (
 	"strings"
 
 	"go-challenge/internal/api"
+	"go-challenge/internal/config"
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
-	"go-challenge/internal/config"
 
 	"github.com/go-chi/chi/v5"
 	// "github.com/gorilla/schema"
@@ -164,8 +164,6 @@ func (h *AssociationHandler) GetAllAssociationsHandler(w http.ResponseWriter, r 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Println(associations)
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)

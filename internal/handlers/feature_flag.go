@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 )
+
 type FeatureFlagHandler struct {
 	featureFlagQueries *queries.DatabaseService
 }
@@ -107,4 +108,3 @@ func (h *FeatureFlagHandler) IsFeatureFlagEnabled(featureFlagName string) (bool,
     log.Printf("Feature flag '%s' is enabled: %v", featureFlagName, featureFlag.IsEnabled)
     return featureFlag.IsEnabled, nil
 }
-

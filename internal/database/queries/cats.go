@@ -92,15 +92,19 @@ func (s *DatabaseService) UpdateCat(cat *models.Cats) error {
 	return nil
 }
 
-func (s *DatabaseService) GetCatByFilters(raceId string, age int, sex string) ([]models.Cats, error) {
+func (s *DatabaseService) GetCatByFilters(raceId string, age int, sex string, assoId string) ([]models.Cats, error) {
 	var cats []models.Cats
 	var birthDate time.Time
 	db := s.s.DB()
 
 	birthDate = time.Now().AddDate(-age, 0, 0)
 
-	if err := db.Where("sexe = ?", sex).Or("race_id = ?", raceId).Or("birth_date >= ?", birthDate).Find(&cats).Error; err != nil {
+	if err := db.Where("sexe = ?", sex).Or("race_id = ?", raceId).Or("birth_date >= ?", birthDate).Or("published_as = ?", assoId).Find(&cats).Error; err != nil {
 		return nil, err
+	}
+
+	if len(cats) == 0 {
+		return nil, gorm.ErrRecordNotFound
 	}
 
 	return cats, nil

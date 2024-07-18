@@ -75,7 +75,6 @@ func (s *DatabaseService) FindRaceByID(id string) (race models.Races, err error)
 	return race, nil
 }
 
-
 func (s *DatabaseService) UpdateRace(race models.Races) error {
 	db := s.s.DB()
 	if err := db.Save(race).Error; err != nil {
