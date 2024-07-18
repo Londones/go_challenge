@@ -3,6 +3,7 @@ package handlers
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
 	"go-challenge/internal/utils"
@@ -182,11 +183,12 @@ func (h *ReportsHandler) CreateReportedMessage(w http.ResponseWriter, r *http.Re
 		{
 			"id":             reportedMessage.ID,
 			"message":        message.Content,
-			"reporterId":     reportedMessage.ReporterUserID,
+			"reporterUserId": reportedMessage.ReporterUserID,
 			"reportedUserId": reportedMessage.ReportedUserID,
 			"createdAt":      reportedMessage.CreatedAt,
 			"reason":         reason.Reason,
 			"isHandled":      reportedMessage.IsHandled,
+			"type":           "message",
 		},
 	}
 
@@ -208,6 +210,8 @@ func (h *ReportsHandler) CreateReportedAnnonce(w http.ResponseWriter, r *http.Re
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	fmt.Println(reportedAnnonce)
 
 	reportedAnnonce, err := h.reportsQueries.CreateReportedAnnonce(reportedAnnonce)
 	if err != nil {
@@ -231,15 +235,16 @@ func (h *ReportsHandler) CreateReportedAnnonce(w http.ResponseWriter, r *http.Re
 		{
 			"id": reportedAnnonce.ID,
 			"annonce": map[string]interface{}{
-				"id":          annonce.ID,
-				"title":       annonce.Title,
-				"description": annonce.Description,
+				"ID":          annonce.ID,
+				"Title":       annonce.Title,
+				"Description": annonce.Description,
 			},
-			"reporterId":     reportedAnnonce.ReporterUserID,
+			"reporterUserId": reportedAnnonce.ReporterUserID,
 			"reportedUserId": reportedAnnonce.ReportedUserID,
 			"createdAt":      reportedAnnonce.CreatedAt,
 			"reason":         reason.Reason,
 			"isHandled":      reportedAnnonce.IsHandled,
+			"type":           "annonce",
 		},
 	}
 
@@ -279,11 +284,12 @@ func (h *ReportsHandler) GetReportedMessages(w http.ResponseWriter, r *http.Requ
 		modifiedReport = append(modifiedReport, map[string]interface{}{
 			"id":             reportedMessage.ID,
 			"message":        message.Content,
-			"reporterId":     reportedMessage.ReporterUserID,
+			"reporterUserId": reportedMessage.ReporterUserID,
 			"reportedUserId": reportedMessage.ReportedUserID,
 			"createdAt":      reportedMessage.CreatedAt,
 			"reason":         reason.Reason,
 			"isHandled":      reportedMessage.IsHandled,
+			"type":           "message",
 		})
 	}
 
@@ -322,15 +328,16 @@ func (h *ReportsHandler) GetReportedAnnonces(w http.ResponseWriter, r *http.Requ
 		modifiedReport = append(modifiedReport, map[string]interface{}{
 			"id": reportedAnnonce.ID,
 			"annonce": map[string]interface{}{
-				"id":          annonce.ID,
-				"title":       annonce.Title,
-				"description": annonce.Description,
+				"ID":          annonce.ID,
+				"Title":       annonce.Title,
+				"Description": annonce.Description,
 			},
-			"reporterId":     reportedAnnonce.ReporterUserID,
+			"reporterUserId": reportedAnnonce.ReporterUserID,
 			"reportedUserId": reportedAnnonce.ReportedUserID,
 			"createdAt":      reportedAnnonce.CreatedAt,
 			"reason":         reason.Reason,
 			"isHandled":      reportedAnnonce.IsHandled,
+			"type":           "annonce",
 		})
 	}
 
@@ -375,11 +382,12 @@ func (h *ReportsHandler) GetAllReports(w http.ResponseWriter, r *http.Request) {
 		modifiedReport = append(modifiedReport, map[string]interface{}{
 			"id":             reportedMessage.ID,
 			"message":        message.Content,
-			"reporterId":     reportedMessage.ReporterUserID,
+			"reporterUserId": reportedMessage.ReporterUserID,
 			"reportedUserId": reportedMessage.ReportedUserID,
 			"createdAt":      reportedMessage.CreatedAt,
 			"reason":         reason.Reason,
 			"isHandled":      reportedMessage.IsHandled,
+			"type":           "message",
 		})
 	}
 
@@ -399,15 +407,16 @@ func (h *ReportsHandler) GetAllReports(w http.ResponseWriter, r *http.Request) {
 		modifiedReport = append(modifiedReport, map[string]interface{}{
 			"id": reportedAnnonce.ID,
 			"annonce": map[string]interface{}{
-				"id":          annonce.ID,
-				"title":       annonce.Title,
-				"description": annonce.Description,
+				"ID":          annonce.ID,
+				"Title":       annonce.Title,
+				"Description": annonce.Description,
 			},
-			"reporterId":     reportedAnnonce.ReporterUserID,
+			"reporterUserId": reportedAnnonce.ReporterUserID,
 			"reportedUserId": reportedAnnonce.ReportedUserID,
 			"createdAt":      reportedAnnonce.CreatedAt,
 			"reason":         reason.Reason,
 			"isHandled":      reportedAnnonce.IsHandled,
+			"type":           "annonce",
 		})
 	}
 
@@ -429,15 +438,21 @@ func (h *ReportsHandler) GetReportReasons(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	reasonsToJSON, err := json.Marshal(reasons)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	reasonsModifiedJSON := make([]map[string]interface{}, 0)
+
+	for _, reason := range reasons {
+		reasonsModifiedJSON = append(reasonsModifiedJSON, map[string]interface{}{
+			"id":     reason.ID,
+			"reason": reason.Reason,
+		})
 	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.Write(reasonsToJSON)
+	if err := json.NewEncoder(w).Encode(reasonsModifiedJSON); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *ReportsHandler) GetReasonByID(w http.ResponseWriter, r *http.Request) {

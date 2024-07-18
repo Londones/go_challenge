@@ -50,8 +50,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 			// Protected routes for admin users
 			r.Use(AdminOnly)
 			// Admin specific routes
-			r.Get("/reportSocket", reportsHandler.HandleWebSocket)
 		})
+		r.Get("/reportSocket", reportsHandler.HandleWebSocket)
 		//** Race routes for admin
 
 		r.Group(func(r chi.Router) {
