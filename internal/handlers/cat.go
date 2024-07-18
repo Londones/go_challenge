@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go-challenge/internal/auth"
 	"io"
 	"net/http"
 	"os"
@@ -225,10 +226,10 @@ func (h *CatHandler) CatCreationHandler(w http.ResponseWriter, r *http.Request) 
 // @Param LastVaccineName formData string false "Last Vaccine Name"
 // @Param Color formData string false "Color"
 // @Param Behavior formData string false "Behavior"
-// @Param Sterilized formData string false "Sterilized"
+// @Param Sterilized formData bool false "Sterilized"
 // @Param RaceID formData string false "RaceID"
 // @Param Description formData string false "Description"
-// @Param Reserved formData string false "Reserved"
+// @Param Reserved formData bool false "Reserved"
 // @Param UserID formData string false "User ID"
 // @Param PublishedAs formData string false "Published As" // New parameter
 // @Param uploaded_file formData file false "Image"
@@ -325,6 +326,11 @@ func (h *CatHandler) UpdateCatHandler(w http.ResponseWriter, r *http.Request) {
 
 			pictures = append(pictures, FileURL)
 		}
+	}
+	senderUser, _ := auth.FindUserIdFromRequest(r)
+	if senderUser != userID {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
 	}
 
 	layout := "02-01-2006"
