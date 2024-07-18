@@ -51,8 +51,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 			// Protected routes for admin users
 			r.Use(AdminOnly)
 			// Admin specific routes
+			r.Get("/reports", reportsHandler.GetAllReports)
+
 		})
-		r.Get("/reportSocket", reportsHandler.HandleWebSocket)
 		//** Race routes for admin
 
 		r.Group(func(r chi.Router) {
@@ -133,10 +134,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 		//** Reports routes
 		r.Post("/reportMessage", reportsHandler.CreateReportedMessage)
 		r.Post("/reportAnnonce", reportsHandler.CreateReportedAnnonce)
-		r.Get("/reports", reportsHandler.GetAllReports)
 		r.Get("/reports/annonces", reportsHandler.GetReportedAnnonces)
 		r.Get("/reports/messages", reportsHandler.GetReportedMessages)
 		r.Get("/reasons", reportsHandler.GetReportReasons)
+		r.Get("/reasons/{id}", reportsHandler.GetReasonByID)
+
 		//** Notification routes
 		r.Post("/notifications", notificationTokenHandler.CreateNotificationTokenHandler)
 		r.Delete("/notifications/{id}", notificationTokenHandler.DeleteNotificationTokenHandler)
@@ -157,7 +159,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"),
 	))
-
+	r.Get("/reportSocket", reportsHandler.HandleWebSocket)
 	r.Get("/notifications/test", notificationTokenHandler.TestSendNotificationHandler)
 
 	return r

@@ -41,8 +41,12 @@ func NewReportsHandler(reportsQueries *queries.DatabaseService) *ReportsHandler 
 		reportsQueries: reportsQueries,
 		clients:        make(map[*websocket.Conn]bool),
 		broadcast:      make(chan []byte),
-		upgrader:       websocket.Upgrader{},
-		lastPosition:   0,
+		upgrader: websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			CheckOrigin:     func(r *http.Request) bool { return true },
+		},
+		lastPosition: 0,
 	}
 
 	go handler.broadcastReports()
@@ -51,9 +55,21 @@ func NewReportsHandler(reportsQueries *queries.DatabaseService) *ReportsHandler 
 	return handler
 }
 
+// HandleWebSocket upgrades the HTTP connection to a WebSocket connection for broadcasting real-time log entries.
+// @Summary Handle WebSocket connections for real-time reports
+// @Description Upgrade HTTP connection to WebSocket protocol for broadcasting real-time log entries
+// @Accept  json
+// @Produce json
+// @Success 101 {string} string "Upgraded to WebSocket Protocol"
+// @Failure 400 {string} string "Bad Request: Cannot upgrade to WebSocket"
+// @Failure 500 {string} string "Internal Server Error: Failed to handle WebSocket connection"
+// @Router /reportSocket [get]
 func (h *ReportsHandler) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Upgrading to WebSocket")
+
 	conn, err := h.upgrader.Upgrade(w, r, nil)
 	if err != nil {
+		fmt.Println("Error upgrading to WebSocket", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -154,6 +170,16 @@ func (h *ReportsHandler) broadcastReports() {
 	}
 }
 
+// CreateReportedMessage adds a new reported message to the database.
+// @Summary Create a new reported message
+// @Description Add a new reported message to the database
+// @Accept  json
+// @Produce json
+// @Param   reportedMessage body ReportedMessage true "Reported Message Data"
+// @Success 200 {object} ReportedMessageResponse "Reported message created successfully"
+// @Failure 400 {string} string "Bad Request: Missing or invalid fields in the request"
+// @Failure 500 {string} string "Internal Server Error: Failed to create reported message"
+// @Router /reportMessage [post]
 func (h *ReportsHandler) CreateReportedMessage(w http.ResponseWriter, r *http.Request) {
 	var reportedMessage *models.ReportedMessage
 	if err := json.NewDecoder(r.Body).Decode(&reportedMessage); err != nil {
@@ -204,14 +230,22 @@ func (h *ReportsHandler) CreateReportedMessage(w http.ResponseWriter, r *http.Re
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 }
 
+// CreateReportedAnnonce adds a new reported annonce to the database.
+// @Summary Create a new reported annonce
+// @Description Add a new reported annonce to the database
+// @Accept  json
+// @Produce json
+// @Param   reportedAnnonce body ReportedAnnonce true "Reported Annonce Data"
+// @Success 201 {string} string "Reported annonce created successfully"
+// @Failure 400 {string} string "Bad Request: Missing or invalid fields in the request"
+// @Failure 500 {string} string "Internal Server Error: Failed to create reported annonce"
+// @Router /reportAnnonce [post]
 func (h *ReportsHandler) CreateReportedAnnonce(w http.ResponseWriter, r *http.Request) {
 	var reportedAnnonce *models.ReportedAnnonce
 	if err := json.NewDecoder(r.Body).Decode(&reportedAnnonce); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	fmt.Println(reportedAnnonce)
 
 	reportedAnnonce, err := h.reportsQueries.CreateReportedAnnonce(reportedAnnonce)
 	if err != nil {
@@ -260,6 +294,14 @@ func (h *ReportsHandler) CreateReportedAnnonce(w http.ResponseWriter, r *http.Re
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 }
 
+// GetReportedMessages retrieves all reported messages from the database.
+// @Summary Get all reported messages
+// @Description Retrieve all reported messages from the database
+// @Accept  json
+// @Produce json
+// @Success 200 {object} ModifiedReport "List of reported messages"
+// @Failure 500 {string} string "Internal Server Error: Failed to retrieve reported messages"
+// @Router /reports/messages [get]
 func (h *ReportsHandler) GetReportedMessages(w http.ResponseWriter, r *http.Request) {
 	reportedMessages, err := h.reportsQueries.GetReportedMessages()
 	if err != nil {
@@ -304,6 +346,14 @@ func (h *ReportsHandler) GetReportedMessages(w http.ResponseWriter, r *http.Requ
 	w.Write(modifiedReportToJSON)
 }
 
+// GetReportedAnnonces retrieves all reported annonces from the database.
+// @Summary Get all reported annonces
+// @Description Retrieve all reported annonces from the database
+// @Accept  json
+// @Produce json
+// @Success 200 {object} ModifiedReport "List of reported annonces"
+// @Failure 500 {string} string "Internal Server Error: Failed to retrieve reported annonces"
+// @Router /reports/annonces [get]
 func (h *ReportsHandler) GetReportedAnnonces(w http.ResponseWriter, r *http.Request) {
 	reportedAnnonces, err := h.reportsQueries.GetReportedAnnonces()
 	if err != nil {
@@ -352,6 +402,14 @@ func (h *ReportsHandler) GetReportedAnnonces(w http.ResponseWriter, r *http.Requ
 	w.Write(modifiedReportToJSON)
 }
 
+// GetAllReports retrieves all reported messages and annonces from the database.
+// @Summary Get all reported messages and annonces
+// @Description Retrieve all reported messages and annonces from the database
+// @Accept  json
+// @Produce json
+// @Success 200 {object} ModifiedReport "List of reported messages and annonces"
+// @Failure 500 {string} string "Internal Server Error: Failed to retrieve reported messages and annonces"
+// @Router /reports [get]
 func (h *ReportsHandler) GetAllReports(w http.ResponseWriter, r *http.Request) {
 	reportedMessages, err := h.reportsQueries.GetReportedMessages()
 	if err != nil {
@@ -431,6 +489,14 @@ func (h *ReportsHandler) GetAllReports(w http.ResponseWriter, r *http.Request) {
 	w.Write(modifiedReportToJSON)
 }
 
+// GetReportReasons retrieves all report reasons from the database.
+// @Summary Get all report reasons
+// @Description Retrieve all report reasons from the database
+// @Accept  json
+// @Produce json
+// @Success 200 {object} []map[string]interface{} "List of report reasons"
+// @Failure 500 {string} string "Internal Server Error: Failed to retrieve report reasons"
+// @Router /reasons [get]
 func (h *ReportsHandler) GetReportReasons(w http.ResponseWriter, r *http.Request) {
 	reasons, err := h.reportsQueries.GetReasons()
 	if err != nil {
@@ -455,6 +521,16 @@ func (h *ReportsHandler) GetReportReasons(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// GetReasonByID retrieves a report reason by its ID from the database.
+// @Summary Get a report reason by ID
+// @Description Retrieve a report reason by its ID from the database
+// @Accept  json
+// @Produce json
+// @Param   id query string true "Report Reason ID"
+// @Success 200 {object} ReportReason "Report reason retrieved successfully"
+// @Failure 400 {string} string "Bad Request: Invalid report reason ID"
+// @Failure 500 {string} string "Internal Server Error: Failed to retrieve report reason"
+// @Router /reasons/{id} [get]
 func (h *ReportsHandler) GetReasonByID(w http.ResponseWriter, r *http.Request) {
 	reasonID := r.URL.Query().Get("id")
 	reasonIDtoUint, err := strconv.ParseUint(reasonID, 10, 64)
