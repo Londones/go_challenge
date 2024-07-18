@@ -193,6 +193,12 @@ func (h *FavoriteHandler) DeleteFavoriteByIDHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
+	err = h.favoriteQueries.DeleteRoomByAnnonceID(favorite.AnnonceID)
+	if err != nil {
+		http.Error(w, "error deleting room", http.StatusInternalServerError)
+		return
+	}
+
 	// Vérifiez si le favori appartient à l'utilisateur
 	if favorite.UserID != userID {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)

@@ -37,6 +37,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	associationHandler := handlers.NewAssociationHandler(s.dbService, s.uploadcareClient)
 	ratingHandler := handlers.NewRatingHandler(s.dbService, s.dbService)
 	roomHandler := handlers.NewRoomHandler(s.dbService)
+	reportsHandler := handlers.NewReportsHandler(s.dbService)
 	notificationTokenHandler := handlers.NewNotificationTokenHandler(s.dbService)
 	featureFlagHandler := handlers.NewFeatureFlagHandler(s.dbService)
 
@@ -50,6 +51,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Group(func(r chi.Router) {
 			// Protected routes for admin users
 			r.Use(AdminOnly)
+			// Admin specific routes
+			r.Get("/reports", reportsHandler.GetAllReports)
+
 		})
 
 		r.Group(func(r chi.Router) {
@@ -60,7 +64,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 		r.Group(func(r chi.Router) {
 			r.Use(FeatureFlagMiddleware(featureFlagHandler, "Association"))
-	
+
 			// Association routes
 			r.Get("/associations", associationHandler.GetAllAssociationsHandler)
 			r.Get("/users/{userId}/associations", associationHandler.GetUserAssociationsHandler)
@@ -103,7 +107,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/races", raceHandler.CreateRaceHandler)
 		r.Put("/races/{id}", raceHandler.UpdateRaceHandler)
 		r.Delete("/races/{id}", raceHandler.DeleteRaceHandler)
-		
+
 		//** User routes
 		r.Get("/users", userHandler.GetAllUsersHandler)
 		r.Get("/users/annonces/{id}", annonceHandler.GetUserAnnoncesHandler)
@@ -138,6 +142,14 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/ws/{roomID}", roomHandler.HandleWebSocket)
 		r.Get("/rooms/{roomID}/latest", roomHandler.GetLatestMessage)
 
+		//** Reports routes
+		r.Post("/reportMessage", reportsHandler.CreateReportedMessage)
+		r.Post("/reportAnnonce", reportsHandler.CreateReportedAnnonce)
+		r.Get("/reports/annonces", reportsHandler.GetReportedAnnonces)
+		r.Get("/reports/messages", reportsHandler.GetReportedMessages)
+		r.Get("/reasons", reportsHandler.GetReportReasons)
+		r.Get("/reasons/{id}", reportsHandler.GetReasonByID)
+
 		//** Notification routes
 		r.Post("/notifications", notificationTokenHandler.CreateNotificationTokenHandler)
 		r.Delete("/notifications/{id}", notificationTokenHandler.DeleteNotificationTokenHandler)
@@ -161,6 +173,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"),
 	))
 	r.Get("/feature-flags", featureFlagHandler.GetAllFeatureFlagsHandler)
+	r.Get("/reportSocket", reportsHandler.HandleWebSocket)
 	r.Get("/notifications/test", notificationTokenHandler.TestSendNotificationHandler)
 
 	return r
