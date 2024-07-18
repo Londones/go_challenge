@@ -5,11 +5,11 @@ import (
 )
 
 func (s *DatabaseService) CreateNotificationToken(notificationToken *models.NotificationToken) error {
-    db := s.s.DB()
-    if err := db.Where(models.NotificationToken{UserID: notificationToken.UserID}).Assign(models.NotificationToken{Token: notificationToken.Token}).FirstOrCreate(notificationToken).Error; err != nil {
-        return err
-    }
-    return nil
+	db := s.s.DB()
+	if err := db.Where(models.NotificationToken{UserID: notificationToken.UserID}).Assign(models.NotificationToken{Token: notificationToken.Token}).FirstOrCreate(notificationToken).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *DatabaseService) DeleteNotificationTokenForUser(userID string) error {
@@ -28,4 +28,3 @@ func (s *DatabaseService) GetNotificationTokenByUserID(userID string) (*models.N
 	}
 	return &notificationToken, nil
 }
-

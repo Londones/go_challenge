@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
+	"go-challenge/internal/config"
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
-	"go-challenge/internal/config"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -18,7 +18,7 @@ import (
 )
 
 type NotificationTokenHandler struct {
-	notificationTokenQueries      *queries.DatabaseService
+	notificationTokenQueries *queries.DatabaseService
 }
 
 func NewNotificationTokenHandler(notificationTokenQueries *queries.DatabaseService) *NotificationTokenHandler {
@@ -45,19 +45,19 @@ func (h *NotificationTokenHandler) CreateNotificationTokenHandler(w http.Respons
 }
 
 func (h *NotificationTokenHandler) DeleteNotificationTokenHandler(w http.ResponseWriter, r *http.Request) {
-    userID := chi.URLParam(r, "userID")
-    if userID == "" {
-        http.Error(w, "userID is required", http.StatusBadRequest)
-        return
-    }
+	userID := chi.URLParam(r, "userID")
+	if userID == "" {
+		http.Error(w, "userID is required", http.StatusBadRequest)
+		return
+	}
 
-    err := h.notificationTokenQueries.DeleteNotificationTokenForUser(userID)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
+	err := h.notificationTokenQueries.DeleteNotificationTokenForUser(userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-    w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *NotificationTokenHandler) SendNotificationHandler(w http.ResponseWriter, r *http.Request) {
@@ -99,7 +99,7 @@ func SendToToken(app *firebase.App, fcmToken string, text string, title string, 
 			Title: title,
 			Body:  text,
 		},
-		Data: payload,
+		Data:  payload,
 		Token: fcmToken,
 	}
 
@@ -134,4 +134,3 @@ func (h *NotificationTokenHandler) TestSendNotificationHandler(w http.ResponseWr
 	}
 	fmt.Println("Successfully sent message:", response)
 }
-

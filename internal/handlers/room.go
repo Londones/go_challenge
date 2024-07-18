@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
+	"go-challenge/internal/config"
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
-	"go-challenge/internal/config"
 	"go-challenge/internal/utils"
 
 	"github.com/go-chi/chi/v5"

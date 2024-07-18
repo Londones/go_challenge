@@ -15,7 +15,7 @@ func (s *DatabaseService) GetFeatureFlags() ([]models.FeatureFlag, error) {
 	return featureFlags, nil
 }
 
-func (s*DatabaseService) UpdateFeatureFlag(featureFlag models.FeatureFlag) error {
+func (s *DatabaseService) UpdateFeatureFlag(featureFlag models.FeatureFlag) error {
 	db := s.s.DB()
 	if err := db.Save(featureFlag).Error; err != nil {
 		utils.Logger("error", "Update Feature Flag:", "Failed to update feature flag", err.Error())

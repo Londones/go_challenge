@@ -19,7 +19,6 @@ func (s *DatabaseService) SaveMessage(roomID uint, senderID string, content stri
 		return nil, "", err
 	}
 	utils.Logger("info", "Message Creation:", "Message created successfully", fmt.Sprintf("Message ID: %v", message.ID))
-	
 
 	user, err := s.FindUserByID(senderID)
 	if err != nil {
@@ -27,7 +26,6 @@ func (s *DatabaseService) SaveMessage(roomID uint, senderID string, content stri
 		return nil, "", err
 	}
 	return &message, user.Name, nil
-
 
 }
 

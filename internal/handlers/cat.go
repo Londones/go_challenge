@@ -576,7 +576,7 @@ func (h *CatHandler) FindCatsByFilterHandler(w http.ResponseWriter, r *http.Requ
 	err = json.NewEncoder(w).Encode(data)
 
 	if len(data) == 0 {
-		http.Error(w, "No cats were found with using the filters.", http.StatusNotFound)
+		http.Error(w, "No cats were found using the filters.", http.StatusNotFound)
 		return
 	}
 

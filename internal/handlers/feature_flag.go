@@ -4,9 +4,9 @@ import (
 	"go-challenge/internal/database/queries"
 	"go-challenge/internal/models"
 )
+
 type FeatureFlagHandler struct {
 	featureFlagQueries *queries.DatabaseService
-
 }
 
 func NewFeatureFlagHandler(featureFlagQueries *queries.DatabaseService) *FeatureFlagHandler {
@@ -27,8 +27,6 @@ func (h *FeatureFlagHandler) GetFeatureFlags() ([]models.FeatureFlag, error) {
 	return featureFlags, nil
 }
 
-
 func (h *FeatureFlagHandler) UpdateFeatureFlag(featureFlag models.FeatureFlag) error {
 	return h.featureFlagQueries.UpdateFeatureFlag(featureFlag)
 }
-
