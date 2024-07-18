@@ -911,8 +911,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Published As",
                         "name": "PublishedAs",
-                        "in": "formData",
-                        "required": true
+                        "in": "formData"
                     },
                     {
                         "type": "file",
@@ -1262,6 +1261,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/cats/{id}/annonces": {
+            "get": {
+                "description": "Retrieve all annonces for a specific cat",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cats"
+                ],
+                "summary": "Get annonces by cat ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cat ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of annonces for the cat",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Annonce"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Cat ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error fetching annonces",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/favorites": {
             "post": {
                 "description": "Create a new favorite with the provided details",
@@ -1349,6 +1392,47 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "error retrieving favorites",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/favorites/{favoriteID}": {
+            "delete": {
+                "description": "Delete a favorite by its ID",
+                "tags": [
+                    "favorites"
+                ],
+                "summary": "Delete favorite by favorite ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Favorite ID",
+                        "name": "favoriteID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Favorite ID is required",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Favorite not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error deleting favorite",
                         "schema": {
                             "type": "string"
                         }

@@ -185,6 +185,8 @@ func migrateAllModels(db *gorm.DB) error {
 		&models.User{},
 		&models.Message{},
 		&models.Room{},
+		&models.FeatureFlag{},
+		&models.NotificationToken{},
 		&models.ReportReason{},
 		&models.ReportedAnnonce{},
 		&models.ReportedMessage{},

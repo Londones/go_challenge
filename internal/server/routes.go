@@ -38,6 +38,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	ratingHandler := handlers.NewRatingHandler(s.dbService, s.dbService)
 	roomHandler := handlers.NewRoomHandler(s.dbService)
 	reportsHandler := handlers.NewReportsHandler(s.dbService)
+	notificationTokenHandler := handlers.NewNotificationTokenHandler(s.dbService)
 
 	roomHandler.LoadRooms()
 
@@ -76,6 +77,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Put("/annonces/{id}", annonceHandler.ModifyAnnonceHandler)
 		r.Delete("/annonces/{id}", annonceHandler.DeleteAnnonceHandler)
 		r.Get("/annonces/cats/{catID}", annonceHandler.FetchAnnonceByCatIDHandler)
+		//	r.Get("annonce/address/{id}", annonceHandler.GetAddressFromUserID)
 
 		//**	Cats routes
 		r.Get("/cats", catHandler.GetAllCatsHandler)
@@ -85,6 +87,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Delete("/cats/{id}", catHandler.DeleteCatHandler)
 		r.Get("/cats/", catHandler.FindCatsByFilterHandler)
 		r.Get("/cats/user/{userID}", catHandler.GetCatsByUserHandler)
+		r.Get("/cats/{id}/annonces", catHandler.GetAnnoncesByCatIDHandler)
 
 		//** Race routes
 		r.Get("/races", raceHandler.GetAllRaceHandler)
@@ -96,16 +99,17 @@ func (s *Server) RegisterRoutes() http.Handler {
 		//** User routes
 		r.Get("/users", userHandler.GetAllUsersHandler)
 		r.Get("/users/annonces/{id}", annonceHandler.GetUserAnnoncesHandler)
+		r.Get("/users/{id}", userHandler.GetUserByIDHandler)
 		r.Get("/users/current", userHandler.GetCurrentUserHandler)
 		r.Post("/users", userHandler.CreateUserHandler)
 		r.Post("/profile/picture", userHandler.ModifyProfilePictureHandler)
 		r.Put("/users/{id}", userHandler.UpdateUserHandler)
 		r.Delete("/users/{id}", userHandler.DeleteUserHandler)
-		r.Get("/users/{id}", userHandler.GetUserByIDHandler)
 
 		//** Favorite routes
 		r.Post("/favorites", favoriteHandler.FavoriteCreationHandler)
 		r.Get("/favorites/users/{userID}", favoriteHandler.GetFavoritesByUserHandler)
+		r.Delete("/favorites/{favoriteID}", favoriteHandler.DeleteFavoriteByIDHandler) // Nouvelle ligne ajoutée
 
 		//** Auth routes
 		r.Get("/logout/{provider}", authHandler.LogoutProvider)
@@ -133,6 +137,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/reports/annonces", reportsHandler.GetReportedAnnonces)
 		r.Get("/reports/messages", reportsHandler.GetReportedMessages)
 		r.Get("/reasons", reportsHandler.GetReportReasons)
+		//** Notification routes
+		r.Post("/notifications", notificationTokenHandler.CreateNotificationTokenHandler)
+		r.Delete("/notifications/{id}", notificationTokenHandler.DeleteNotificationTokenHandler)
+		r.Post("/notifications/send", notificationTokenHandler.SendNotificationHandler)
 
 	})
 
@@ -149,6 +157,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL(os.Getenv("SERVER_URL")+"/swagger/doc.json"),
 	))
+
+	r.Get("/notifications/test", notificationTokenHandler.TestSendNotificationHandler)
 
 	return r
 }

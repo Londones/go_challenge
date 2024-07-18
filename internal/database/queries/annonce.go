@@ -98,12 +98,33 @@ func (s *DatabaseService) GetUserIDByAnnonceID(annonceID string) (id string, err
 	return user.ID, nil
 }
 
+func (s *DatabaseService) GetAddressFromAnnonceID(userID string) (string, error) {
+	db := s.s.DB()
+	var user models.User
+	if err := db.Where("ID = ?", userID).First(&user).Error; err != nil {
+		return "", err
+	}
+	var address = user.AddressRue + user.Cp + user.Ville
+	fmt.Println(address)
+	return address, nil
+}
+
 func (s *DatabaseService) UpdateAnnonce(annonce *models.Annonce) error {
 	db := s.s.DB()
 	if err := db.Save(annonce).Error; err != nil {
 		return err
 	}
 	return nil
+}
+
+func (s *DatabaseService) FindAnnoncesByCatID(catID string) ([]models.Annonce, error) {
+	db := s.s.DB()
+	var annonces []models.Annonce
+	err := db.Where("cat_id = ?", catID).Find(&annonces).Error
+	if err != nil {
+		return nil, err
+	}
+	return annonces, nil
 }
 
 func (s *DatabaseService) GetAnnonceByID(id uint) (*models.Annonce, error) {
