@@ -2,6 +2,7 @@ package handlers
 
 import (
 	// "context"
+
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -229,7 +230,6 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	token := auth.MakeToken(user.ID, string(user.Roles[0].Name))
 
-	print("Token: ", token)
 	http.SetCookie(w, &http.Cookie{
 		HttpOnly: true,
 		Expires:  time.Now().Add(24 * time.Hour),

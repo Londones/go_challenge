@@ -1,11 +1,12 @@
 package server
 
 import (
+	// "fmt"
 	"fmt"
 	"net/http"
 
 	"go-challenge/internal/handlers"
-	"go-challenge/internal/models"
+	// "go-challenge/internal/models"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
@@ -20,7 +21,7 @@ func AdminOnly(next http.Handler) http.Handler {
 		_, claims, _ := jwtauth.FromContext(r.Context())
 		role := claims["role"]
 
-		if role != "admin" {
+		if role != "ADMIN" {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
@@ -50,33 +51,24 @@ func UserOnly(next http.Handler) http.Handler {
 	})
 }
 
-func (m *Middleware) FeatureFlagMiddleware(featureName string, next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		featureFlags, err := m.FeatureFlagHandler.GetFeatureFlags()
-		if err != nil {
-			http.Error(w, "Error fetching feature flags", http.StatusInternalServerError)
-			return
-		}
+func FeatureFlagMiddleware(featureFlagHandler *handlers.FeatureFlagHandler, featureFlagName string) func(next http.Handler) http.Handler {
+    return func(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            isEnabled, err := featureFlagHandler.IsFeatureFlagEnabled(featureFlagName)
+            if err != nil {
+                fmt.Println(err)
+                fmt.Println("1", featureFlagName)
+                http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+            }
 
-		enabled, err := IsFeatureEnabled(featureFlags, featureName)
-		if err != nil {
-			http.Error(w, "Error checking feature flag", http.StatusInternalServerError)
-			return
-		}
-		if !enabled {
-			http.Error(w, "Feature not enabled", http.StatusForbidden)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
-}
+            if !isEnabled {
+                fmt.Println("2", featureFlagName)
+                http.Error(w, "Feature is not enabled", http.StatusForbidden)
+                return
+            }
 
-func IsFeatureEnabled(featureFlags []models.FeatureFlag, featureName string) (bool, error) {
-	for _, featureFlag := range featureFlags {
-		if featureFlag.Name == featureName {
-			return featureFlag.IsEnabled, nil
-		}
-	}
-
-	return false, fmt.Errorf("feature flag not found: %s", featureName)
+            next.ServeHTTP(w, r)
+        })
+    }
 }

@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"go-challenge/internal/models"
 	"go-challenge/internal/utils"
+	"strconv"
+
+	"gorm.io/gorm"
 )
 
 func (s *DatabaseService) CreateRoom(room *models.Room) (id uint, err error) {
@@ -88,4 +91,38 @@ func (s *DatabaseService) GetNotificationTokenByUserIDOnRoom(userID string) (*mo
 		return nil, err
 	}
 	return &notificationToken, nil
+}
+
+func (s *DatabaseService) DeleteRoom(id uint) error {
+	db := s.s.DB()
+	room := &models.Room{}
+	if err := db.First(room, id).Error; err != nil {
+		if err.Error() == gorm.ErrRecordNotFound.Error() {
+			return fmt.Errorf("room with ID %s not found", strconv.Itoa(int(id)))
+		}
+		return err
+	}
+	if err := db.Delete(room).Error; err != nil {
+		utils.Logger("error", "Delete Room:", "Failed to delete room", fmt.Sprintf("Error: %v", err))
+		return err
+	}
+	utils.Logger("info", "Delete Room:", "Room deleted successfully", fmt.Sprintf("Room ID: %v", id))
+	return nil
+}
+
+func (s *DatabaseService) DeleteRoomByAnnonceID(id string) error {
+	db := s.s.DB()
+	room := &models.Room{}
+	if err := db.Where("annonce_id = ?", id).First(room).Error; err != nil {
+		if err.Error() == gorm.ErrRecordNotFound.Error() {
+			return fmt.Errorf("room with annonce ID %s not found", id)
+		}
+		return err
+	}
+	if err := db.Delete(room).Error; err != nil {
+		utils.Logger("error", "Delete Room By Annonce ID:", "Failed to delete room by annonce ID", fmt.Sprintf("Error: %v", err))
+		return err
+	}
+	utils.Logger("info", "Delete Room By Annonce ID:", "Room deleted successfully", fmt.Sprintf("Annonce ID: %v", id))
+	return nil
 }

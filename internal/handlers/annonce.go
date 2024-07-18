@@ -346,7 +346,13 @@ func (h *AnnonceHandler) DeleteAnnonceHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err := h.annonceQueries.DeleteAnnonce(id)
+	err := h.annonceQueries.DeleteRoomByAnnonceID(id)
+	if err != nil {
+		http.Error(w, "error deleting room", http.StatusInternalServerError)
+		return
+	}
+
+	err = h.annonceQueries.DeleteAnnonce(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, fmt.Sprintf("annonce with ID %s not found", id), http.StatusNotFound)

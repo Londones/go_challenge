@@ -1,8 +1,14 @@
 package handlers
 
 import (
+	"encoding/json"
 	"go-challenge/internal/database/queries"
-	"go-challenge/internal/models"
+	"net/http"
+	"strconv"
+	"fmt"
+	"log"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type FeatureFlagHandler struct {
@@ -13,20 +19,92 @@ func NewFeatureFlagHandler(featureFlagQueries *queries.DatabaseService) *Feature
 	return &FeatureFlagHandler{featureFlagQueries: featureFlagQueries}
 }
 
-func (h *FeatureFlagHandler) GetFeatureFlags() ([]models.FeatureFlag, error) {
-	featureFlags, err := h.featureFlagQueries.GetFeatureFlags()
+// GetAllFeatureFlagsHandler godoc
+// @Summary Get all feature flags
+// @Description Get all feature flags
+// @Tags featureFlags
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} FeatureFlag
+// @Failure 500 {object} ErrorResponse
+// @Router /featureflags [get]
+func (h *FeatureFlagHandler) GetAllFeatureFlagsHandler(w http.ResponseWriter, r *http.Request) {
+	featureFlags, err := h.featureFlagQueries.GetAllFeatureFlags()
 	if err != nil {
-		return nil, err
+		http.Error(w, "error fetching feature flags", http.StatusInternalServerError)
+		return
 	}
 
-	featureFlagCache := make(map[string]bool)
-	for _, featureFlag := range featureFlags {
-		featureFlagCache[featureFlag.Name] = featureFlag.IsEnabled
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	err = json.NewEncoder(w).Encode(featureFlags)
+	if err != nil {
+		http.Error(w, "error encoding feature flags to JSON", http.StatusInternalServerError)
+		return
 	}
-
-	return featureFlags, nil
 }
 
-func (h *FeatureFlagHandler) UpdateFeatureFlag(featureFlag models.FeatureFlag) error {
-	return h.featureFlagQueries.UpdateFeatureFlag(featureFlag)
+// UpdateFeatureFlagStatusHandler godoc
+// @Summary Update feature flag status
+// @Description Update the status of a feature flag
+// @Tags featureFlags
+// @Accept  json
+// @Produce  json
+// @Param id path int true "Feature Flag ID"
+// @Param isEnabled body bool true "Is Enabled"
+// @Success 200 {object} FeatureFlag
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /featureflags/{id} [put]
+func (h *FeatureFlagHandler) UpdateFeatureFlagStatusHandler(w http.ResponseWriter, r *http.Request) {
+	featureFlagIDStr := chi.URLParam(r, "id")
+	if featureFlagIDStr == "" {
+		http.Error(w, "missing feature flag ID", http.StatusBadRequest)
+		return
+	}
+
+	featureFlagID, err := strconv.Atoi(featureFlagIDStr)
+	if err != nil {
+		http.Error(w, "invalid feature flag ID", http.StatusBadRequest)
+		return
+	}
+
+	var body struct {
+		IsEnabled bool `json:"isEnabled"`
+	}
+
+	err = json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		http.Error(w, "error decoding request body", http.StatusBadRequest)
+		return
+	}
+
+	featureFlag, err := h.featureFlagQueries.FindFeatureFlagByID(featureFlagID)
+	if err != nil {
+		http.Error(w, "error fetching feature flag", http.StatusInternalServerError)
+		return
+	}
+
+	featureFlag.IsEnabled = body.IsEnabled
+
+	err = h.featureFlagQueries.UpdateFeatureFlag(featureFlag)
+	if err != nil {
+		http.Error(w, "error updating feature flag", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(featureFlag)
+}
+
+func (h *FeatureFlagHandler) IsFeatureFlagEnabled(featureFlagName string) (bool, error) {
+    featureFlag, err := h.featureFlagQueries.FindFeatureFlagByName(featureFlagName)
+    if err != nil {
+		fmt.Println("error fetching feature flag: %w", err)
+		fmt.Println("3", featureFlagName)
+        return false, fmt.Errorf("error fetching feature flag: %w", err)
+    }
+
+    log.Printf("Feature flag '%s' is enabled: %v", featureFlagName, featureFlag.IsEnabled)
+    return featureFlag.IsEnabled, nil
 }

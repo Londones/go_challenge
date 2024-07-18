@@ -4,8 +4,13 @@ import (
 	"fmt"
 	"go-challenge/internal/models"
 	"go-challenge/internal/utils"
+
 	"gorm.io/gorm"
 )
+
+type LatestMessageResponse struct {
+	Message *models.Message `json:"message"`
+}
 
 func (s *DatabaseService) SaveMessage(roomID uint, senderID string, content string) (*models.Message, string, error) {
 	db := s.s.DB()
@@ -65,6 +70,11 @@ func (s *DatabaseService) GetLatestMessageByRoomID(roomID uint) (*LatestMessageR
 	return &LatestMessageResponse{Message: &message}, nil
 }
 
-type LatestMessageResponse struct {
-	Message *models.Message `json:"message"`
+func (s *DatabaseService) GetMessageByID(id uint) (*models.Message, error) {
+	db := s.s.DB()
+	var message models.Message
+	if err := db.First(&message, id).Error; err != nil {
+		return nil, err
+	}
+	return &message, nil
 }
