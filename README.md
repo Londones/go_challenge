@@ -65,6 +65,8 @@ go run cmd/api/main.go
 ```
 Des fixtures peuvent être jouées automatiquement au lancement du serveur, il suffit de décommenter la ligne 9 et les lignes 109-156 du fichier ./internal/database/database.go
 
+Les tests unitaires de l'application se trouvent sur la branche tests du git.
+
 ## Description du projet
 
 ### Organisation des dossiers
