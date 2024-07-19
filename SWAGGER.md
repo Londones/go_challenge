@@ -28,6 +28,3 @@ La commande ci-dessus prends plusieurs paramètres:
 - ``-d`` Spécifie le chemin d'accès pour les dossier à parser
 - ``-g`` Spécifie le chemin d'accès pour le fichier main.go.
 
-
-> [!WARNING]  
-> Pour l'instant la commande d'initialisation ne parse pas tous les models.
