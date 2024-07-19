@@ -108,6 +108,21 @@ definitions:
       userID:
         type: string
     type: object
+  models.FeatureFlag:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      isEnabled:
+        type: boolean
+      name:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   models.Message:
     properties:
       content:
@@ -161,6 +176,61 @@ definitions:
       updatedAt:
         type: string
       userID:
+        type: string
+    type: object
+  models.ReportReason:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      reason:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.ReportedAnnonce:
+    properties:
+      annonceId:
+        type: integer
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      isHandled:
+        type: boolean
+      reasonId:
+        type: integer
+      reportedUserId:
+        type: string
+      reporterUserId:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.ReportedMessage:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      isHandled:
+        type: boolean
+      messageId:
+        type: integer
+      reasonId:
+        type: integer
+      reportedUserId:
+        type: string
+      reporterUserId:
+        type: string
+      updatedAt:
         type: string
     type: object
   models.RoleName:
@@ -1197,6 +1267,62 @@ paths:
       summary: Get user favorites
       tags:
       - favorites
+  /featureflags:
+    get:
+      consumes:
+      - application/json
+      description: Get all feature flags
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.FeatureFlag'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get all feature flags
+      tags:
+      - featureFlags
+  /featureflags/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update the status of a feature flag
+      parameters:
+      - description: Feature Flag ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Is Enabled
+        in: body
+        name: isEnabled
+        required: true
+        schema:
+          type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.FeatureFlag'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Update feature flag status
+      tags:
+      - featureFlags
   /login:
     post:
       consumes:
@@ -1639,6 +1765,53 @@ paths:
       summary: Récupérer les Ratings d'un utilisateur
       tags:
       - Ratings
+  /reasons:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all report reasons from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of report reasons
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "500":
+          description: 'Internal Server Error: Failed to retrieve report reasons'
+          schema:
+            type: string
+      summary: Get all report reasons
+  /reasons/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a report reason by its ID from the database
+      parameters:
+      - description: Report Reason ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Report reason retrieved successfully
+          schema:
+            $ref: '#/definitions/models.ReportReason'
+        "400":
+          description: 'Bad Request: Invalid report reason ID'
+          schema:
+            type: string
+        "500":
+          description: 'Internal Server Error: Failed to retrieve report reason'
+          schema:
+            type: string
+      summary: Get a report reason by ID
   /register:
     post:
       consumes:
@@ -1690,6 +1863,145 @@ paths:
       summary: Register a new user
       tags:
       - users
+  /reportAnnonce:
+    post:
+      consumes:
+      - application/json
+      description: Add a new reported annonce to the database
+      parameters:
+      - description: Reported Annonce Data
+        in: body
+        name: reportedAnnonce
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReportedAnnonce'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Reported annonce created successfully
+          schema:
+            type: string
+        "400":
+          description: 'Bad Request: Missing or invalid fields in the request'
+          schema:
+            type: string
+        "500":
+          description: 'Internal Server Error: Failed to create reported annonce'
+          schema:
+            type: string
+      summary: Create a new reported annonce
+  /reportMessage:
+    post:
+      consumes:
+      - application/json
+      description: Add a new reported message to the database
+      parameters:
+      - description: Reported Message Data
+        in: body
+        name: reportedMessage
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReportedMessage'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reported message created successfully
+          schema:
+            type: string
+        "400":
+          description: 'Bad Request: Missing or invalid fields in the request'
+          schema:
+            type: string
+        "500":
+          description: 'Internal Server Error: Failed to create reported message'
+          schema:
+            type: string
+      summary: Create a new reported message
+  /reportSocket:
+    get:
+      consumes:
+      - application/json
+      description: Upgrade HTTP connection to WebSocket protocol for broadcasting
+        real-time log entries
+      produces:
+      - application/json
+      responses:
+        "101":
+          description: Upgraded to WebSocket Protocol
+          schema:
+            type: string
+        "400":
+          description: 'Bad Request: Cannot upgrade to WebSocket'
+          schema:
+            type: string
+        "500":
+          description: 'Internal Server Error: Failed to handle WebSocket connection'
+          schema:
+            type: string
+      summary: Handle WebSocket connections for real-time reports
+  /reports:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all reported messages and annonces from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of reported messages and annonces
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "500":
+          description: 'Internal Server Error: Failed to retrieve reported messages
+            and annonces'
+          schema:
+            type: string
+      summary: Get all reported messages and annonces
+  /reports/annonces:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all reported annonces from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of reported annonces
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "500":
+          description: 'Internal Server Error: Failed to retrieve reported annonces'
+          schema:
+            type: string
+      summary: Get all reported annonces
+  /reports/messages:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all reported messages from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of reported messages
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "500":
+          description: 'Internal Server Error: Failed to retrieve reported messages'
+          schema:
+            type: string
+      summary: Get all reported messages
   /rooms:
     get:
       consumes:

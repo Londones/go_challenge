@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"go-challenge/internal/database/queries"
+	"log"
 	"net/http"
 	"strconv"
-	"fmt"
-	"log"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -25,8 +25,8 @@ func NewFeatureFlagHandler(featureFlagQueries *queries.DatabaseService) *Feature
 // @Tags featureFlags
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} FeatureFlag
-// @Failure 500 {object} ErrorResponse
+// @Success 200 {array} models.FeatureFlag
+// @Failure 500 {string} string "Internal server error"
 // @Router /featureflags [get]
 func (h *FeatureFlagHandler) GetAllFeatureFlagsHandler(w http.ResponseWriter, r *http.Request) {
 	featureFlags, err := h.featureFlagQueries.GetAllFeatureFlags()
@@ -51,9 +51,9 @@ func (h *FeatureFlagHandler) GetAllFeatureFlagsHandler(w http.ResponseWriter, r 
 // @Produce  json
 // @Param id path int true "Feature Flag ID"
 // @Param isEnabled body bool true "Is Enabled"
-// @Success 200 {object} FeatureFlag
-// @Failure 400 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 200 {object} models.FeatureFlag
+// @Failure 400 {object} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
 // @Router /featureflags/{id} [put]
 func (h *FeatureFlagHandler) UpdateFeatureFlagStatusHandler(w http.ResponseWriter, r *http.Request) {
 	featureFlagIDStr := chi.URLParam(r, "id")
@@ -98,13 +98,13 @@ func (h *FeatureFlagHandler) UpdateFeatureFlagStatusHandler(w http.ResponseWrite
 }
 
 func (h *FeatureFlagHandler) IsFeatureFlagEnabled(featureFlagName string) (bool, error) {
-    featureFlag, err := h.featureFlagQueries.FindFeatureFlagByName(featureFlagName)
-    if err != nil {
+	featureFlag, err := h.featureFlagQueries.FindFeatureFlagByName(featureFlagName)
+	if err != nil {
 		fmt.Println("error fetching feature flag: %w", err)
 		fmt.Println("3", featureFlagName)
-        return false, fmt.Errorf("error fetching feature flag: %w", err)
-    }
+		return false, fmt.Errorf("error fetching feature flag: %w", err)
+	}
 
-    log.Printf("Feature flag '%s' is enabled: %v", featureFlagName, featureFlag.IsEnabled)
-    return featureFlag.IsEnabled, nil
+	log.Printf("Feature flag '%s' is enabled: %v", featureFlagName, featureFlag.IsEnabled)
+	return featureFlag.IsEnabled, nil
 }

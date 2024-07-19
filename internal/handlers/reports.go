@@ -175,8 +175,8 @@ func (h *ReportsHandler) broadcastReports() {
 // @Description Add a new reported message to the database
 // @Accept  json
 // @Produce json
-// @Param   reportedMessage body ReportedMessage true "Reported Message Data"
-// @Success 200 {object} ReportedMessageResponse "Reported message created successfully"
+// @Param   reportedMessage body models.ReportedMessage true "Reported Message Data"
+// @Success 200 {object} string "Reported message created successfully"
 // @Failure 400 {string} string "Bad Request: Missing or invalid fields in the request"
 // @Failure 500 {string} string "Internal Server Error: Failed to create reported message"
 // @Router /reportMessage [post]
@@ -235,7 +235,7 @@ func (h *ReportsHandler) CreateReportedMessage(w http.ResponseWriter, r *http.Re
 // @Description Add a new reported annonce to the database
 // @Accept  json
 // @Produce json
-// @Param   reportedAnnonce body ReportedAnnonce true "Reported Annonce Data"
+// @Param   reportedAnnonce body models.ReportedAnnonce true "Reported Annonce Data"
 // @Success 201 {string} string "Reported annonce created successfully"
 // @Failure 400 {string} string "Bad Request: Missing or invalid fields in the request"
 // @Failure 500 {string} string "Internal Server Error: Failed to create reported annonce"
@@ -527,7 +527,7 @@ func (h *ReportsHandler) GetReportReasons(w http.ResponseWriter, r *http.Request
 // @Accept  json
 // @Produce json
 // @Param   id query string true "Report Reason ID"
-// @Success 200 {object} ReportReason "Report reason retrieved successfully"
+// @Success 200 {object} models.ReportReason "Report reason retrieved successfully"
 // @Failure 400 {string} string "Bad Request: Invalid report reason ID"
 // @Failure 500 {string} string "Internal Server Error: Failed to retrieve report reason"
 // @Router /reasons/{id} [get]
