@@ -115,7 +115,7 @@ func (h *AnnonceHandler) AnnonceCreationHandler(w http.ResponseWriter, r *http.R
 		Annonce: createdAnnonce,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(response)
 }
@@ -135,7 +135,7 @@ func (h *AnnonceHandler) GetAllAnnoncesHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(annonces)
 }
@@ -177,7 +177,7 @@ func (h *AnnonceHandler) GetUserAnnoncesHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err = json.NewEncoder(w).Encode(annonces)
 	if err != nil {
 		http.Error(w, "error encoding annonces to JSON", http.StatusInternalServerError)
@@ -215,7 +215,7 @@ func (h *AnnonceHandler) GetAnnonceByIDHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(annonce)
 }
@@ -323,7 +323,7 @@ func (h *AnnonceHandler) ModifyAnnonceHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(existingAnnonce)
 }
@@ -346,7 +346,13 @@ func (h *AnnonceHandler) DeleteAnnonceHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err := h.annonceQueries.DeleteAnnonce(id)
+	err := h.annonceQueries.DeleteRoomByAnnonceID(id)
+	if err != nil {
+		http.Error(w, "error deleting room", http.StatusInternalServerError)
+		return
+	}
+
+	err = h.annonceQueries.DeleteAnnonce(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, fmt.Sprintf("annonce with ID %s not found", id), http.StatusNotFound)
@@ -387,7 +393,29 @@ func (h *AnnonceHandler) FetchAnnonceByCatIDHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(annonce)
 }
+
+/*
+// GetAddressFromUserID godoc
+// @Summary Get the user address from user ID
+// @Description Get the address from the user ID
+// @Tags annonces
+// @Produce json
+// @Param userID path string true "ID of the annonce's user"
+// @Success 200 {object} String "Address"
+// @Failure 400 {string} string "Invalid annonce ID format"
+// @Failure 404 {string} string "Annonce not found"
+// @Failure 500 {string} string "Internal server error"
+// @Router /annonces/address/{id} [get]
+func (h *AnnonceHandler) GetAddressFromUserID(w http.ResponseWriter, r *http.Request) {
+	userID := chi.URLParam(r, "id")
+	if annonceID == "" {
+		http.Error(w, "ID is required", http.StatusBadRequest)
+		return
+	}
+	address, err := h.annonceQueries.GetAddressFromAnnonceID(userID)
+}
+*/

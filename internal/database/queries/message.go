@@ -4,9 +4,15 @@ import (
 	"fmt"
 	"go-challenge/internal/models"
 	"go-challenge/internal/utils"
+
+	"gorm.io/gorm"
 )
 
-func (s *DatabaseService) SaveMessage(roomID uint, senderID string, content string) (*models.Message, error) {
+type LatestMessageResponse struct {
+	Message *models.Message `json:"message"`
+}
+
+func (s *DatabaseService) SaveMessage(roomID uint, senderID string, content string) (*models.Message, string, error) {
 	db := s.s.DB()
 	message := models.Message{
 		RoomID:   roomID,
@@ -15,10 +21,17 @@ func (s *DatabaseService) SaveMessage(roomID uint, senderID string, content stri
 	}
 	if err := db.Create(&message).Error; err != nil {
 		utils.Logger("error", "Message Creation:", "Failed to create message", fmt.Sprintf("Error: %v", err))
-		return nil, err
+		return nil, "", err
 	}
 	utils.Logger("info", "Message Creation:", "Message created successfully", fmt.Sprintf("Message ID: %v", message.ID))
-	return &message, nil
+
+	user, err := s.FindUserByID(senderID)
+	if err != nil {
+		utils.Logger("error", "Message Creation:", "Failed to get user by ID", fmt.Sprintf("Error: %v", err))
+		return nil, "", err
+	}
+	return &message, user.Name, nil
+
 }
 
 func (s *DatabaseService) GetMessagesByRoomID(roomID uint) ([]*models.Message, error) {
@@ -30,4 +43,38 @@ func (s *DatabaseService) GetMessagesByRoomID(roomID uint) ([]*models.Message, e
 	}
 	utils.Logger("info", "Get Messages By Room ID:", "Messages retrieved successfully", fmt.Sprintf("Messages: %v", messages))
 	return messages, nil
+}
+
+func (s *DatabaseService) MarkMessagesAsRead(roomID uint, userID string) error {
+	db := s.s.DB()
+	if err := db.Model(&models.Message{}).Where("room_id = ? AND sender_id != ? AND is_read = false", roomID, userID).Update("is_read", true).Error; err != nil {
+		utils.Logger("error", "Mark Messages As Read:", "Failed to mark messages as read", fmt.Sprintf("Error: %v", err))
+		return err
+	}
+	utils.Logger("info", "Mark Messages As Read:", "Messages marked as read successfully", fmt.Sprintf("Room ID: %v, Sender ID: %v", roomID, userID))
+	return nil
+}
+
+func (s *DatabaseService) GetLatestMessageByRoomID(roomID uint) (*LatestMessageResponse, error) {
+	db := s.s.DB()
+	var message models.Message
+	result := db.Where("room_id = ?", roomID).
+		Order("created_at DESC").
+		First(&message)
+	if result.Error != nil {
+		if result.Error.Error() == gorm.ErrRecordNotFound.Error() {
+			return &LatestMessageResponse{Message: nil}, nil
+		}
+		return nil, result.Error
+	}
+	return &LatestMessageResponse{Message: &message}, nil
+}
+
+func (s *DatabaseService) GetMessageByID(id uint) (*models.Message, error) {
+	db := s.s.DB()
+	var message models.Message
+	if err := db.First(&message, id).Error; err != nil {
+		return nil, err
+	}
+	return &message, nil
 }

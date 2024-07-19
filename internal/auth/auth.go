@@ -7,10 +7,10 @@ import (
 	"os"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/gorilla/sessions"
+	// "github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
 	"github.com/markbates/goth"
-	"github.com/markbates/goth/gothic"
+	// "github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -25,14 +25,20 @@ var TokenAuth *jwtauth.JWTAuth
 var secret string
 
 func init() {
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
+
 	appEnv := os.Getenv("APP_ENV")
 
 	if appEnv == "local" {
-		err := godotenv.Load()
+		err = godotenv.Load()
 		if err != nil {
-			fmt.Println("Error loading .env file")
+			fmt.Println("Error reloading .env file")
 		}
 	}
+
 	secret = os.Getenv("JWT_SECRET")
 }
 
@@ -51,20 +57,20 @@ func GetTokenFromCookie(r *http.Request) (string, error) {
 }
 
 func NewAuth() {
-	var key = os.Getenv("SESSION_KEY")
+	// var key = os.Getenv("SESSION_KEY")
 	TokenAuth = jwtauth.New("HS256", []byte(secret), nil)
 
 	googleClientID := os.Getenv("GOOGLE_CLIENT_ID")
 	googleClientSecret := os.Getenv("GOOGLE_CLIENT_SECRET")
 
-	store := sessions.NewCookieStore([]byte(key))
-	store.MaxAge(maxAge)
+	// store := sessions.NewCookieStore([]byte(key))
+	// store.MaxAge(maxAge)
 
-	store.Options.Path = "/"
-	store.Options.HttpOnly = true
-	store.Options.Secure = isProd
+	// store.Options.Path = "/"
+	// store.Options.HttpOnly = true
+	// store.Options.Secure = isProd
 
-	gothic.Store = store
+	// gothic.Store = store
 
 	goth.UseProviders(
 		google.New(googleClientID, googleClientSecret, os.Getenv("SERVER_URL")+"/auth/google/callback"),

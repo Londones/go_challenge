@@ -45,3 +45,12 @@ func (s *DatabaseService) FindFavoritesByAnnonceID(annonceID string) ([]models.F
 	}
 	return favorites, nil
 }
+
+func (s *DatabaseService) FindFavoriteByUserAndAnnonceID(userID, annonceID string) (*models.Favorite, error) {
+	db := s.s.DB()
+	var favorite models.Favorite
+	if err := db.Where("user_id = ? AND annonce_id = ?", userID, annonceID).First(&favorite).Error; err != nil {
+		return nil, err
+	}
+	return &favorite, nil
+}
