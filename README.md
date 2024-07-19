@@ -69,6 +69,10 @@ Des fixtures peuvent être jouées automatiquement au lancement du serveur, il s
 
 Les tests unitaires de l'application se trouvent sur la branche tests du git.
 
+```shell
+go test
+```
+
 ## Description du projet
 
 ### Organisation des dossiers
