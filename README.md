@@ -40,6 +40,8 @@ FIREBASE_SDK=
 JWT_SECRET=
 
 SESSION_KEY=
+
+SESSION_SECRET=
 ```
 
 Pour le client googleID qui correspond à la connexion avec google suivre ce lien afin de créer
