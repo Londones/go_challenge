@@ -63,6 +63,7 @@ Pour lancer le serveur go, à la racine du projet exécuter la commande:
 ```shell
 go run cmd/api/main.go
 ```
+Des fixtures peuvent être jouées automatiquement au lancement du serveur, il suffit de décommenter la ligne 9 et les lignes 109-156 du fichier ./internal/database/database.go
 
 ## Description du projet
 
