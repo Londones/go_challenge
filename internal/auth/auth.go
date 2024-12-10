@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/go-chi/jwtauth/v5"
 	// "github.com/gorilla/sessions"
@@ -45,6 +46,19 @@ func init() {
 func MakeToken(id string, role string) string {
 	_, tokenString, _ := TokenAuth.Encode(map[string]interface{}{"id": id, "role": role})
 	return tokenString
+}
+
+func FindUserIdFromRequest(r *http.Request) (interface{}, bool) {
+	prefix := "Bearer "
+	var authorization = r.Header.Get("Authorization")
+
+	if authorization == "" {
+		authorization, _ = GetTokenFromCookie(r)
+	}
+
+	reqToken := strings.TrimPrefix(authorization, prefix)
+	var parsedToken, _ = TokenAuth.Decode(reqToken)
+	return parsedToken.Get("id")
 }
 
 func GetTokenFromCookie(r *http.Request) (string, error) {
